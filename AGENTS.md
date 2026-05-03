@@ -2,6 +2,14 @@
 
 Single-author hobby SPA. Heroes of the Aturi Cluster Imperial AI helper. React + TypeScript on Vite, deployed as a static SPA on Vercel. No backend.
 
+## Scripts
+
+- `npm run dev` — Vite dev server on `:3000`. Wires the runtime validator as a dev-only side effect.
+- `npm run build` — `tsc --noEmit && vite build`. Failure on either step is a blocker.
+- `npm run preview` — serves the production build locally for smoke-testing before deploy.
+- `npm test` — Vitest. Currently runs the data-layer validator test.
+- `npm run lint` / `npm run format` / `npm run typecheck` — ESLint flat config / Prettier / `tsc --noEmit` standalone.
+
 ## Workflow
 
 - **Plan before code.** Update `ROADMAP.md` as work progresses; never re-litigate confirmed decisions.
@@ -49,18 +57,21 @@ The `src/data/` tree is the source of truth for AI behavior. Specific rules appl
 
 ## React / UI
 
-- Existing app uses `react-bootstrap` 1.0-beta and a custom `xwing-miniatures-font`. No Tailwind / shadcn until a UI rewrite is explicitly scoped.
+- App is locked to **React 16.14 + react-bootstrap 1.0.0-beta.16 + bootstrap 4.4.1**. Bumping to React 18 + react-bootstrap 2.x + Bootstrap 5 is a separate, scoped phase (see ROADMAP backlog).
+- No Tailwind / shadcn / Zustand / TanStack until a UI rewrite is explicitly scoped.
+- The X-Wing iconography font lives at `src/fonts/xwing-miniatures.{css,ttf}` and `xwing-miniatures-ships.ttf` — **vendored locally**, not via the deprecated `xwing-miniatures-font` npm package (which pulls node-sass and breaks on Node ≥ 18). Do not re-add the npm package.
 - Replace mutable `setSquadrons` patterns with `useReducer` + immutable updates when touching squad state logic. Don't ship new mutable patterns.
-- Reuse existing components (`Squad`, `SquadGenerator`, `SquadStats`, `SquadActionsCarousel`, `TargetPosition`, `UpgradesCard`, `Arrow`) before creating new ones.
+- Reuse existing components (`Squad`, `SquadGenerator`, `SquadStats`, `SquadActionsCarousel`, `TargetPosition`, `UpgradesCard`) before creating new ones — see `docs/COMPONENT-CATALOG.md`.
 - Do NOT use `useEffect` to derive state. Calculate during render.
-- Default `key` to a stable id, never an index. Squad list keyed by index has known removal bug — fix when next touched.
+- Default `key` to a stable id, never an index. Squad list keyed by index has a known removal bug — fix when next touched.
 
 ## Deployment
 
 - **Vercel only.** No Express server, no `/api` directory, no serverless functions until backend logic actually exists.
 - `vercel.json` provides the SPA rewrite catch-all. Vite handles the rest natively.
-- `docs/anderson/*.pdf` and rasterized page directories are gitignored and `.vercelignore`'d. Do not commit them.
-- Production branch is `main`.
+- `docs/anderson/` (PDFs + rasterized pages, ~170 MB) is gitignored AND in `.vercelignore`. Do not commit. Regenerate rasterized pages with `pdftoppm -r 150 -png docs/anderson/AI_All_Empire_SHIPCARDS_ALL.pdf docs/anderson/pages/p`.
+- Production branch is `main` (renamed locally from `master`; the GitHub-side default-branch rename and `git push -u origin main` happen at deploy time, not in everyday work).
+- Connect the repo to Vercel via the GitHub integration, not the Vercel CLI. Push-to-deploy with preview URLs per branch is the intended workflow.
 
 ## Documentation
 
@@ -74,8 +85,8 @@ The `src/data/` tree is the source of truth for AI behavior. Specific rules appl
 
 ## Verification policy
 
-- Narrow checks (`tsc --noEmit` on a single file, single Jest test) allowed during implementation.
-- Full lint + test + build cycle only after a phase is complete and the user approves verification.
+- Narrow checks (`tsc --noEmit` on a single file, single Vitest test) allowed during implementation.
+- Full `npm run lint && npm test && npm run build` cycle only after a phase is complete and the user approves verification.
 - `tsc` filtered output (`| head`) is for fast feedback only — never the final word on a build's correctness.
 
 ## Reporting

@@ -1,68 +1,73 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# hotac-control
 
-## Available Scripts
+A web app that automates the Imperial AI for **Heroes of the Aturi Cluster** — a fan-made cooperative campaign for Fantasy Flight Games' *X-Wing Miniatures* (1.0 / 2.0). It generates Imperial squadrons, picks the right upgrade tier for the players' rank, randomizes maneuvers, target positions, actions, and attacks, and tracks per-ship hull / shields / XP across an engagement.
 
-In the project directory, you can run:
+## Stack
 
-### `npm start`
+- **Vite + React 16 + TypeScript** (data layer typed; UI stays JSX, gradual TS adoption)
+- **react-bootstrap** 1.0-beta + **bootstrap** 4 (UI library bump deferred to a follow-up phase)
+- **Vitest** for tests
+- **ESLint** flat config with `typescript-eslint` strict + React + a11y + import + Prettier
+- **Vercel** static hosting (no backend)
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Scripts
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+```
+npm install        # one-time
+npm run dev        # Vite dev server on :3000 (validator runs in dev)
+npm run build      # tsc --noEmit && vite build, output to dist/
+npm run preview    # serve the production build locally
+npm test           # Vitest — currently runs the data-layer validator
+npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit
+npm run format     # Prettier
+```
 
-### `npm test`
+## AI engines
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Two engines are supported (with a third in flight):
 
-### `npm run build`
+- **FGA** — full coverage of Imperial ships including TIE Defender, Phantom, Lambda, Decimator. Production-ready.
+- **Anderson** — replacing the abandoned Hinny engine. Encoding in progress (Phase 5). 17 cards across 16 ship types, plus separate alt-pilot upgrade decks.
+- **Hinny** — being removed (Phase 6). Don't add new code that depends on it.
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Repository map
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+```
+src/
+├── App.jsx                    Top-level app: squadron list, rank slider, ship picker
+├── main.jsx                   Vite entrypoint
+├── components/ai/             UI components (squadron, ship stats, action carousel, etc.)
+├── context/Contexts.ts        Typed React contexts
+├── data/
+│   ├── Ships.tsx              Typed ship metadata
+│   ├── Maneuvers.ts           Typed PSN + MVRS enums
+│   ├── __validate__.ts        Runtime data validator (5 invariants today; 11 target)
+│   ├── fga/                   FGA AI tables (Maneuvers typed; Upgrades pending refactor)
+│   └── hinny/                 To be deleted in Phase 6
+└── fonts/                     Vendored xwing-miniatures font (CSS + TTF)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+docs/
+├── ROADMAP.md                 Phase plan + decisions + blockers (authoritative)
+├── AGENTS.md                  Working agreements for contributors
+├── DOC_CATALOG.md             Index of all docs
+├── DATA-LAYER.md              Data layer schema and invariants — read before src/data changes
+├── COMPONENT-CATALOG.md       Reusable UI components and reuse rules
+└── anderson/                  Internal reference PDFs (gitignored, kept locally only)
+```
 
-### `npm run eject`
+## Where to read more
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- **`ROADMAP.md`** — what's done, what's in flight, what's deferred. Start here.
+- **`docs/DATA-LAYER.md`** — the load-bearing reference for everyone who touches `src/data/`.
+- **`AGENTS.md`** — TypeScript rules, ESLint setup, deployment constraints.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Deployment
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Vercel via GitHub integration. Push to `main` → production; push to any other branch → preview URL. There is no backend, no `/api` directory, no serverless functions — just static SPA assets behind a catch-all rewrite (`vercel.json`).
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+The Heroku deploy is dead. Do not look for a `Procfile`, an Express server, or a `/ping` endpoint — they were removed in the Vite migration.
 
-## Learn More
+## License & attribution
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+This is a personal hobby project. *X-Wing Miniatures*, *Heroes of the Aturi Cluster*, ship names, and game iconography belong to their respective rights holders (FFG / AMG / Disney). The Anderson and FGA AI tables originate from the HotAC community; see provenance in `docs/DATA-LAYER.md` §15.

@@ -1,8 +1,10 @@
 # Data layer
 
-Last updated: 2026-05-02
+Last updated: 2026-05-03
 
 The `src/data/` tree encodes the Imperial AI behavior tables for HotAC. It is the **load-bearing layer of this app** — the UI is mostly a thin presenter over these tables. Every bug the project has shipped historically has been a data-layer bug: typo'd upgrade keys, missing maneuver tables, off-by-one in upgrade tier ladders, or one engine quietly diverging from another. Read this whole document before touching anything in `src/data/`.
+
+> **Status note:** describes the target shape post-Phases 5–6. Sections marked **🎯** are aspirational; **✅** describes current reality.
 
 ---
 
@@ -26,34 +28,31 @@ HotAC vocabulary used without explanation in code and tables:
 
 ## 2. Top-level shape
 
+🎯 **target shape** (post-Phase 5/6):
+
 ```
 src/data/
-├── Ships.ts                          # ship metadata (stats, attacks, available engines, available upgrade sources)
-├── Maneuvers.ts                      # PSN (position) and MVRS (maneuver) enums + maneuver presentation map
-├── icons.ts                          # IconKey enum + className map (xwing-miniatures-font)
-├── __validate__.ts                   # runtime validator — throws on import in dev, gated in CI
-├── shared/
-│   └── coreUpgrades.ts               # canonical Hull Upgrade / Shield Upgrade (single source of truth)
-├── fga/
+├── Ships.ts                          # JSX moved out of ATTACKS
+├── Maneuvers.ts
+├── icons.ts                          # IconKey enum + className map
+├── __validate__.ts                   # all 11 invariants
+├── shared/coreUpgrades.ts            # canonical Hull / Shield Upgrade identity
+├── fga/                              # all .ts, no JSX-in-data
 │   ├── Maneuvers.ts
-│   ├── FgaTargetSelection.ts
-│   ├── FgaShipActions.ts
-│   ├── FgaAttack.ts
-│   ├── FgaPositionSelection.tsx      # UI helper, renders polar grid for FGA's range-only model
+│   ├── Fga{Target,ShipAction,Attack}Selection.ts
+│   ├── FgaPositionSelection.tsx      # UI helper only
 │   ├── FgaUpgrades.ts
 │   └── CommunityUpgrades.ts
 └── anderson/
     ├── Maneuvers.ts
-    ├── AndersonTargetSelection.ts
-    ├── AndersonShipActions.ts
-    ├── AndersonAttack.ts
-    ├── AndersonPositionSelection.tsx # UI helper, renders polar grid + R2-direction toggle
-    ├── AndersonUpgrades.ts           # variant tree from pilots_2x + pilots_4x decks
+    ├── Anderson{Target,ShipAction,Attack}Selection.ts
+    ├── AndersonPositionSelection.tsx # polar grid + R2-direction toggle
+    ├── AndersonUpgrades.ts           # variants from pilots_2x + pilots_4x decks
     ├── AndersonAbilities.ts          # pilot ability descriptions (display-only)
     └── AndersonPhases.ts             # System/End phase descriptions (display-only)
 ```
 
-Removed in Phase 6: `src/data/hinny/` and the `Hinny*` exports.
+✅ **today**: `Ships.tsx`, `Maneuvers.ts`, `__validate__.ts`, `fga/Maneuvers.ts` are typed. `fga/{*Selection,CommunityUpgrades,ShipManeuverImages}.jsx` are JSX-bearing. `fga/GetCommunityUpgrades.js` and `components/ai/upgrades/UpgradesGenerator.js` are deferred to the Phase 5/6 refactor (legacy `[u, i, x]` tuples). `hinny/` is intact and gets deleted in Phase 6. The `anderson/`, `shared/`, `icons.ts` files **do not exist yet**.
 
 ---
 
@@ -176,7 +175,9 @@ This replaces the 80-case switch in `SquadManeuverGenerator.js` and removes sile
 
 ## 6. Upgrades
 
-The legacy `[upgrade, initiative, xp]` triple overloads slot `[2]` (cumulative XP in Hinny, flat constant in Community, tier 1/2/3 in FGA). Replace with a discriminated record where meaning is explicit:
+> **✅ today:** the `[upgrade, initiative, xp]` triple is still the on-disk shape inside `UpgradesGenerator.js`, `CommunityUpgrades.jsx`, and the soon-to-be-deleted `hinny/HinnyUpgrades.jsx`. Nothing has been refactored yet. Phase 5 / 6 work transitions to the shape below.
+>
+> **🎯 target:** the legacy triple overloads slot `[2]` (cumulative XP in Hinny, flat constant in Community, tier 1/2/3 in FGA). Replace with a discriminated record where meaning is explicit.
 
 ```ts
 interface Upgrade {
@@ -352,49 +353,35 @@ Contract: **every step must have a defined value for every (shipId, position) th
 
 ## 10. Validator — `src/data/__validate__.ts`
 
-A side-effect import that throws if any invariant fails. Imported from `App.tsx` so dev mode catches issues immediately. CI runs the same module in a Jest test (`tests/dataLayer.test.ts`) so a build can't ship a broken table.
+A side-effect import that throws if any invariant fails. Imported from `App.jsx` (dev only via `import.meta.env.DEV`) so dev mode catches issues immediately. CI runs the same module via Vitest (`tests/dataLayer.test.ts`) so a build can't ship a broken table.
 
 ### Invariants
 
-1. **Length-6 maneuver arrays.** `assert(maneuvers[ship][pos].length === 6)` for every (ship, position) pair in every engine card.
-2. **Resolved upgrade references.** `assert(row.upgrade !== undefined && typeof row.upgrade.skillName === 'string')`.
-3. **AI coverage.** For every ship `S` with `Ships[S].ai.includes(E)`, assert `engineCards[E][S]` exists.
-4. **Position coverage.** For every `Position` key referenced by an engine's UI position-selector, assert that every supported ship's `maneuvers` table defines that key.
-5. **Upgrade-source coverage.** For every ship `S` with `Ships[S].upgrades.includes(U)`, assert that the upgrade tree for `U` has at least one variant for `S`.
-6. **Distinct variants.** Within a ship's upgrade tree, no two variants are byte-identical. Catches the duplicate `hinnyUpgrades.VT49` bug.
-7. **Anderson elite slots = 5.** Already enforced by the tuple type; the validator double-checks at runtime since data may be loaded dynamically in future.
-8. **Initiative thresholds monotonic (Anderson).** Within a variant's `elite` array, thresholds should be non-decreasing. Soft warning, not an error — Anderson cards mostly follow this but not always.
-9. **No JSX in upgrade descriptions.** `assert(typeof row.upgrade.description === 'string')`. New upgrades only — existing JSX-bearing data is migrated as part of Phase 5 / 6.
+| # | Invariant | Status |
+|---|---|---|
+| 1 | **Length-6 maneuver arrays.** Every `(ship, position)` row has exactly 6 entries. | ✅ implemented |
+| 2 | **Resolved maneuver references.** Every row entry is a known `MVRS` code. | ✅ implemented |
+| 3 | **AI coverage.** For every ship with `Ships[S].ai.includes(E)`, the engine's maneuver table contains `S`. | ✅ implemented (FGA only) |
+| 4 | **Position coverage.** Every `FGA_REQUIRED_POSITIONS` entry is defined for every covered ship. | ✅ implemented |
+| 5 | **Upgrade-source enum.** `Ships[S].upgrades` only references known `UPGRADES` values. | ✅ implemented |
+| 6 | **Resolved upgrade references.** Every `row.upgrade` is a defined `Upgrade` object. | 🎯 Phase 5 (needs typed upgrade trees) |
+| 7 | **Upgrade-source coverage.** Every ship's listed upgrade source has at least one variant. | 🎯 Phase 5 |
+| 8 | **Distinct variants.** No two variants in a ship's tree are byte-identical. Catches the historical duplicate `hinnyUpgrades.VT49` bug. | 🎯 Phase 5 |
+| 9 | **Anderson elite slots = 5.** Tuple type enforces at compile time; validator double-checks. | 🎯 Phase 5 |
+| 10 | **Anderson initiative thresholds monotonic** (soft warning). | 🎯 Phase 5 |
+| 11 | **No JSX in upgrade descriptions.** `typeof row.upgrade.description === 'string'`. | 🎯 Phase 5/6 (after JSX-in-data refactor) |
+
+Hinny coverage is intentionally not validated — the engine is being deleted in Phase 6. Anderson coverage is added in Phase 5 as the `anderson/` tree gets populated.
 
 ### Test contract
 
-CI runs the validator as a single Jest test that imports `runValidator()` and asserts it does not throw. On failure it throws an `AggregateError` listing every offending `(ship, position, key)` tuple by name — no grepping required.
+`tests/dataLayer.test.ts` is a single Vitest test that imports `runValidator()` and asserts it does not throw. On failure the validator throws an `Error` listing every offending invariant by name in the message — no grepping required.
 
 ---
 
 ## 11. Icons
 
-The `xwing-miniatures-font` provides icons (front arc, focus, charge, K-turn, etc.) as Unicode glyphs styled by CSS classes (`xwi x-frontarc`). New shape:
-
-```ts
-// src/data/icons.ts
-type IconKey =
-  | 'frontArc' | 'rearArc' | 'bullseye' | 'turret' | 'doubleTurret'
-  | 'focus' | 'evade' | 'charge' | 'lock'
-  | 'hit' | 'crit'
-  | 'barrelroll' | 'boost' | 'cloak'
-  | 'kturn' | 'sloop' | 'troll'
-  | 'turnLeft' | 'turnRight' | 'straight' | 'bankLeft' | 'bankRight'
-  | 'stop' | 'reverseStraight' | 'reverseBank';
-
-const ICON_CLASS: Record<IconKey, string> = {
-  frontArc:    'xwi x-frontarc',
-  focus:       'xwi x-focus',
-  // ...
-};
-```
-
-The `<Icon kind="focus" />` component reads from this map. Upgrade descriptions reference icons by `IconKey`, not by hard-coded class names. This decouples data from CSS and lets the validator type-check icon references.
+🎯 The vendored `xwing-miniatures` font (`src/fonts/`) provides icons as glyphs styled by CSS classes (`xwi x-frontarc`). Wrap them in a typed `IconKey` union (`'frontArc' | 'focus' | 'charge' | 'kturn' | ...`) and an `ICON_CLASS: Record<IconKey, string>` lookup in `src/data/icons.ts`. Upgrade descriptions reference icons by `IconKey`, not class names — decouples data from CSS and lets the validator type-check refs. The `<Icon kind="focus" />` component reads the map.
 
 ---
 
@@ -444,16 +431,18 @@ The `Upgrade` objects (`STEALTH_DEVICE`, `SQUAD_LEADER`, etc.) live in a flat `a
 
 Typed dependencies cascade, so order matters:
 
-1. `icons.ts` — establishes `IconKey`.
-2. `Maneuvers.ts` — establishes `Position`, `ManeuverCode`, presentation map (depends on icons).
-3. `Ships.ts` — establishes `ShipId`, `AiEngine`, `UpgradeSource`.
-4. `shared/coreUpgrades.ts` — establishes canonical `HULL_UPGRADE`, `SHIELD_UPGRADE`.
-5. `fga/FgaUpgrades.ts` + `fga/CommunityUpgrades.ts` — convert tuple `[u, i, x]` → discriminated `UpgradeRow`.
-6. `fga/{Maneuvers, Fga*Selection, FgaPositionSelection}` — convert.
-7. `__validate__.ts` — write and verify against known-good FGA data.
-8. `anderson/*` — populate from PDFs; validator surfaces gaps.
-9. `hinny/*` — delete (Phase 6).
-10. `src/data/index.ts` — barrel re-exports.
+1. ✅ `Maneuvers.ts` — typed `Position`, `Maneuver`, `ManeuverTuple` (Phase 4).
+2. ✅ `Ships.tsx` — typed `Ship`, `ShipId`, `AiEngine`, `UpgradeSource`, `AttackProfile` (Phase 4; stayed `.tsx` because of inline JSX in `ATTACKS` — JSX-in-data tech debt deferred per §14).
+3. ✅ `__validate__.ts` — first pass covering FGA path (Phase 4).
+4. ✅ `fga/Maneuvers.ts` — typed FGA lookup table (Phase 4).
+5. 🎯 `icons.ts` — establishes `IconKey`. Required before pulling JSX out of upgrade descriptions.
+6. 🎯 `shared/coreUpgrades.ts` — canonical `HULL_UPGRADE`, `SHIELD_UPGRADE`.
+7. 🎯 `fga/{FgaUpgrades, CommunityUpgrades}.ts` — convert tuple `[u, i, x]` → discriminated `UpgradeRow`. Concurrent with the JSX-in-data refactor since both need to land together.
+8. 🎯 `fga/{Fga*Selection, FgaPositionSelection}.tsx` — UI helpers, JSX moved out of the data tree boundary.
+9. 🎯 `__validate__.ts` — extend to invariants 6–11 in §10.
+10. 🎯 `anderson/*` — populate from PDFs; validator surfaces gaps.
+11. 🎯 `hinny/*` — delete (Phase 6).
+12. 🎯 `src/data/index.ts` — barrel re-exports.
 
 ---
 
@@ -474,15 +463,15 @@ Typed dependencies cascade, so order matters:
 
 The data tables originate from external HotAC documents. When a table changes, update both the data file *and* the provenance line so future contributors know what to diff against.
 
-| Engine | Table | Source document | Last reviewed |
-|---|---|---|---|
-| Anderson | `anderson/Maneuvers.ts` | `docs/anderson/AI_All_Empire_SHIPCARDS_ALL.pdf` (rasterized to `pages/p-NN.png`) | 2026-05-02 |
-| Anderson | `anderson/AndersonUpgrades.ts` | `docs/anderson/AI_Alternative_Empire_PILOTCARDS_2x.pdf`, `..._4x.pdf` | 2026-05-02 |
-| Anderson | `anderson/AndersonAbilities.ts`, `AndersonPhases.ts` | Same as Maneuvers (per-card bottom panels and System/End Phase boxes) | 2026-05-02 |
-| FGA | `fga/Maneuvers.ts` | (existing data, original source not in repo) | unknown — pre-2026 |
-| FGA | `fga/FgaUpgrades.ts` | (existing data + comment-block table at `UpgradesGenerator.js:561-569`) | unknown — pre-2026 |
-| FGA | `fga/CommunityUpgrades.ts` | (existing data, community-sourced) | unknown — pre-2026 |
-| Shared | `shared/coreUpgrades.ts` | Hand-defined to consolidate Hull/Shield Upgrade identity | 2026-05-02 |
+| Table | Source document |
+|---|---|
+| ✅ `fga/Maneuvers.ts` | (existing data, no original source in repo; pre-2026) |
+| ✅ `UpgradesGenerator.js` (`fgaUpgrades` legacy tuples) | comment-block table at `UpgradesGenerator.js:561-569` |
+| ✅ `fga/CommunityUpgrades.jsx` (JSX-in-data) | community-sourced; pre-2026 |
+| 🎯 `anderson/Maneuvers.ts` | `docs/anderson/AI_All_Empire_SHIPCARDS_ALL.pdf` → `pages/p-NN.png` |
+| 🎯 `anderson/AndersonUpgrades.ts` | `docs/anderson/AI_Alternative_Empire_PILOTCARDS_{2x,4x}.pdf` |
+| 🎯 `anderson/AndersonAbilities.ts`, `AndersonPhases.ts` | shipcards PDF (per-card bottom panels, System/End Phase boxes) |
+| 🎯 `shared/coreUpgrades.ts` | hand-defined; consolidates Hull/Shield Upgrade identity |
 
 PDFs are gitignored — they live locally in `docs/anderson/`. To regenerate the rasterized pages on a new machine: `pdftoppm -r 150 -png docs/anderson/AI_All_Empire_SHIPCARDS_ALL.pdf docs/anderson/pages/p`.
 
@@ -495,5 +484,5 @@ PDFs are gitignored — they live locally in `docs/anderson/`. To regenerate the
 - **TIE/d Defender Elite (page 7)** is a separate card from the base Defender (page 6) — see §7 variant modeling.
 - **Sith Infiltrator** and **Phantom** both have System Phase + cloak mechanics. Their phase descriptions may need icons not yet in `xwing-miniatures-font`. Audit during Phase 5.
 - **Pilot init vs ship init.** `Ships.ts` carries a default; each `AiCard.pilotInitiative` overrides. SquadStats reads from the card.
-- **Hull/Shield bonus is current, not cumulative.** When an upgrade is removed (variant change), the bonus is subtracted. `App.js:161-170` does this today; typed equivalent in Phase 4.
+- **Hull/Shield bonus is current, not cumulative.** When an upgrade is removed (variant change), the bonus is subtracted. `App.jsx:161-170` does this today via the legacy `countExtraHullAndShield` + `resetShipsextraHullAndShield`; typed equivalent waits on the canonical `coreUpgrades.ts` (Phase 5).
 - **Anderson variant choice is per-squad, not per-upgrade.** Players pick one variant at squad creation; mixing variants requires a new squad. Confirm UX during Phase 5.

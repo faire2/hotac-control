@@ -1,52 +1,50 @@
 # Project Roadmap
 
-Last updated: 2026-05-02
+Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncommitted)
 
 ## Project summary
 
 `hotac-control` is a single-page React app that automates the Imperial AI for **Heroes of the Aturi Cluster**, a fan-made cooperative campaign for FFG's X-Wing Miniatures. This roadmap covers a modernization pass: migrate off the dead Create React App / Heroku stack, replace the abandoned Hinny AI engine with Anderson, and harden the data layer with TypeScript.
 
-## Current Phase: Phase 1 — Planning & Documentation
+## Current Phase: Phase 5 — Anderson encoding (next)
 
-### Active Sprint
-- [x] Decide deployment target → Vercel (no backend, static SPA) (completed 2026-05-02)
-- [x] Decide AI engine replacement → drop Hinny, add Anderson (completed 2026-05-02)
-- [x] Survey Anderson PDFs (`AI_All_Empire_SHIPCARDS_ALL.pdf`, `AI_Alternative_Empire_PILOTCARDS_2x.pdf`, `AI_Alternative_Empire_PILOTCARDS_4x.pdf`) (completed 2026-05-02)
-- [x] Rename local branch `master` → `main` (completed 2026-05-02)
-- [x] Update `.gitignore` to exclude PDFs, rasterized pages, `dist/`, `.vercel/` (completed 2026-05-02)
-- [ ] Write `AGENTS.md` and `CLAUDE.md`
-- [ ] Write `docs/DOC_CATALOG.md`
-- [ ] Write `docs/DATA-LAYER.md` with the Anderson + FGA typed schema and invariants
-- [ ] Approve roadmap (user gate before Phase 2)
+### Phase 1 — Planning & Documentation ✓
+- [x] Decide deployment target → Vercel (no backend, static SPA) (2026-05-02)
+- [x] Decide AI engine replacement → drop Hinny, add Anderson (2026-05-02)
+- [x] Survey Anderson PDFs (2026-05-02)
+- [x] Rename local branch `master` → `main` (2026-05-02)
+- [x] Update `.gitignore` (2026-05-02)
+- [x] Write `AGENTS.md`, `CLAUDE.md`, `docs/DOC_CATALOG.md`, `docs/DATA-LAYER.md` (2026-05-02)
 
-### Up Next (Approved)
+### Phase 2 — Vite + TS scaffolding ✓
+- [x] Delete duplicate subtree `src/components/ai/src/` (41 files, 480KB) (2026-05-02)
+- [x] Delete vestigial flat-level files in `src/components/ai/` and `src/data/` (11 files of dead code referencing removed APIs) (2026-05-02)
+- [x] Vite + TS scaffolding: `vite.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `prettier.config.mjs`, root `index.html`, `src/main.jsx` entry (2026-05-02)
+- [x] Migrate `package.json`: drop `react-scripts`, add `vite`, `@vitejs/plugin-react`, `typescript`, `vitest`, ESLint flat plugins, Prettier (2026-05-02)
+- [x] Drop `xwing-miniatures-font` npm pkg — pulled `node-sass` which doesn't compile on Node 24; fonts already vendored locally in `src/fonts/`, no behavior change (2026-05-02)
+- [x] Rename JSX-bearing `.js` files to `.jsx` (Vite requires explicit JSX extension; 37 files affected) (2026-05-02)
+- [x] `npm run dev` serves index.html, validator wired, no errors (2026-05-02)
+- [x] `npm run build` produces `dist/` (131 modules, 335KB JS, 175KB CSS gzipped: 90KB / 27KB) (2026-05-02)
+- [x] Write `docs/COMPONENT-CATALOG.md` (2026-05-02)
 
-**Phase 2 — Vite + TS scaffolding**
-- [ ] Delete duplicate subtree `src/components/ai/src/` (destructive — gated on user "go")
-- [ ] Initialize Vite + React + TypeScript project structure (config files only — `vite.config.ts`, `tsconfig.json`, `index.html` at root, `eslint.config.mjs`, `prettier.config.mjs`)
-- [ ] Migrate dependencies: drop `react-scripts`, `express`, `path`, add Vite + TS toolchain
-- [ ] Move font / CSS imports to Vite-compatible paths
-- [ ] Update `index.html` for Vite entrypoint
-- [ ] Verify `npm run dev` renders the existing app with current FGA path working identically
-- [ ] Verify `npm run build` produces `dist/` with no behavior change
-- [ ] Write `docs/COMPONENT-CATALOG.md` while touching every component during the migration
+### Phase 3 — Strip Express + add Vercel config ✓
+- [x] Delete `src/server/server.js` and `/ping` (2026-05-02)
+- [x] Drop `express`, `path` from `package.json` (2026-05-02)
+- [x] `vercel.json` with SPA rewrite (2026-05-02)
+- [x] `.vercelignore` excluding `docs/`, `.idea/`, `.claude/`, `*.md` (2026-05-02)
+- [x] Pin Node version `"engines": { "node": "20.x" }` (2026-05-02)
 
-**Phase 3 — Strip dead deployment / engine code**
-- [ ] Delete `src/server/server.js` (Express shim no longer needed)
-- [ ] Delete `/ping` references (the endpoint goes away with the server)
-- [ ] Remove `express` and `path` from `package.json` dependencies
-- [ ] Add `vercel.json` with SPA rewrite
-- [ ] Add `.vercelignore` excluding `docs/`, `*.pdf`
-- [ ] Pin Node version in `package.json` (`"engines": { "node": "20.x" }`)
+### Phase 4 — Type the data-layer beachhead ✓
+- [x] `src/data/Maneuvers.ts` — typed `Position`, `Maneuver`, `ManeuverTuple` (2026-05-02)
+- [x] `src/data/Ships.tsx` — typed `Ship`, `ShipId`, `AiEngine`, `UpgradeSource`, `AttackProfile`, `Stats` (kept `.tsx` because of JSX in `ATTACKS` — JSX-in-data tech debt deferred per backlog) (2026-05-02)
+- [x] `src/context/Contexts.ts` — typed `TargetPositionContextValue`, `GlobalSquadsValuesContextValue`, `ShipHandlingContextValue`, `Squadron`, `ShipInstance` (2026-05-02)
+- [x] `src/data/__validate__.ts` — runtime validator covering FGA path: AI coverage, position coverage, length-6 arrays, resolved maneuver references, upgrade source enum (2026-05-02)
+- [x] Validator wired as side-effect in `App.jsx` (`if (import.meta.env.DEV)`) (2026-05-02)
+- [x] `tests/dataLayer.test.ts` — Vitest test asserting validator does not throw against current data; passes (2026-05-02)
+- [x] `npm run build` runs `tsc --noEmit && vite build` — passes; full type-checked beachhead build (2026-05-02)
 
-**Phase 4 — Type the data-layer beachhead**
-- [ ] Convert `src/data/Ships.js` → `Ships.ts` (typed `Ship`, `ShipId`, `AiEngine`, `UpgradeSource`, `Stats`)
-- [ ] Convert `src/data/Maneuvers.js` → `Maneuvers.ts` (typed `Position`, `Maneuver`)
-- [ ] Convert `src/context/Contexts.js` → `Contexts.ts` with proper context value types
-- [ ] Add a runtime validator (`src/data/__validate__.ts`) that throws on import in dev — checks: every maneuver array length === 6, every upgrade key resolves, every `ai`-listed engine has a matching maneuver table for that ship, every PSN used by FGA tables is defined in PSN enum
-- [ ] Surface validator failures as a build-time check so they block deploy
-
-**Phase 5 — Encode Anderson**
+### Active Sprint — Phase 5 (Anderson encoding)
+- [ ] Define Anderson position keys (R12_CLOSING_*, R32_FLEEING_*, R4_*) — richer model than FGA's range-only grid
 - [ ] Define Anderson position keys (R12_CLOSING_*, R32_FLEEING_*, R4_*) — richer model than FGA's range-only grid
 - [ ] Transcribe maneuver tables from `docs/anderson/pages/p-01.png` ... `p-19.png` into `src/data/anderson/Maneuvers.ts`
 - [ ] Transcribe target priorities → `src/data/anderson/AndersonTargetSelection.ts`
@@ -56,7 +54,14 @@ Last updated: 2026-05-02
 - [ ] Transcribe upgrade tables from pilot card PDFs (2x and 4x decks) → `src/data/anderson/AndersonUpgrades.ts`
 - [ ] Implement the Anderson upgrade unlock rule (initiative-threshold based, no rank scaling)
 - [ ] Wire `AI.ANDERSON` into `SquadManeuverGenerator`, `UpgradesGenerator`, position selection UI
+- [ ] Add Anderson coverage to `src/data/__validate__.ts`
 - [ ] **Defer Gozanti-Class Cruiser** to a follow-up — separate "huge ship" schema needed
+
+### Phase 5 deviations from original plan (resolved during 2-4)
+- React stays at **16.14** (not 18 as originally planned). Reason: `react-bootstrap@1.0.0-beta.16` predates React 18 and a major bump risks API breaks during Phase 2's "no behavior change" goal. React 18 + react-bootstrap 2.x is now a follow-up phase.
+- Bootstrap stays at **4.4.1** (not 5.x). Reason: Bootstrap 5 renamed several utility classes (`pl-*` → `ps-*`, etc.) which would change behavior. One occurrence of `pl-5` exists in `SquadGenerator.jsx`.
+- **Vitest** chosen over Jest (better Vite integration, no extra Babel config).
+- **Selective tsconfig include** (just the typed files + their direct .jsx callers) rather than blanket `src/**` because `src/data/hinny/HinnyEliteShips.jsx` has a parse error on line 128 that would block tsc. Hinny is being deleted in Phase 6, so this is a stopgap.
 
 **Phase 6 — Remove Hinny**
 - [ ] Delete `src/data/hinny/` entirely

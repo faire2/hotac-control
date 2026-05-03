@@ -17,7 +17,7 @@ Central index of all project documentation. Update this file whenever you add, r
 | Doc | Purpose |
 |---|---|
 | [`DATA-LAYER.md`](./DATA-LAYER.md) | Typed schema for ships, maneuvers, positions, upgrades, AI engines. Invariants enforced by the runtime validator. The load-bearing doc for this app — read before touching anything in `src/data/`. |
-| [`COMPONENT-CATALOG.md`](./COMPONENT-CATALOG.md) | Reusable UI components, file paths, props, when to use them. *(Added during Phase 2 — Vite migration.)* |
+| [`COMPONENT-CATALOG.md`](./COMPONENT-CATALOG.md) | Reusable UI components, file paths, props, when to use them. |
 
 ## Internal reference (not deployed, not versioned)
 
