@@ -34,8 +34,8 @@ export default function SquadActionsCarousel({ aiEngine, shipType }: Props) {
   }
 
   return (
-    <div>
-      <h3>{headlines[currentSlideIndex]}</h3>
+    <div className="actionsCarousel">
+      <h3 className="squadSectionHeader">{headlines[currentSlideIndex]}</h3>
       <div className="carousel">
         <div id="carousel-indicators-container" className="align-middle">
           <ul>

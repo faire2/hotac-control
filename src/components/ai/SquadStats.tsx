@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Ships } from '../../data/Ships';
 import type { ShipId } from '../../data/Ships';
 import type { UpgradeRow } from '../../data/UpgradeRow';
@@ -5,33 +6,36 @@ import type { UpgradeRow } from '../../data/UpgradeRow';
 interface Props {
   shipType: ShipId;
   upgrades: readonly UpgradeRow[];
+  headerExtra?: ReactNode;
 }
 
-export const SquadStats = ({ shipType, upgrades }: Props) => {
+export const SquadStats = ({ shipType, upgrades, headerExtra }: Props) => {
   const ship = Ships[shipType];
   const lastRow = upgrades[upgrades.length - 1];
   const initiative = lastRow?.initiative ?? ship.initiative;
   const xp = xpForRow(lastRow);
 
   return (
-    <div>
-      <div className="row backgroundBlue">
-        <div className="col-3"><h3>Init.:</h3></div>
-        <div className="col-3"><h3>Attack:</h3></div>
-        <div className="col-3"><h3>Agility:</h3></div>
-        <div className="col-3"><h3>XP:</h3></div>
+    <div className="squadStats">
+      <div className="d-flex flex-nowrap align-items-center statsHeader">
+        <div className="statCell">Init</div>
+        <div className="statCell">Attack</div>
+        <div className="statCell">Agility</div>
+        <div className="statCell">XP</div>
+        {headerExtra && <div className="statCell statCellAi">{headerExtra}</div>}
       </div>
-      <div className="row text-center ship-stats">
-        <div className="col-3"><div>{initiative}</div></div>
-        <div className="col-3">
+      <div className="d-flex flex-nowrap align-items-center statsValues">
+        <div className="statCell">{initiative}</div>
+        <div className="statCell">
           {ship.attack.map((a, index) => (
             <span key={index}>
               {a.attack}{a.damage}
             </span>
           ))}
         </div>
-        <div className="col-3"><div>{ship.agility}</div></div>
-        <div className="col-3"><div>{xp}</div></div>
+        <div className="statCell">{ship.agility}</div>
+        <div className="statCell">{xp}</div>
+        {headerExtra && <div className="statCell statCellAi" />}
       </div>
     </div>
   );
@@ -41,5 +45,5 @@ function xpForRow(row: UpgradeRow | undefined): number | string {
   if (!row) return 0;
   if (row.source === 'COMMUNITY') return row.xpCost;
   if (row.source === 'FGA') return row.tier;
-  return '—'; // Anderson rows have no XP cost (initiative-gated only)
+  return '—';
 }

@@ -23,6 +23,55 @@ h3 {
   text-align: center;
 }
 
+.squadTitle {
+  font-size: 1.05em !important;
+  padding-top: 0 !important;
+  text-align: left;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.squadSectionHeader {
+  font-size: 1.05em !important;
+  padding-top: 8px !important;
+  text-align: left;
+  margin: 0;
+}
+
+.squadStats {
+  margin-top: 4px;
+}
+
+.statsHeader {
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  padding: 2px 4px;
+  font-size: 0.85em;
+}
+
+.statsHeader .statCell {
+  font-weight: 600;
+}
+
+.statsValues {
+  font-size: 1.4em;
+  padding: 2px 4px;
+}
+
+.statCell {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+}
+
+.statCellAi {
+  flex: 0 0 auto;
+  margin-left: 4px;
+}
+
 .menu {
   background-color: #007bff;
   padding-left: 10px;
@@ -48,9 +97,6 @@ h3 {
   padding-left: 25px;
 }
 
-.btnRemoveShip {
-  float: right;
-}
 
 .pointer {
   cursor: pointer;
@@ -88,12 +134,60 @@ h3 {
 /* VARIABLES */
 /*************/
 
-.btn-increment {
-  width: 38px;
+.shipsBlock {
+  margin-top: 6px;
 }
 
-#btn-remove_ship {
-  margin-left: -10px;
+.shipRow {
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.shipRowHeader {
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  padding: 2px 4px;
+  font-size: 0.85em;
+  text-align: center;
+}
+
+.shipRowHeader > div {
+  text-align: center;
+}
+
+.shipCellId {
+  flex: 0 0 56px;
+}
+
+.shipCellCounter {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.shipCellRemove {
+  flex: 0 0 28px;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-counter {
+  padding: 0 6px;
+  line-height: 1.2;
+  min-width: 22px;
+}
+
+.counterValue {
+  font-size: 1em;
+  min-width: 22px;
+  padding: 0 4px;
+  text-align: center;
+}
+
+.btn-remove-ship {
+  padding: 0 6px;
+  line-height: 1.2;
+  min-width: 24px;
 }
 
 /************/
@@ -103,10 +197,17 @@ h3 {
 .carousel {
   position: relative;
   vertical-align: middle;
-  max-height: 300px;
+  flex: 1 1 auto;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+}
+
+.actionsCarousel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .slide-arrow {
@@ -167,6 +268,7 @@ ul {
 
 #svg_container {
   padding-top: 5px;
+  text-align: center;
 }
 
 .segmentOpacity {

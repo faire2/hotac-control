@@ -40,27 +40,25 @@ export default function Variables({ ship, squadId, keyIndex }: Props) {
   }
 
   return (
-    <div>
-      <div className="row">
-        <div className="col-3">
-          <Select
-            options={ID_OPTIONS}
-            onChange={(e: { value: number } | null) => e && update('tokenId', e.value)}
-            value={{ label: String(ship.tokenId), value: ship.tokenId }}
-          />
-        </div>
-        <Counter label="shields" value={ship.shields} onChange={(v) => update('shields', v)} />
-        <Counter label="hull" value={ship.hull} onChange={(v) => update('hull', v)} />
-        <div className="col-1">
-          <button
-            id="btn-remove_ship"
-            type="button"
-            className="btn btn-danger"
-            onClick={() => ctx.handleShipRemoval(keyIndex, squadId)}
-          >
-            x
-          </button>
-        </div>
+    <div className="d-flex flex-nowrap align-items-center shipRow">
+      <div className="shipCellId">
+        <Select
+          options={ID_OPTIONS}
+          onChange={(e: { value: number } | null) => e && update('tokenId', e.value)}
+          value={{ label: String(ship.tokenId), value: ship.tokenId }}
+        />
+      </div>
+      <Counter label="shields" value={ship.shields} onChange={(v) => update('shields', v)} />
+      <Counter label="hull" value={ship.hull} onChange={(v) => update('hull', v)} />
+      <div className="shipCellRemove">
+        <button
+          type="button"
+          className="btn btn-danger btn-sm btn-remove-ship"
+          aria-label="Remove ship"
+          onClick={() => ctx.handleShipRemoval(keyIndex, squadId)}
+        >
+          ×
+        </button>
       </div>
     </div>
   );
@@ -76,19 +74,19 @@ function Counter({
   onChange: (v: number) => void;
 }) {
   return (
-    <div className="col-4">
+    <div className="shipCellCounter d-flex flex-nowrap align-items-center justify-content-center">
       <button
         type="button"
-        className="btn btn-primary btn-increment"
+        className="btn btn-primary btn-counter"
         aria-label={`Decrease ${label}`}
         onClick={() => onChange(value - 1)}
       >
-        -
+        −
       </button>
-      <span className="value"> {value} </span>
+      <span className="counterValue">{value}</span>
       <button
         type="button"
-        className="btn btn-primary btn-increment"
+        className="btn btn-primary btn-counter"
         aria-label={`Increase ${label}`}
         onClick={() => onChange(value + 1)}
       >

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import Select from 'react-select';
+import ToggleButton from 'react-bootstrap/ToggleButton';
+import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { AI, Ships } from '../../data/Ships';
 import type { AiEngine } from '../../data/Ships';
 import { PSN } from '../../data/Maneuvers';
@@ -28,6 +30,7 @@ const SQUAD_NAMES = [
 
 export function Squad({ squad, squadId }: Props) {
   const shipType = squad.shipType;
+  const ship = Ships[shipType];
 
   const [targetPosition, setTargetPosition] = useState<Position | readonly Position[]>([PSN.R3FRONT]);
   const [maneuverRandNum, setManeuverRandNum] = useState(1);
@@ -49,6 +52,19 @@ export function Squad({ squad, squadId }: Props) {
     setAiEngine(ai);
   }
 
+  const aiToggle = (
+    <ToggleButtonGroup
+      type="radio"
+      name={`ai-engine-${String(squadId)}`}
+      value={aiEngine}
+      size="sm"
+      onChange={(value) => handleSetAi(value)}
+    >
+      {ship.ai.includes(AI.FGA) && <ToggleButton value={AI.FGA}>{AI.FGA}</ToggleButton>}
+      {ship.ai.includes(AI.ANDERSON) && <ToggleButton value={AI.ANDERSON}>{AI.ANDERSON}</ToggleButton>}
+    </ToggleButtonGroup>
+  );
+
   return (
     <TargetPositionContext.Provider
       value={{
@@ -63,26 +79,28 @@ export function Squad({ squad, squadId }: Props) {
       }}
     >
       <div className="squadContainer">
-        <div className="row">
-          <div className="col-8">
-            <h3>Ship type: {Ships[shipType].name}</h3>
-            <SquadStats shipType={shipType} upgrades={squad.upgrades} />
-            <ShipsVariables squadId={squadId} />
-            <SquadActionsCarousel aiEngine={aiEngine} shipType={shipType} />
+        <div className="row align-items-center">
+          <div className="col-7">
+            <h3 className="squadTitle">{ship.name}</h3>
           </div>
-          <div className="col-4">
+          <div className="col-5">
             <Select
               options={SQUAD_NAMES}
               defaultValue={{ value: 'Squadron designation', label: 'Squadron designation' }}
             />
+          </div>
+        </div>
+        <SquadStats shipType={shipType} upgrades={squad.upgrades} headerExtra={aiToggle} />
+        <ShipsVariables squadId={squadId} />
+        <div className="row no-gutters align-items-stretch">
+          <div className="col-6 pr-1 d-flex flex-column">
             <TargetPosition />
           </div>
-        </div>
-        <div className="row">
-          <div className="col-12">
-            <UpgradesCard squadId={squadId} />
+          <div className="col-6 pl-1 d-flex flex-column">
+            <SquadActionsCarousel aiEngine={aiEngine} shipType={shipType} />
           </div>
         </div>
+        <UpgradesCard squadId={squadId} />
       </div>
     </TargetPositionContext.Provider>
   );
