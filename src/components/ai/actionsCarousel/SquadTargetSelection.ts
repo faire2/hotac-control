@@ -3,6 +3,7 @@ import { AI } from '../../../data/Ships';
 import type { AiEngine, ShipId } from '../../../data/Ships';
 import hinnyTargetSelection from '../../../data/hinny/HinnyTargetSelection';
 import fgaTargetSelection from '../../../data/fga/FgaTargetSelection';
+import andersonTargetSelection from '../../../data/anderson/AndersonTargetSelection';
 
 interface Props {
   aiEngine: AiEngine;
@@ -15,6 +16,8 @@ export default function SquadTargetSelection(props: Props): ReactNode {
       return (hinnyTargetSelection as (p: Props) => ReactNode)(props);
     case AI.FGA:
       return (fgaTargetSelection as (p: Props) => ReactNode)(props);
+    case AI.ANDERSON:
+      return (andersonTargetSelection as (p: Props) => ReactNode)(props);
     default:
       console.log(
         'Ai engine not recognized in component SquadTargetSelection: ' + String(props.aiEngine),

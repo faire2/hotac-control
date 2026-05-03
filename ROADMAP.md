@@ -6,7 +6,7 @@ Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncom
 
 `hotac-control` is a single-page React app that automates the Imperial AI for **Heroes of the Aturi Cluster**, a fan-made cooperative campaign for FFG's X-Wing Miniatures. This roadmap covers a modernization pass: migrate off the dead Create React App / Heroku stack, replace the abandoned Hinny AI engine with Anderson, and harden the data layer with TypeScript.
 
-## Current Phase: Phase 5 — Anderson encoding (next)
+## Current Phase: Phase 5b — Anderson data transcription (next)
 
 ### Phase 1 — Planning & Documentation ✓
 - [x] Decide deployment target → Vercel (no backend, static SPA) (2026-05-02)
@@ -43,18 +43,32 @@ Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncom
 - [x] `tests/dataLayer.test.ts` — Vitest test asserting validator does not throw against current data; passes (2026-05-02)
 - [x] `npm run build` runs `tsc --noEmit && vite build` — passes; full type-checked beachhead build (2026-05-02)
 
-### Active Sprint — Phase 5 (Anderson encoding)
-- [ ] Define Anderson position keys (R12_CLOSING_*, R32_FLEEING_*, R4_*) — richer model than FGA's range-only grid
-- [ ] Define Anderson position keys (R12_CLOSING_*, R32_FLEEING_*, R4_*) — richer model than FGA's range-only grid
-- [ ] Transcribe maneuver tables from `docs/anderson/pages/p-01.png` ... `p-19.png` into `src/data/anderson/Maneuvers.ts`
-- [ ] Transcribe target priorities → `src/data/anderson/AndersonTargetSelection.ts`
-- [ ] Transcribe action priorities → `src/data/anderson/AndersonShipActions.ts`
-- [ ] Transcribe attack priorities → `src/data/anderson/AndersonAttack.ts`
-- [ ] Transcribe pilot abilities (Sensitive Controls, Strypium Array, Full Throttle, etc.) — display-only, no behavior
-- [ ] Transcribe upgrade tables from pilot card PDFs (2x and 4x decks) → `src/data/anderson/AndersonUpgrades.ts`
+### Phase 5a — Anderson infrastructure ✓ (2026-05-03)
+- [x] Add `AI.ANDERSON` and `UPGRADES.ANDERSON` to enums
+- [x] Extend `ShipId` for the 8 Anderson-only ships (TIESK, TIERP, TIEADVV1, TIERBA, TIERBH, TIECP, STARWING, SITH); add ship entries with stats read from PDFs (verify in 5b)
+- [x] Add `AI.ANDERSON` and `UPGRADES.ANDERSON` to all existing Imperial ships' `ai`/`upgrades` arrays
+- [x] Decision: Anderson reuses FGA's `Position` enum keys — R2 split is a UI concern, not a new dimension (per DATA-LAYER §4)
+- [x] Create `src/data/anderson/`: `Maneuvers.ts` (typed empty table), `AndersonAbilities.ts`, `AndersonPhases.ts`, `Anderson{TargetSelection,ShipActions,Attack}.jsx` (stub renderers with TODO placeholders), `AndersonPositionSelection.jsx` (re-exports FGA grid for now)
+- [x] Wire `AI.ANDERSON` into `SquadManeuverGenerator.jsx`, `actionsCarousel/SquadActions.ts`, `SquadAttack.ts`, `SquadTargetSelection.ts`, `maneuvers/TargetPosition.jsx` engine selector
+- [x] `SquadManeuverGenerator` guards missing entries with a TODO badge so app doesn't crash
+- [x] Validator: add Anderson coverage with phase-aware tolerance (5a OK with empty tables; 5b will tighten)
+- [x] Build + test green at `npm run build` and `npm test`
+
+### Active Sprint — Phase 5b (Anderson data transcription)
+- [ ] Verify ship stats in `Ships.tsx` against PDFs (TIESK, TIERP, TIEADVV1, TIERBA, TIERBH, TIECP, STARWING, SITH)
+- [ ] Transcribe maneuver tables for 16 ships (~1900 cells) from `docs/anderson/pages/p-NN.png` into `src/data/anderson/Maneuvers.ts`
+- [ ] Transcribe target priorities → `AndersonTargetSelection.jsx`
+- [ ] Transcribe action priorities → `AndersonShipActions.jsx`
+- [ ] Transcribe attack priorities → `AndersonAttack.jsx`
+- [ ] Transcribe pilot abilities (Sensitive Controls, Strypium Array, Full Throttle, etc.) → `AndersonAbilities.ts`
+- [ ] Transcribe System/End Phase descriptions → `AndersonPhases.ts`
+- [ ] Decide TIE/d Defender Elite (page 7) modeling — 2nd card per ship, or new variant key (DATA-LAYER §7)
+- [ ] Decide TIE/rb Heavy two-page question — duplicate, two pilots, or front/back (DATA-LAYER §16)
+- [ ] Add R2-Closing/R2-Fleeing toggle to `AndersonPositionSelection.jsx`
+- [ ] Transcribe upgrade tables from pilot card PDFs (2x and 4x decks) → `AndersonUpgrades.ts`
 - [ ] Implement the Anderson upgrade unlock rule (initiative-threshold based, no rank scaling)
-- [ ] Wire `AI.ANDERSON` into `SquadManeuverGenerator`, `UpgradesGenerator`, position selection UI
-- [ ] Add Anderson coverage to `src/data/__validate__.ts`
+- [ ] Wire `UPGRADES.ANDERSON` into `UpgradesGenerator.js` (currently falls through to NO_UPGRADE)
+- [ ] Tighten validator: hard error on Anderson coverage gaps
 - [ ] **Defer Gozanti-Class Cruiser** to a follow-up — separate "huge ship" schema needed
 
 ### Phase 5 deviations from original plan (resolved during 2-4)

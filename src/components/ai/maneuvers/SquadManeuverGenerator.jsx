@@ -2,6 +2,7 @@ import React, {useContext} from "react";
 import {AI} from "../../../data/Ships";
 import {hinnyManeuvers} from "../../../data/hinny/Maneuvers"
 import {fgaManeuvers} from "../../../data/fga/Maneuvers"
+import {andersonManeuvers} from "../../../data/anderson/Maneuvers"
 import {MVRS} from "../../../data/Maneuvers";
 import {TargetPositionContext} from "../../../context/Contexts";
 
@@ -14,13 +15,19 @@ export default function SquadManeuverGenerator(props) {
             break;
         case AI.FGA:
             maneuvers = fgaManeuvers;
-            console.log("fga maneuvers");
+            break;
+        case AI.ANDERSON:
+            maneuvers = andersonManeuvers;
             break;
         default:
             console.log("Unknown AI engine in SquadManeuver: " + positionContext.aiEngine)
     }
-    console.log(("Type, position, number: " + positionContext.shipType + ", "  + positionContext.targetPosition + ", "  + positionContext.maneuverRandNum));
-    const maneuver = maneuvers[positionContext.shipType][positionContext.targetPosition][positionContext.maneuverRandNum];
+    // Anderson tables are mostly stubbed in Phase 5a; guard against missing entries.
+    const shipManeuvers = maneuvers && maneuvers[positionContext.shipType];
+    if (!shipManeuvers || !shipManeuvers[positionContext.targetPosition]) {
+        return <div className="xw-man"><span className="red">TODO (phase 5b)</span></div>;
+    }
+    const maneuver = shipManeuvers[positionContext.targetPosition][positionContext.maneuverRandNum];
 
     switch (maneuver) {
         case MVRS.STRAIGHT1:

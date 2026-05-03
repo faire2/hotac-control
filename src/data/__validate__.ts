@@ -16,6 +16,7 @@ import { PSN, MVRS } from './Maneuvers';
 import type { Position, Maneuver } from './Maneuvers';
 
 import { fgaManeuvers } from './fga/Maneuvers';
+import { andersonManeuvers } from './anderson/Maneuvers';
 
 const KNOWN_MANEUVERS = new Set<string>(Object.values(MVRS));
 const KNOWN_POSITIONS = new Set<string>(Object.values(PSN));
@@ -117,16 +118,30 @@ function checkAiCoverage(failures: ValidationFailure[]): void {
           });
         }
       }
-      // AI.HINNY coverage is intentionally not checked here — Hinny is being removed in Phase 6.
-      // Anderson coverage will be added in Phase 5.
+      // AI.HINNY coverage is intentionally not checked — Hinny is being removed in Phase 6.
+      // AI.ANDERSON coverage is checked separately in checkAndersonCoverage with phase-aware
+      // expectations (Phase 5a tolerates missing maneuver tables; Phase 5b will require them).
     }
   }
 }
 
+function checkAndersonCoverage(failures: ValidationFailure[]): void {
+  // Validate the *shape* of every Anderson maneuver table that exists.
+  // Phase 5a: most ships have no entry yet, which is OK.
+  // Phase 5b: missing entries become hard errors via checkAiCoverage.
+  checkManeuverTables(
+    'anderson',
+    andersonManeuvers as ManeuverTablesByShip,
+    FGA_REQUIRED_POSITIONS,
+    failures,
+  );
+}
+
 function checkUpgradeSourceCoverage(failures: ValidationFailure[]): void {
+  const knownSources = new Set<string>(Object.values(UPGRADES));
   for (const ship of Object.values(Ships) as Ship[]) {
     for (const source of ship.upgrades) {
-      if (source !== UPGRADES.FGA && source !== UPGRADES.COMMUNITY && source !== UPGRADES.HINNY) {
+      if (!knownSources.has(source)) {
         failures.push({
           rule: 'Upgrade source enum',
           detail: `Ships.${ship.id}.upgrades references unknown source "${source}"`,
@@ -140,6 +155,7 @@ export function runValidator(): void {
   const failures: ValidationFailure[] = [];
 
   checkManeuverTables('fga', fgaManeuvers as ManeuverTablesByShip, FGA_REQUIRED_POSITIONS, failures);
+  checkAndersonCoverage(failures);
   checkAiCoverage(failures);
   checkUpgradeSourceCoverage(failures);
 
