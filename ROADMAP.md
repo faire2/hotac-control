@@ -6,7 +6,7 @@ Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncom
 
 `hotac-control` is a single-page React app that automates the Imperial AI for **Heroes of the Aturi Cluster**, a fan-made cooperative campaign for FFG's X-Wing Miniatures. This roadmap covers a modernization pass: migrate off the dead Create React App / Heroku stack, replace the abandoned Hinny AI engine with Anderson, and harden the data layer with TypeScript.
 
-## Current Phase: Phase 5b — Anderson data transcription (next)
+## Current Phase: Phase 7 — Vercel deployment (Anderson transcription deferred)
 
 ### Phase 6 — Hinny removal ✓ (2026-05-03, brought forward)
 - [x] Delete `src/data/hinny/` entirely
@@ -72,29 +72,31 @@ Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncom
 - [x] Add `AI.ANDERSON` and `UPGRADES.ANDERSON` to enums
 - [x] Extend `ShipId` for the 8 Anderson-only ships (TIESK, TIERP, TIEADVV1, TIERBA, TIERBH, TIECP, STARWING, SITH); add ship entries with stats read from PDFs (verify in 5b)
 - [x] Add `AI.ANDERSON` and `UPGRADES.ANDERSON` to all existing Imperial ships' `ai`/`upgrades` arrays
-- [x] Decision: Anderson reuses FGA's `Position` enum keys — R2 split is a UI concern, not a new dimension (per DATA-LAYER §4)
+- [x] Decision: Anderson reuses FGA's `Position` enum keys — R2 split collapses to R1 (closing) / R3 (fleeing) per Anderson rules, so no new positions or UI toggle needed
 - [x] Create `src/data/anderson/`: `Maneuvers.ts` (typed empty table), `AndersonAbilities.ts`, `AndersonPhases.ts`, `Anderson{TargetSelection,ShipActions,Attack}.jsx` (stub renderers with TODO placeholders), `AndersonPositionSelection.jsx` (re-exports FGA grid for now)
 - [x] Wire `AI.ANDERSON` into `SquadManeuverGenerator.jsx`, `actionsCarousel/SquadActions.ts`, `SquadAttack.ts`, `SquadTargetSelection.ts`, `maneuvers/TargetPosition.jsx` engine selector
 - [x] `SquadManeuverGenerator` guards missing entries with a TODO badge so app doesn't crash
 - [x] Validator: add Anderson coverage with phase-aware tolerance (5a OK with empty tables; 5b will tighten)
 - [x] Build + test green at `npm run build` and `npm test`
 
-### Active Sprint — Phase 5b (Anderson data transcription)
-- [ ] Verify ship stats in `Ships.tsx` against PDFs (TIESK, TIERP, TIEADVV1, TIERBA, TIERBH, TIECP, STARWING, SITH)
-- [ ] Transcribe maneuver tables for 16 ships (~1900 cells) from `docs/anderson/pages/p-NN.png` into `src/data/anderson/Maneuvers.ts`
-- [ ] Transcribe target priorities → `AndersonTargetSelection.jsx`
-- [ ] Transcribe action priorities → `AndersonShipActions.jsx`
-- [ ] Transcribe attack priorities → `AndersonAttack.jsx`
-- [ ] Transcribe pilot abilities (Sensitive Controls, Strypium Array, Full Throttle, etc.) → `AndersonAbilities.ts`
-- [ ] Transcribe System/End Phase descriptions → `AndersonPhases.ts`
-- [ ] Decide TIE/d Defender Elite (page 7) modeling — 2nd card per ship, or new variant key (DATA-LAYER §7)
-- [ ] Decide TIE/rb Heavy two-page question — duplicate, two pilots, or front/back (DATA-LAYER §16)
-- [ ] Add R2-Closing/R2-Fleeing toggle to `AndersonPositionSelection.jsx`
-- [ ] Transcribe upgrade tables from pilot card PDFs (2x and 4x decks) → `AndersonUpgrades.ts`
-- [ ] Implement the Anderson upgrade unlock rule (initiative-threshold based, no rank scaling)
-- [ ] Wire `UPGRADES.ANDERSON` into `UpgradesGenerator.js` (currently falls through to NO_UPGRADE)
-- [ ] Tighten validator: hard error on Anderson coverage gaps
-- [ ] **Defer Gozanti-Class Cruiser** to a follow-up — separate "huge ship" schema needed
+### Phase 5b — Anderson data transcription (DEFERRED)
+Deferred per 2026-05-03 decision: Anderson scaffolding stays in tree (enums, stub renderers, validator tolerance) but full transcription is on hold. Engine selector still exposes `AI.ANDERSON` with TODO badges. Revisit when there's appetite for the ~1900-cell transcription effort.
+
+Items remaining if/when picked up:
+- Verify ship stats in `Ships.tsx` against PDFs (TIESK, TIERP, TIEADVV1, TIERBA, TIERBH, TIECP, STARWING, SITH)
+- Transcribe maneuver tables for 16 ships (~1900 cells) from `docs/anderson/pages/p-NN.png` into `src/data/anderson/Maneuvers.ts`
+- Transcribe target priorities → `AndersonTargetSelection.jsx`
+- Transcribe action priorities → `AndersonShipActions.jsx`
+- Transcribe attack priorities → `AndersonAttack.jsx`
+- Transcribe pilot abilities (Sensitive Controls, Strypium Array, Full Throttle, etc.) → `AndersonAbilities.ts`
+- Transcribe System/End Phase descriptions → `AndersonPhases.ts`
+- Decide TIE/d Defender Elite (page 7) modeling — 2nd card per ship, or new variant key (DATA-LAYER §7)
+- Decide TIE/rb Heavy two-page question — duplicate, two pilots, or front/back (DATA-LAYER §16)
+- Transcribe upgrade tables from pilot card PDFs (2x and 4x decks) → `AndersonUpgrades.ts`
+- Implement the Anderson upgrade unlock rule (initiative-threshold based, no rank scaling)
+- Wire `UPGRADES.ANDERSON` into `UpgradesGenerator.js` (currently falls through to NO_UPGRADE)
+- Tighten validator: hard error on Anderson coverage gaps
+- **Defer Gozanti-Class Cruiser** to a follow-up — separate "huge ship" schema needed
 
 ### Phase 5 deviations from original plan (resolved during 2-4)
 - React stays at **16.14** (not 18 as originally planned). Reason: `react-bootstrap@1.0.0-beta.16` predates React 18 and a major bump risks API breaks during Phase 2's "no behavior change" goal. React 18 + react-bootstrap 2.x is now a follow-up phase.
@@ -152,7 +154,7 @@ Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncom
 - **Hinny AI**: removed entirely.
 - **Anderson AI**: added; covers 16 ships (Gozanti deferred). Upgrades come from the 2x and 4x alt-pilot card decks.
 - **Anderson scaling**: campaign-driven, not player-rank driven. Upgrade unlocks are gated by *imperial pilot initiative*, not party rank.
-- **Position model**: Anderson introduces `R2_CLOSING` / `R2_FLEEING` distinction (richer than FGA's range-only grid). New PSN keys needed.
+- **Position model**: Anderson reuses FGA's `Position` enum unchanged — R2 collapses to R1 (closing) / R3 (fleeing) per Anderson rules, no new PSN keys or UI toggle.
 - **State management**: keep React Context for cross-component state; replace mutable `setSquadrons` patterns with `useReducer` (deferred to backlog). No Zustand.
 - **UI library**: stay on `react-bootstrap` 1.0-beta for now. shadcn/ui migration is deferred — not earned by current scope.
 - **Internal docs (`docs/anderson/` PDFs)**: gitignored, kept locally only. Not versioned, not deployed.
