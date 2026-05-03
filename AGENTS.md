@@ -60,6 +60,7 @@ The `src/data/` tree is the source of truth for AI behavior. Specific rules appl
 - App is locked to **React 16.14 + react-bootstrap 1.0.0-beta.16 + bootstrap 4.4.1**. Bumping to React 18 + react-bootstrap 2.x + Bootstrap 5 is a separate, scoped phase (see ROADMAP backlog).
 - No Tailwind / shadcn / Zustand / TanStack until a UI rewrite is explicitly scoped.
 - The X-Wing iconography font lives at `src/fonts/xwing-miniatures.{css,ttf}` and `xwing-miniatures-ships.ttf` — **vendored locally**, not via the deprecated `xwing-miniatures-font` npm package (which pulls node-sass and breaks on Node ≥ 18). Do not re-add the npm package.
+- **Font loading is driven by `@font-face url()` in `src/fonts/xwing-miniatures.css`, NOT by JS-side imports of the .ttf files.** Vite resolves the CSS url() refs natively and emits hashed copies to `dist/assets/`. CRA required separate `import './fonts/foo.ttf'` side-effect imports to copy the binaries; under Vite those imports are rewritten to `?import=` JS-module wrappers that *shadow* the @font-face fetch (the icon font silently falls back to system glyphs and the UI shows Latin letters instead of X-Wing iconography). Do not re-add `import './fonts/*.ttf'` to App.tsx or anywhere else.
 - Replace mutable `setSquadrons` patterns with `useReducer` + immutable updates when touching squad state logic. Don't ship new mutable patterns.
 - Reuse existing components (`Squad`, `SquadGenerator`, `SquadStats`, `SquadActionsCarousel`, `TargetPosition`, `UpgradesCard`) before creating new ones — see `docs/COMPONENT-CATALOG.md`.
 - Do NOT use `useEffect` to derive state. Calculate during render.
@@ -72,6 +73,7 @@ The `src/data/` tree is the source of truth for AI behavior. Specific rules appl
 - `docs/anderson/` (PDFs + rasterized pages, ~170 MB) is gitignored AND in `.vercelignore`. Do not commit. Regenerate rasterized pages with `pdftoppm -r 150 -png docs/anderson/AI_All_Empire_SHIPCARDS_ALL.pdf docs/anderson/pages/p`.
 - Production branch is `main` (renamed locally from `master`; the GitHub-side default-branch rename and `git push -u origin main` happen at deploy time, not in everyday work).
 - Connect the repo to Vercel via the GitHub integration, not the Vercel CLI. Push-to-deploy with preview URLs per branch is the intended workflow.
+- **Node version**: `package.json` `engines.node` is `>=20` (yarn-friendly), `.nvmrc` pins `20` (predictable Vercel deploy + `nvm use` locally). Don't tighten `engines.node` to a single version — yarn rejects strict equality and the dev experience suffers.
 
 ## Documentation
 

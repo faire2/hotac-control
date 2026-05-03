@@ -14,6 +14,11 @@ Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncom
 - [x] Remove dispatch sites (SquadManeuverGenerator, actionsCarousel/*, TargetPosition selector toggle)
 - [x] Hoist canonical `HULL_UPGRADE` / `SHIELD_UPGRADE` to `src/data/shared/coreUpgrades.ts`
 
+### Bug fixes during sweep verification (2026-05-03)
+- [x] Icon font silently rendering as Latin letters: removed CRA-era `import './fonts/*.ttf'` side-effect imports from `App.tsx`. Under Vite those imports get a `?import=` wrapper that shadows the CSS `@font-face` fetch. CSS-side `url()` refs now drive font loading; binaries still emit to `dist/assets/`. Documented in AGENTS.md so the imports don't get re-added.
+- [x] `engines.node` loosened from `"20.x"` to `">=20"` — yarn (strict equality) was refusing to run on Node 22+/24. Vercel + new `.nvmrc=20` keep deploys pinned to Node 20.
+- [x] `vite.config.ts`: dropped `server.open: true` — was opening browser tabs on every dev-server start, hostile in scripted contexts.
+
 ### Best-practices sweep ✓ (2026-05-03)
 - [x] Adopt `:icon-name:` shortcode format (Slack/Discord/GitHub idiom) for inline icons
 - [x] `src/data/icons.ts` (typed `IconKey` registry), `src/data/shortcodes.ts` (parser), `src/components/Rule.tsx` (renderer)

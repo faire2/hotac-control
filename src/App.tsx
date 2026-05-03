@@ -6,8 +6,13 @@ import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './fonts/xwing-miniatures.css';
-import './fonts/xwing-miniatures.ttf';
-import './fonts/xwing-miniatures-ships.ttf';
+// The .ttf files are loaded via the @font-face declarations in
+// xwing-miniatures.css. Vite resolves those url() refs natively. CRA
+// required separate JS-side imports of the TTFs to copy them into the
+// build output; under Vite those imports are not just redundant, they
+// shadow the @font-face fetch for the icon font (Vite serves them with
+// `?import=` as JS modules, and the browser caches that URL ahead of
+// the @font-face fetch). Do not re-add them.
 
 import { Ships, UPGRADES } from './data/Ships';
 import type { ShipId, UpgradeSource } from './data/Ships';
