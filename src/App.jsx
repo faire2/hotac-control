@@ -16,6 +16,11 @@ import {CommunityUpgrades} from "./data/fga/CommunityUpgrades";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
 
+import {runValidator} from "./data/__validate__";
+if (import.meta.env.DEV) {
+    runValidator();
+}
+
 function App() {
     const [squadrons, setSquadrons] = useState([]);
     const [playersRank, setPlayersRank] = useState(2);
