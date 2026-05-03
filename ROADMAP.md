@@ -8,6 +8,26 @@ Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncom
 
 ## Current Phase: Phase 5b — Anderson data transcription (next)
 
+### Phase 6 — Hinny removal ✓ (2026-05-03, brought forward)
+- [x] Delete `src/data/hinny/` entirely
+- [x] Remove `AI.HINNY` and `UPGRADES.HINNY` from enums
+- [x] Remove dispatch sites (SquadManeuverGenerator, actionsCarousel/*, TargetPosition selector toggle)
+- [x] Hoist canonical `HULL_UPGRADE` / `SHIELD_UPGRADE` to `src/data/shared/coreUpgrades.ts`
+
+### Best-practices sweep ✓ (2026-05-03)
+- [x] Adopt `:icon-name:` shortcode format (Slack/Discord/GitHub idiom) for inline icons
+- [x] `src/data/icons.ts` (typed `IconKey` registry), `src/data/shortcodes.ts` (parser), `src/components/Rule.tsx` (renderer)
+- [x] Convert all JSX-in-data to plain-string descriptions with shortcodes (FGA upgrade pool, Community upgrades, FGA priority lists)
+- [x] Discriminated `UpgradeRow` union (`{source: 'FGA' | 'COMMUNITY' | 'ANDERSON', ...}`) replaces overloaded `[u, i, x]` tuple
+- [x] `FgaUpgradePool.ts` (typed FGA pool), `FgaUpgrades.ts` (typed tree), `CommunityUpgradeTree.ts` (typed Community tree)
+- [x] Convert all 30+ remaining JSX/JS files to TSX/TS (App, Squad, SquadGenerator, SquadStats, ShipsVariables, Variables, UpgradesCard, SquadActionsCarousel, TargetPosition, TargetPositionDiagram, SquadManeuverGenerator, FGA + Anderson dispatchers)
+- [x] tsconfig blanket include `src/**/*` (no more selective list workaround)
+- [x] Validator extended with shortcode resolution check
+- [x] `key={crypto.randomUUID()}` per squad (replaces buggy `key={i}` after `i++`)
+- [x] Bootstrap class typo fix (`col-l-3 col-m-4` → `col-lg-3 col-md-4`)
+- [x] Heavy-Laser-Cannor → Heavy-Laser-Cannon (typo fix surfaced by mechanical conversion)
+- [x] All `console.log` calls stripped from production code
+
 ### Phase 1 — Planning & Documentation ✓
 - [x] Decide deployment target → Vercel (no backend, static SPA) (2026-05-02)
 - [x] Decide AI engine replacement → drop Hinny, add Anderson (2026-05-02)

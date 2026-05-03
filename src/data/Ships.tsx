@@ -1,7 +1,6 @@
 import React from 'react';
 
 export const AI = Object.freeze({
-  HINNY: "Hinny's",
   FGA: 'FGA',
   ANDERSON: 'Anderson',
 } as const);
@@ -9,7 +8,6 @@ export const AI = Object.freeze({
 export type AiEngine = (typeof AI)[keyof typeof AI];
 
 export const UPGRADES = Object.freeze({
-  HINNY: "Hinny's upg.",
   COMMUNITY: 'Community upg.',
   FGA: 'FGA upg.',
   ANDERSON: 'Anderson upg.',
@@ -71,7 +69,7 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     attack: [{ attack: ATTACKS.frontArc, damage: 2 }],
     agility: 3,
     id: 'TIELN',
-    ai: [AI.HINNY, AI.FGA, AI.ANDERSON],
+    ai: [AI.FGA, AI.ANDERSON],
     upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
   },
   TIEIN: {
@@ -82,8 +80,8 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     attack: [{ attack: ATTACKS.frontArc, damage: 3 }],
     agility: 3,
     id: 'TIEIN',
-    ai: [AI.HINNY, AI.FGA, AI.ANDERSON],
-    upgrades: [UPGRADES.HINNY, UPGRADES.FGA, UPGRADES.ANDERSON],
+    ai: [AI.FGA, AI.ANDERSON],
+    upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
   },
   TIESA: {
     name: 'TIE/sa Bomber',
@@ -93,8 +91,8 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     attack: [{ attack: ATTACKS.frontArc, damage: 2 }],
     agility: 2,
     id: 'TIESA',
-    ai: [AI.HINNY, AI.FGA, AI.ANDERSON],
-    upgrades: [UPGRADES.HINNY, UPGRADES.FGA, UPGRADES.ANDERSON],
+    ai: [AI.FGA, AI.ANDERSON],
+    upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
   },
   VT49: {
     name: 'VT-49',
@@ -104,8 +102,8 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     attack: [{ attack: ATTACKS.doubleturret, damage: 3 }],
     agility: 0,
     id: 'VT49',
-    ai: [AI.HINNY, AI.FGA, AI.ANDERSON],
-    upgrades: [UPGRADES.HINNY, UPGRADES.FGA, UPGRADES.ANDERSON],
+    ai: [AI.FGA, AI.ANDERSON],
+    upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
   },
   TIEADVX: {
     name: 'Tie Advanced x1',

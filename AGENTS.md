@@ -52,7 +52,7 @@ The `src/data/` tree is the source of truth for AI behavior. Specific rules appl
 - **Every ship listed under an `AI.*` enum** must have a corresponding maneuver table for that engine. If `Ships.X.ai` includes `AI.ANDERSON`, `andersonManeuvers[X]` must exist.
 - **Position keys (`PSN.*`) used by an engine must be defined** in the position enum.
 - The runtime validator (`src/data/__validate__.ts`) throws on import in dev. Build-time check in CI gates deploy.
-- **Never store JSX in data files** going forward. Existing JSX-in-upgrades is technical debt to be paid down. New upgrades carry plain text + an icon list, rendered by a component.
+- **Never store JSX in data files.** Inline icons are written as `:icon-name:` shortcodes (kebab-case keys in `src/data/icons.ts`). The `<Rule>` / `<PriorityList>` components in `src/components/Rule.tsx` parse and render them. The validator hard-errors on unresolved shortcodes.
 - **Anderson upgrades are gated by initiative threshold**, not player rank. Anderson does not scale loadouts by `playersRank`.
 
 ## React / UI

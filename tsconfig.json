@@ -11,8 +11,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    "allowJs": true,
-    "checkJs": false,
+    "allowJs": false,
 
     "strict": true,
     "noUnusedLocals": true,
@@ -24,22 +23,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/main.jsx",
-    "src/App.jsx",
-    "src/data/Ships.tsx",
-    "src/data/Maneuvers.ts",
-    "src/data/__validate__.ts",
-    "src/data/fga/Maneuvers.ts",
-    "src/data/anderson/Maneuvers.ts",
-    "src/data/anderson/AndersonAbilities.ts",
-    "src/data/anderson/AndersonPhases.ts",
-    "src/components/ai/actionsCarousel/SquadActions.ts",
-    "src/components/ai/actionsCarousel/SquadAttack.ts",
-    "src/components/ai/actionsCarousel/SquadTargetSelection.ts",
-    "src/context/Contexts.ts",
-    "vite.config.ts",
-    "eslint.config.mjs"
-  ],
+  "include": ["src/**/*", "tests/**/*", "vite.config.ts", "eslint.config.mjs"],
   "exclude": ["node_modules", "dist", "build"]
 }

@@ -1,6 +1,7 @@
 import { createContext } from 'react';
-import type { AiEngine, ShipId } from '../data/Ships';
+import type { AiEngine, ShipId, UpgradeSource } from '../data/Ships';
 import type { Position } from '../data/Maneuvers';
+import type { UpgradeRow } from '../data/UpgradeRow';
 
 /**
  * Squad-local UI state for the position picker, AI engine selector, and stress toggle.
@@ -25,7 +26,7 @@ export interface GlobalSquadsValuesContextValue {
   playersRank: number;
   squadrons: readonly Squadron[];
   handleSetIsElite: (squadId: number, isElite: boolean) => void;
-  handleSetUpgradesSource: (squadId: number, source: string) => void;
+  handleSetUpgradesSource: (squadId: number, source: UpgradeSource) => void;
   handleSquadRemoval: (squadId: number) => void;
 }
 
@@ -41,10 +42,12 @@ export interface ShipHandlingContextValue {
 }
 
 export interface Squadron {
+  /** Stable per-squad identifier — used as React key. */
+  id: string;
   shipType: ShipId;
   isElite: boolean;
-  upgradesSource: string;
-  upgrades: unknown[];
+  upgradesSource: UpgradeSource;
+  upgrades: readonly UpgradeRow[];
   ships: ShipInstance[];
 }
 

@@ -6,8 +6,8 @@
  * Imported as a side-effect from `App.jsx` in dev so issues surface immediately.
  * Run as a Vitest test in CI to gate the build (see `tests/dataLayer.test.ts`).
  *
- * Today this validator covers the FGA path. Hinny is being removed (Phase 6),
- * Anderson will be added (Phase 5). Coverage is expanded in those phases.
+ * Coverage today: FGA path is fully validated; Anderson path is shape-checked
+ * against the (still partial) andersonManeuvers table. Hinny has been removed.
  */
 
 import { Ships, AI, UPGRADES } from './Ships';
@@ -17,6 +17,14 @@ import type { Position, Maneuver } from './Maneuvers';
 
 import { fgaManeuvers } from './fga/Maneuvers';
 import { andersonManeuvers } from './anderson/Maneuvers';
+import { FgaUpgradePool } from './fga/FgaUpgradePool';
+import { CommunityUpgrades } from './fga/CommunityUpgrades';
+import { fgaTargetSelectionByShip } from './fga/FgaTargetSelection';
+import { fgaShipActionsByShip } from './fga/FgaShipActions';
+import { fgaAttackByShip } from './fga/FgaAttack';
+import { isIconKey } from './icons';
+import { extractShortcodes } from './shortcodes';
+import type { Upgrade } from './shared/coreUpgrades';
 
 const KNOWN_MANEUVERS = new Set<string>(Object.values(MVRS));
 const KNOWN_POSITIONS = new Set<string>(Object.values(PSN));
@@ -118,7 +126,6 @@ function checkAiCoverage(failures: ValidationFailure[]): void {
           });
         }
       }
-      // AI.HINNY coverage is intentionally not checked — Hinny is being removed in Phase 6.
       // AI.ANDERSON coverage is checked separately in checkAndersonCoverage with phase-aware
       // expectations (Phase 5a tolerates missing maneuver tables; Phase 5b will require them).
     }
@@ -151,6 +158,40 @@ function checkUpgradeSourceCoverage(failures: ValidationFailure[]): void {
   }
 }
 
+function checkShortcodes(scope: string, text: string, failures: ValidationFailure[]): void {
+  for (const key of extractShortcodes(text)) {
+    if (!isIconKey(key)) {
+      failures.push({
+        rule: 'Resolved icon shortcodes',
+        detail: `${scope}: ":${key}:" is not a known IconKey`,
+      });
+    }
+  }
+}
+
+function checkUpgradeShortcodes(
+  scope: string,
+  pool: Readonly<Record<string, Upgrade>>,
+  failures: ValidationFailure[],
+): void {
+  for (const [key, upgrade] of Object.entries(pool)) {
+    checkShortcodes(`${scope}.${key}`, upgrade.description, failures);
+  }
+}
+
+function checkPriorityShortcodes(
+  scope: string,
+  byShip: Readonly<Partial<Record<ShipId, readonly string[]>>>,
+  failures: ValidationFailure[],
+): void {
+  for (const [shipId, items] of Object.entries(byShip)) {
+    if (!items) continue;
+    items.forEach((text, idx) => {
+      checkShortcodes(`${scope}.${shipId}[${idx.toString()}]`, text, failures);
+    });
+  }
+}
+
 export function runValidator(): void {
   const failures: ValidationFailure[] = [];
 
@@ -158,6 +199,12 @@ export function runValidator(): void {
   checkAndersonCoverage(failures);
   checkAiCoverage(failures);
   checkUpgradeSourceCoverage(failures);
+
+  checkUpgradeShortcodes('FgaUpgradePool', FgaUpgradePool, failures);
+  checkUpgradeShortcodes('CommunityUpgrades', CommunityUpgrades, failures);
+  checkPriorityShortcodes('fga.target', fgaTargetSelectionByShip, failures);
+  checkPriorityShortcodes('fga.action', fgaShipActionsByShip, failures);
+  checkPriorityShortcodes('fga.attack', fgaAttackByShip, failures);
 
   if (failures.length > 0) {
     const lines = failures.map((f) => `  [${f.rule}] ${f.detail}`).join('\n');

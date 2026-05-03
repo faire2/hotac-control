@@ -379,9 +379,13 @@ Hinny coverage is intentionally not validated — the engine is being deleted in
 
 ---
 
-## 11. Icons
+## 11. Icons & shortcodes
 
-🎯 The vendored `xwing-miniatures` font (`src/fonts/`) provides icons as glyphs styled by CSS classes (`xwi x-frontarc`). Wrap them in a typed `IconKey` union (`'frontArc' | 'focus' | 'charge' | 'kturn' | ...`) and an `ICON_CLASS: Record<IconKey, string>` lookup in `src/data/icons.ts`. Upgrade descriptions reference icons by `IconKey`, not class names — decouples data from CSS and lets the validator type-check refs. The `<Icon kind="focus" />` component reads the map.
+✅ Inline icons in priority text and upgrade descriptions are written as `:icon-name:` shortcodes (Slack/Discord/GitHub idiom), e.g. `"Nearest enemy in :front-arc:"`. The parser is in `src/data/shortcodes.ts`; the renderer is `<Rule>` / `<PriorityList>` in `src/components/Rule.tsx`.
+
+The icon registry (`src/data/icons.ts`) is the single source of truth: `ICON_CLASS: Record<IconKey, string>` maps each kebab-case key to its xwing-miniatures-font class. Keys must exist there or the validator fails. Unresolved shortcodes render in red at runtime so dev-time typos are visible.
+
+Adding a new icon: extend `ICON_CLASS` with the kebab-case key + CSS class. The `IconKey` type derives from `keyof typeof ICON_CLASS`, so all consumers get autocomplete and the validator resolves automatically.
 
 ---
 
