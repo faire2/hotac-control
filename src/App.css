@@ -106,6 +106,27 @@ h3 {
   max-width: 530px;
 }
 
+.addSquadronCard {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 530px;
+  height: calc(100% - 10px);
+  min-height: 600px;
+  border: 2px dashed #007bff;
+  background-color: transparent;
+  color: #007bff;
+  border-radius: 8px;
+  font-size: 4em;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.addSquadronCard:hover {
+  background-color: #007bff;
+  color: white;
+}
+
 .ship-stats {
   font-size: 25px;
 }
