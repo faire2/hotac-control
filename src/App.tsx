@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Select from 'react-select';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 
@@ -27,11 +26,6 @@ import { runValidator } from './data/__validate__';
 if (import.meta.env.DEV) {
   runValidator();
 }
-
-const SHIP_OPTIONS = Object.keys(Ships).map((id) => ({
-  value: id as ShipId,
-  label: Ships[id as ShipId].name,
-}));
 
 const RANK_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
 
@@ -173,13 +167,6 @@ function App() {
           value={{ squadrons, handleAddShip, handleShipRemoval: handleRemoveShip, handleShipChange }}
         >
           <div className="row menu d-flex align-items-center">
-            <div className="col-2"><h3>New squadron:</h3></div>
-            <div className="col-4 d-inline-block blackFontColor">
-              <Select
-                options={SHIP_OPTIONS}
-                onChange={(e: { value: ShipId } | null) => e && handleNewShipSelection(e.value)}
-              />
-            </div>
             <div className="col-auto">Set players&apos; rank:</div>
             <ToggleButtonGroup
               type="radio"
@@ -214,7 +201,7 @@ function App() {
               </button>
             </div>
           </div>
-          <SquadGenerator squadrons={squadrons} />
+          <SquadGenerator squadrons={squadrons} onAddShip={handleNewShipSelection} />
         </ShipHandlingContext.Provider>
       </GlobalSquadsValuesContext.Provider>
     </div>

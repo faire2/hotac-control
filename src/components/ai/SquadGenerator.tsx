@@ -1,11 +1,14 @@
 import { Squad } from './Squad';
+import { AddSquadronCard } from '../AddSquadronCard';
 import type { Squadron } from '../../context/Contexts';
+import type { ShipId } from '../../data/Ships';
 
 interface Props {
   squadrons: readonly Squadron[];
+  onAddShip: (shipType: ShipId) => void;
 }
 
-export default function SquadGenerator({ squadrons }: Props) {
+export default function SquadGenerator({ squadrons, onAddShip }: Props) {
   return (
     <div className="shipStats">
       {squadrons.map((squad, squadId) => (
@@ -13,6 +16,9 @@ export default function SquadGenerator({ squadrons }: Props) {
           <Squad squad={squad} squadId={squadId} />
         </div>
       ))}
+      <div className="col-lg-3 col-md-4 pl-5">
+        <AddSquadronCard onAddShip={onAddShip} />
+      </div>
     </div>
   );
 }
