@@ -58,6 +58,7 @@ function freshSquadron(shipType: ShipId, playersRank: number): Squadron {
 function App() {
   const [squadrons, setSquadrons] = useState<Squadron[]>([]);
   const [playersRank, setPlayersRank] = useState(2);
+  const [round, setRound] = useState(1);
 
   function handleNewShipSelection(value: ShipId) {
     setSquadrons((prev) => [...prev, freshSquadron(value, playersRank)]);
@@ -173,13 +174,13 @@ function App() {
         >
           <div className="row menu d-flex align-items-center">
             <div className="col-2"><h3>New squadron:</h3></div>
-            <div className="col-5 d-inline-block blackFontColor">
+            <div className="col-4 d-inline-block blackFontColor">
               <Select
                 options={SHIP_OPTIONS}
                 onChange={(e: { value: ShipId } | null) => e && handleNewShipSelection(e.value)}
               />
             </div>
-            <div className="col-2">Set players&apos; rank:</div>
+            <div className="col-auto">Set players&apos; rank:</div>
             <ToggleButtonGroup
               type="radio"
               name="rank"
@@ -190,6 +191,28 @@ function App() {
                 <ToggleButton key={n} value={n}>{n}</ToggleButton>
               ))}
             </ToggleButtonGroup>
+            <div className="col-auto d-flex align-items-center">
+              <span className="mr-2">Round:</span>
+              <button
+                type="button"
+                className="btn btn-primary btn-counter"
+                style={{ backgroundColor: '#0062cc', borderColor: '#005cbf' }}
+                aria-label="Decrease round"
+                onClick={() => setRound((r) => Math.max(1, r - 1))}
+              >
+                −
+              </button>
+              <span className="counterValue" style={{ margin: '0 10px' }}>{round}</span>
+              <button
+                type="button"
+                className="btn btn-primary btn-counter"
+                style={{ backgroundColor: '#0062cc', borderColor: '#005cbf' }}
+                aria-label="Increase round"
+                onClick={() => setRound((r) => r + 1)}
+              >
+                +
+              </button>
+            </div>
           </div>
           <SquadGenerator squadrons={squadrons} />
         </ShipHandlingContext.Provider>
