@@ -7,9 +7,9 @@ interface Props {
 
 export default function SquadGenerator({ squadrons }: Props) {
   return (
-    <div className="row shipStats">
+    <div className="shipStats">
       {squadrons.map((squad, squadId) => (
-        <div key={squad.id} className="col-lg-3 col-md-4 pl-5">
+        <div key={squad.id} className="squadCol pl-5">
           <Squad squad={squad} squadId={squadId} />
         </div>
       ))}

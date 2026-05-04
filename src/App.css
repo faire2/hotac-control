@@ -95,6 +95,16 @@ h3 {
 
 .shipStats {
   padding-left: 25px;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.squadCol {
+  flex: 0 0 auto;
+  min-width: 380px;
+  max-width: 530px;
+  width: 30vw;
 }
 
 

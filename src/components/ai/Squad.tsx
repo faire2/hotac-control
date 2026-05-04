@@ -20,13 +20,12 @@ interface Props {
 }
 
 const SQUAD_NAMES = [
-  { value: 'Alpha', label: 'Alpha' },
-  { value: 'Beta', label: 'Beta' },
-  { value: 'Gamma', label: 'Gamma' },
-  { value: 'Delta', label: 'Delta' },
-  { value: 'Epsilon', label: 'Epsilon' },
-  { value: 'Omega', label: 'Omega' },
-];
+  'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta',
+  'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi',
+  'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega',
+].map((n) => ({ value: n, label: n }));
+
+const SQUAD_NAME_FALLBACK = { value: 'Squadron designation', label: 'Squadron designation' };
 
 export function Squad({ squad, squadId }: Props) {
   const shipType = squad.shipType;
@@ -80,13 +79,13 @@ export function Squad({ squad, squadId }: Props) {
     >
       <div className="squadContainer">
         <div className="row align-items-center">
-          <div className="col-7">
+          <div className="col-5">
             <h3 className="squadTitle">{ship.name}</h3>
           </div>
-          <div className="col-5">
+          <div className="col-7">
             <Select
               options={SQUAD_NAMES}
-              defaultValue={{ value: 'Squadron designation', label: 'Squadron designation' }}
+              defaultValue={SQUAD_NAMES[squadId] ?? SQUAD_NAME_FALLBACK}
             />
           </div>
         </div>
