@@ -20,20 +20,24 @@ export default function UpgradesCard({ squadId }: Props) {
   const rows = squad.upgrades as readonly UpgradeRow[];
   const columns = rows.length < 2 ? '' : 'columns2';
 
+  const hideSourceToggle = globalValues.scenarioUpgradesSource !== undefined;
+
   return (
     <div>
-      <div className="d-flex justify-content-center">
-        <ToggleButtonGroup
-          type="radio"
-          name="radio"
-          value={squad.upgradesSource}
-          onChange={(e) => globalValues.handleSetUpgradesSource(squadId, e as never)}
-        >
-          <ToggleButton value={UPGRADES.COMMUNITY}>{UPGRADES.COMMUNITY}</ToggleButton>
-          <ToggleButton value={UPGRADES.FGA}>{UPGRADES.FGA}</ToggleButton>
-          <ToggleButton value={UPGRADES.ANDERSON}>{UPGRADES.ANDERSON}</ToggleButton>
-        </ToggleButtonGroup>
-      </div>
+      {hideSourceToggle ? null : (
+        <div className="d-flex justify-content-center">
+          <ToggleButtonGroup
+            type="radio"
+            name="radio"
+            value={squad.upgradesSource}
+            onChange={(e) => globalValues.handleSetUpgradesSource(squadId, e as never)}
+          >
+            <ToggleButton value={UPGRADES.COMMUNITY}>{UPGRADES.COMMUNITY}</ToggleButton>
+            <ToggleButton value={UPGRADES.FGA}>{UPGRADES.FGA}</ToggleButton>
+            <ToggleButton value={UPGRADES.ANDERSON}>{UPGRADES.ANDERSON}</ToggleButton>
+          </ToggleButtonGroup>
+        </div>
+      )}
       <label>
         <input
           type="checkbox"

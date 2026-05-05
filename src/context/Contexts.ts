@@ -28,6 +28,10 @@ export interface GlobalSquadsValuesContextValue {
   handleSetIsElite: (squadId: number, isElite: boolean) => void;
   handleSetUpgradesSource: (squadId: number, source: UpgradeSource) => void;
   handleSquadRemoval: (squadId: number) => void;
+  /** When set, the per-squadron AI engine toggle is hidden and this engine is used for all squads. */
+  scenarioAiEngine?: AiEngine;
+  /** When set, the per-squadron upgrades-source toggle is hidden. */
+  scenarioUpgradesSource?: UpgradeSource;
 }
 
 /**
@@ -49,6 +53,8 @@ export interface Squadron {
   upgradesSource: UpgradeSource;
   upgrades: readonly UpgradeRow[];
   ships: ShipInstance[];
+  /** Set when this squadron was spawned by a scenario; matches `ScenarioSquad.name`. */
+  scenarioSquadName?: string;
 }
 
 export interface ShipInstance {

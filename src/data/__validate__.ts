@@ -25,6 +25,8 @@ import { fgaAttackByShip } from './fga/FgaAttack';
 import { isIconKey } from './icons';
 import { extractShortcodes } from './shortcodes';
 import type { Upgrade } from './shared/coreUpgrades';
+import { SCENARIOS } from './scenarios';
+import type { Scenario, ScenarioSquad, SetupOp } from './scenarios/types';
 
 const KNOWN_MANEUVERS = new Set<string>(Object.values(MVRS));
 const KNOWN_POSITIONS = new Set<string>(Object.values(PSN));
@@ -192,6 +194,110 @@ function checkPriorityShortcodes(
   }
 }
 
+function checkSetupOp(
+  scope: string,
+  op: SetupOp,
+  failures: ValidationFailure[],
+): void {
+  if (op.kind === 'add' || op.kind === 'replace') {
+    if (!(op.ship in Ships)) {
+      failures.push({
+        rule: 'Scenario ship references',
+        detail: `${scope}: op "${op.kind}" references unknown ship "${op.ship}"`,
+      });
+    }
+  }
+  if (op.gate && op.gate.rebelInitGte < 1) {
+    failures.push({
+      rule: 'Scenario init gate',
+      detail: `${scope}: rebelInitGte must be >= 1, got ${op.gate.rebelInitGte.toString()}`,
+    });
+  }
+}
+
+function checkSquadComposition(
+  scope: string,
+  squad: ScenarioSquad,
+  failures: ValidationFailure[],
+): void {
+  const cells = Object.entries(squad.composition);
+  if (cells.length === 0) {
+    failures.push({
+      rule: 'Scenario squad composition',
+      detail: `${scope}: composition is empty`,
+    });
+    return;
+  }
+  for (const [pcKey, ops] of cells) {
+    const pc = Number(pcKey);
+    if (!Number.isInteger(pc) || pc < 1 || pc > 6) {
+      failures.push({
+        rule: 'Scenario player-count keys',
+        detail: `${scope}: composition has invalid player-count key "${pcKey}"`,
+      });
+      continue;
+    }
+    if (!ops || ops.length === 0) continue;
+    ops.forEach((op, idx) => {
+      checkSetupOp(`${scope}.${pcKey}p[${idx.toString()}]`, op, failures);
+    });
+  }
+}
+
+function checkScenario(scenario: Scenario, failures: ValidationFailure[]): void {
+  const scope = `scenario.${scenario.id}`;
+
+  if (scenario.turnLimit < 1) {
+    failures.push({
+      rule: 'Scenario turn limit',
+      detail: `${scope}: turnLimit must be >= 1`,
+    });
+  }
+
+  scenario.squads.forEach((squad) => {
+    const sqScope = `${scope}.squad.${squad.name}`;
+
+    if (typeof squad.vector === 'number') {
+      if (!Number.isInteger(squad.vector) || squad.vector < 1 || squad.vector > 6) {
+        failures.push({
+          rule: 'Scenario vector range',
+          detail: `${sqScope}: vector ${squad.vector.toString()} is outside 1..6`,
+        });
+      }
+    } else if (squad.vector !== '1d6') {
+      failures.push({
+        rule: 'Scenario vector kind',
+        detail: `${sqScope}: vector must be 1..6 or "1d6"`,
+      });
+    }
+
+    if (squad.arrival.kind === 'turn' || squad.arrival.kind === 'rolledTurn') {
+      if (squad.arrival.turn < 1 || squad.arrival.turn > scenario.turnLimit) {
+        failures.push({
+          rule: 'Scenario arrival turn range',
+          detail: `${sqScope}: arrival.turn ${squad.arrival.turn.toString()} outside 1..${scenario.turnLimit.toString()}`,
+        });
+      }
+    }
+
+    checkSquadComposition(sqScope, squad, failures);
+  });
+}
+
+function checkScenarios(failures: ValidationFailure[]): void {
+  const seen = new Set<string>();
+  for (const scenario of SCENARIOS) {
+    if (seen.has(scenario.id)) {
+      failures.push({
+        rule: 'Scenario id uniqueness',
+        detail: `duplicate scenario id "${scenario.id}"`,
+      });
+    }
+    seen.add(scenario.id);
+    checkScenario(scenario, failures);
+  }
+}
+
 export function runValidator(): void {
   const failures: ValidationFailure[] = [];
 
@@ -205,6 +311,8 @@ export function runValidator(): void {
   checkPriorityShortcodes('fga.target', fgaTargetSelectionByShip, failures);
   checkPriorityShortcodes('fga.action', fgaShipActionsByShip, failures);
   checkPriorityShortcodes('fga.attack', fgaAttackByShip, failures);
+
+  checkScenarios(failures);
 
   if (failures.length > 0) {
     const lines = failures.map((f) => `  [${f.rule}] ${f.detail}`).join('\n');

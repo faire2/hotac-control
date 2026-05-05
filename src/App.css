@@ -42,6 +42,17 @@ h3 {
 
 .squadStats {
   margin-top: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  row-gap: 2px;
+}
+
+.statsHeader,
+.statsValues {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
 }
 
 .statsHeader {
@@ -62,21 +73,21 @@ h3 {
 }
 
 .statCell {
-  flex: 1 1 0;
   min-width: 0;
   text-align: center;
 }
 
 .statCellAi {
-  flex: 0 0 auto;
   margin-left: 4px;
 }
 
 .menu {
   background-color: #007bff;
-  padding-left: 10px;
+  padding: 6px 10px;
   color: white;
-  height: 50px;
+  min-height: 50px;
+  flex-wrap: wrap;
+  row-gap: 6px;
   position: sticky;
   position: -webkit-sticky;
   top: 0;
@@ -350,6 +361,88 @@ ul {
   opacity: 0.4;
 }
 
+
+/*************/
+/* SCENARIOS */
+/*************/
+
+.scenarioModalHeader {
+  background-color: #007bff;
+  color: white;
+}
+
+.scenarioModalHeader .close {
+  color: white;
+  text-shadow: none;
+  opacity: 0.9;
+}
+
+.scenarioModalHeader .modal-title {
+  color: white;
+}
+
+.scenarioHeaderControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 0.95em;
+}
+
+.scenarioHeaderControls .control-label {
+  margin-right: 6px;
+  white-space: nowrap;
+}
+
+.scenarioMap {
+  display: flex;
+  justify-content: center;
+}
+
+.scenarioMap pre {
+  display: inline-block;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.btn.btn-scenario-action,
+.btn.btn-scenario-action:not(:disabled):not(.disabled) {
+  background-color: transparent;
+  border-color: rgba(255, 255, 255, 0.45);
+  color: white;
+}
+
+.btn.btn-scenario-action:hover,
+.btn.btn-scenario-action:focus,
+.btn.btn-scenario-action:active,
+.btn.btn-scenario-action:not(:disabled):not(.disabled):active {
+  background-color: rgba(0, 0, 0, 0.32);
+  border-color: white;
+  color: white;
+  box-shadow: none;
+}
+
+.btn.btn-scenario-action:disabled,
+.btn.btn-scenario-action.disabled {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.6);
+  opacity: 1;
+}
+
+.menu-text {
+  color: white;
+}
+
+.menu-text-dim {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.badge-xp {
+  background-color: #007bff;
+  color: white;
+}
 
 /*********/
 /* OTHER */

@@ -1,6 +1,6 @@
 # Documentation catalog
 
-Last updated: 2026-05-02
+Last updated: 2026-05-05
 
 Central index of all project documentation. Update this file whenever you add, rename, or materially change a doc.
 
@@ -18,6 +18,12 @@ Central index of all project documentation. Update this file whenever you add, r
 |---|---|
 | [`DATA-LAYER.md`](./DATA-LAYER.md) | Typed schema for ships, maneuvers, positions, upgrades, AI engines. Invariants enforced by the runtime validator. The load-bearing doc for this app — read before touching anything in `src/data/`. |
 | [`COMPONENT-CATALOG.md`](./COMPONENT-CATALOG.md) | Reusable UI components, file paths, props, when to use them. |
+
+## Features
+
+| Doc | Purpose |
+|---|---|
+| [`SCENARIOS.md`](./SCENARIOS.md) | Scenario loader: data shape, resolution rules, free-play vs scenario-play UI regimes, validator coverage, authoring guide. |
 
 ## Internal reference (not deployed, not versioned)
 

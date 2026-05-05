@@ -119,6 +119,23 @@ Items remaining if/when picked up:
 - [ ] Configure custom domain if desired
 - [ ] Promote to production
 
+### Phase 8 — Scenario loader (2026-05-05)
+
+See [`docs/SCENARIOS.md`](docs/SCENARIOS.md) for the feature spec.
+
+- [x] `src/data/scenarios/types.ts` — `Scenario`, `ScenarioSquad`, `SetupOp` (add/replace/random/elite + init gate), `ArrivalTrigger`, `Vector`
+- [x] `src/data/scenarios/resolve.ts` — composition resolver (column-walk, init-gated). Random / replace-random / elite ops throw until a mission needs them
+- [x] `src/data/scenarios/localTrouble.ts` — first scenario (Mission Pack V2.07.04, intro mission, page 4–5)
+- [x] Validator extended: scenario ship refs, vector range, arrival turn ≤ turnLimit, unique scenario ids, non-empty composition
+- [x] Two UI regimes: free play preserves existing flow; scenario play hides per-squadron AI/upgrades toggles, drives them from the briefing modal header instead, and replaces ± round controls with one-way "Next round"
+- [x] `LoadScenarioModal` (picker) → `ScenarioBriefingModal` (rank/number/AI/upgrades + briefing/map/objectives + Start) → scenario active. Briefing reopen during play in view mode
+- [x] `EndScenarioModal` shows outcomes recap (objectives + Rebel/Imperial victory text) before clearing state
+- [x] Squadrons spawn lazily on arrival turn via `spawnFromScenarioSquad`. Scenario engine + upgrades-source flow through `GlobalSquadsValuesContext` (`scenarioAiEngine`, `scenarioUpgradesSource`); changes mid-play propagate to all spawned squadrons
+- [x] CSS: subgrid in `SquadStats` so Init/Attack/Agility/XP values line up under headers; ghost-style buttons (`.btn-scenario-action`) for Briefing/End scenario/Next round
+- [ ] Author additional missions; expand resolver as random/replace/elite ops appear in the wild
+- [ ] Implement the `1d6` arrival roll (currently `rolledTurn` arrivals are treated as plain `turn`); not yet exercised by Local Trouble
+- [ ] Surface `scenarioSquadName` (Alpha/Beta/etc.) in the Squad header for in-scenario labelling
+
 ### Backlog (Needs Planning)
 - Encode Gozanti-Class Cruiser as a "huge ship" with its own schema (Bonus Attacks, Docking Clamps, no Select Target step)
 - Encode TIE/d Defender Elite as a separate pilot variant (currently treated as base Defender)

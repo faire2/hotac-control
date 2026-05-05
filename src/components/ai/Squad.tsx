@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import Select from 'react-select';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
@@ -11,7 +11,7 @@ import { SquadStats } from './SquadStats';
 import SquadActionsCarousel from './actionsCarousel/SquadActionsCarousel';
 import { TargetPosition } from './maneuvers/TargetPosition';
 import UpgradesCard from './upgrades/UpgradesCard';
-import { TargetPositionContext } from '../../context/Contexts';
+import { GlobalSquadsValuesContext, TargetPositionContext } from '../../context/Contexts';
 import type { Squadron } from '../../context/Contexts';
 
 interface Props {
@@ -30,11 +30,15 @@ const SQUAD_NAME_FALLBACK = { value: 'Squadron designation', label: 'Squadron de
 export function Squad({ squad, squadId }: Props) {
   const shipType = squad.shipType;
   const ship = Ships[shipType];
+  const globalValues = useContext(GlobalSquadsValuesContext);
+  const scenarioAiEngine = globalValues?.scenarioAiEngine;
 
   const [targetPosition, setTargetPosition] = useState<Position | readonly Position[]>([PSN.R3FRONT]);
   const [maneuverRandNum, setManeuverRandNum] = useState(1);
-  const [aiEngine, setAiEngine] = useState<AiEngine>(AI.FGA);
+  const [localAiEngine, setLocalAiEngine] = useState<AiEngine>(AI.FGA);
   const [stressed, setStressed] = useState(false);
+
+  const aiEngine = scenarioAiEngine ?? localAiEngine;
 
   function handleSetTargetPosition(position: Position | readonly Position[]) {
     setManeuverRandNum(Math.floor(Math.random() * 6));
@@ -48,10 +52,10 @@ export function Squad({ squad, squadId }: Props) {
   function handleSetAi(ai: AiEngine) {
     setTargetPosition(PSN.R1FRONT);
     setStressed(false);
-    setAiEngine(ai);
+    setLocalAiEngine(ai);
   }
 
-  const aiToggle = (
+  const aiToggle = scenarioAiEngine ? null : (
     <ToggleButtonGroup
       type="radio"
       name={`ai-engine-${String(squadId)}`}

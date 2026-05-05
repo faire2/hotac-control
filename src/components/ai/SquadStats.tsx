@@ -17,14 +17,14 @@ export const SquadStats = ({ shipType, upgrades, headerExtra }: Props) => {
 
   return (
     <div className="squadStats">
-      <div className="d-flex flex-nowrap align-items-center statsHeader">
+      <div className="statsHeader">
         <div className="statCell">Init</div>
         <div className="statCell">Attack</div>
         <div className="statCell">Agility</div>
         <div className="statCell">XP</div>
         {headerExtra && <div className="statCell statCellAi">{headerExtra}</div>}
       </div>
-      <div className="d-flex flex-nowrap align-items-center statsValues">
+      <div className="statsValues">
         <div className="statCell">{initiative}</div>
         <div className="statCell">
           {ship.attack.map((a, index) => (
