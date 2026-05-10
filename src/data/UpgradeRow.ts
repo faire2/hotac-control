@@ -12,28 +12,28 @@
 
 import type { Upgrade } from './shared/coreUpgrades';
 
-export type FgaUpgradeRow = {
+export interface FgaUpgradeRow {
   source: 'FGA';
   upgrade: Upgrade;
   initiative: number;
   /** XP tier 1/2/3 — drives the FGA `getFgaUpgrades` rank-ladder filter. */
   tier: 1 | 2 | 3;
-};
+}
 
-export type CommunityUpgradeRow = {
+export interface CommunityUpgradeRow {
   source: 'COMMUNITY';
   upgrade: Upgrade;
   initiative: number;
   /** XP cost (legacy data — always present, not always meaningful). */
   xpCost: number;
-};
+}
 
-export type AndersonUpgradeRow = {
+export interface AndersonUpgradeRow {
   source: 'ANDERSON';
   upgrade: Upgrade;
   /** Initiative threshold at which this upgrade becomes available. */
   initiative: number;
-};
+}
 
 export type UpgradeRow = FgaUpgradeRow | CommunityUpgradeRow | AndersonUpgradeRow;
 

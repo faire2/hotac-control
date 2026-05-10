@@ -18,15 +18,54 @@ import type { AiEngine, ShipId, UpgradeSource } from './data/Ships';
 import SquadGenerator from './components/ai/SquadGenerator';
 import { GlobalSquadsValuesContext, ShipHandlingContext } from './context/Contexts';
 import type { ShipInstance, Squadron } from './context/Contexts';
-import getUpgrades from './components/ai/upgrades/UpgradesGenerator';
+import getUpgrades from './data/upgrades/getUpgrades';
 import { countExtraHullAndShield } from './data/shared/coreUpgrades';
 import type { UpgradeRow } from './data/UpgradeRow';
 import { runValidator } from './data/__validate__';
 import { LoadScenarioModal } from './components/scenarios/LoadScenarioModal';
 import { ScenarioBriefingModal } from './components/scenarios/ScenarioBriefingModal';
 import { EndScenarioModal } from './components/scenarios/EndScenarioModal';
-import { findScenario, resolveSquad } from './data/scenarios';
-import type { PlayerCount, ScenarioSquad } from './data/scenarios/types';
+import { findScenario } from './data/scenarios';
+import {
+  spawnFromScenarioSquad,
+  priorVectorsFromSquadrons,
+  opsForShipsOverride,
+} from './data/scenarios/spawn';
+import type { SpawnContext } from './data/scenarios/spawn';
+import { hasTag } from './data/scenarios/types';
+import type {
+  PlayerCount,
+  Scenario,
+  ScenarioSquad,
+} from './data/scenarios/types';
+import {
+  SHIP_INTRODUCTIONS,
+  DEFAULT_SPAWN_SETTINGS,
+  type SpawnSettings,
+} from './data/campaigns/settings';
+import type { EndOutcomeKind } from './components/scenarios/EndScenarioModal';
+import { findHandler } from './data/scenarios/dynamicSpawnHandlers';
+import { DynamicSpawnPromptModal } from './components/scenarios/DynamicSpawnPromptModal';
+import type { PendingHandler, HandlerOutcome } from './components/scenarios/DynamicSpawnPromptModal';
+import { ArrivalNotificationModal } from './components/scenarios/ArrivalNotificationModal';
+import type { Arrival } from './components/scenarios/ArrivalNotificationModal';
+import {
+  FREE_PLAY,
+  bumpRound,
+  getActiveRound,
+  getActiveScenarioId,
+  getBriefingMode,
+  getBriefingScenarioId,
+} from './state/appMode';
+import type { AppMode, MissionState } from './state/appMode';
+import { MainMenu } from './components/menu/MainMenu';
+import { NewGamePickerModal } from './components/menu/NewGamePickerModal';
+import { OpenCampaignModal } from './components/menu/OpenCampaignModal';
+import { CampaignSetupModal } from './components/menu/CampaignSetupModal';
+import { DeckPickView } from './components/menu/DeckPickView';
+import { campaignStore } from './data/campaigns/storage.active';
+import { useCampaign } from './state/useCampaign';
+import { applyOutcome, pickMission } from './data/campaigns/factory';
 
 if (import.meta.env.DEV) {
   runValidator();
@@ -54,37 +93,16 @@ function freshSquadron(shipType: ShipId, playersRank: number): Squadron {
   };
 }
 
-function spawnFromScenarioSquad(
-  squad: ScenarioSquad,
-  playerCount: PlayerCount,
-  avgRebelInit: number,
-  playersRank: number,
-  upgradesSource: UpgradeSource,
-): Squadron[] {
-  const resolved = resolveSquad(squad, { playerCount, avgRebelInit });
-  if (resolved.ships.length === 0) return [];
-  const byShipType = new Map<ShipId, number>();
-  for (const id of resolved.ships) byShipType.set(id, (byShipType.get(id) ?? 0) + 1);
-  return Array.from(byShipType.entries()).map(([shipType, count]) => {
-    const upgrades = squad.noUpgrades
-      ? []
-      : getUpgrades(shipType, playersRank, upgradesSource, false);
-    const extras = countExtraHullAndShield(upgrades.map((r) => r.upgrade));
-    const baseStats = Ships[shipType];
-    return {
-      id: crypto.randomUUID(),
-      shipType,
-      isElite: false,
-      upgradesSource,
-      upgrades,
-      scenarioSquadName: squad.name,
-      ships: Array.from({ length: count }, () => ({
-        tokenId: 0,
-        hull: baseStats.hull + extras.extraHull,
-        shields: baseStats.shields + extras.extraShield,
-      })),
-    };
-  });
+function arrivalsFromSquadrons(squadrons: readonly Squadron[]): readonly Arrival[] {
+  return squadrons.map((sq) => ({
+    squadName: sq.scenarioSquadName ?? '',
+    shipType: sq.shipType,
+    shipName: Ships[sq.shipType].name,
+    count: sq.ships.length,
+    isElite: sq.isElite,
+    approach: sq.approachLabel ?? (sq.arrivedFromVector !== undefined ? String(sq.arrivedFromVector) : '?'),
+    huntsPlayerIndex: sq.huntsPlayerIndex,
+  }));
 }
 
 function squadShouldSpawnAt(squad: ScenarioSquad, round: number): boolean {
@@ -94,23 +112,56 @@ function squadShouldSpawnAt(squad: ScenarioSquad, round: number): boolean {
     case 'turn':
     case 'rolledTurn':
       return round === squad.arrival.turn;
+    default: {
+      const _exhaustive: never = squad.arrival;
+      return _exhaustive;
+    }
   }
 }
 
 function App() {
   const [squadrons, setSquadrons] = useState<Squadron[]>([]);
   const [playersRank, setPlayersRank] = useState(2);
-  const [round, setRound] = useState(1);
+  const [mode, setMode] = useState<AppMode>(FREE_PLAY);
+  const [briefingOverlayOpen, setBriefingOverlayOpen] = useState(false);
+  const [freePlayRound, setFreePlayRound] = useState(1);
   const [showScenarioPicker, setShowScenarioPicker] = useState(false);
-  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
-  const [briefingScenarioId, setBriefingScenarioId] = useState<string | null>(null);
-  const [briefingMode, setBriefingMode] = useState<'start' | 'view'>('start');
   const [playerCount, setPlayerCount] = useState<PlayerCount>(2);
   const [scenarioAiEngine, setScenarioAiEngine] = useState<AiEngine>(AI.FGA);
   const [scenarioUpgradesSource, setScenarioUpgradesSource] = useState<UpgradeSource>(UPGRADES.FGA);
   const [showEndScenario, setShowEndScenario] = useState(false);
+  const [pendingArrivals, setPendingArrivals] = useState<readonly Arrival[]>([]);
+  const [pendingHandlers, setPendingHandlers] = useState<readonly PendingHandler[]>([]);
+  const [resolvedDynamicSquads, setResolvedDynamicSquads] = useState<ReadonlySet<string>>(
+    () => new Set<string>(),
+  );
+  const [showNewGamePicker, setShowNewGamePicker] = useState(false);
+  const [showOpenBrowser, setShowOpenBrowser] = useState(false);
+  const [showCampaignSetup, setShowCampaignSetup] = useState(false);
+
+  // Derive scenario/round/briefing state via helpers from `appMode.ts`.
+  // Briefing has two facets: pre-start (mission.phase = briefing) and
+  // during-play overlay (briefingOverlayOpen, while mission.phase = active).
+  const activeScenarioId = getActiveScenarioId(mode);
+  const round = getActiveRound(mode);
+  const briefingScenarioId = getBriefingScenarioId(mode, briefingOverlayOpen);
+  const briefingMode = getBriefingMode(mode);
   const activeScenario = activeScenarioId ? findScenario(activeScenarioId) : undefined;
   const briefingScenario = briefingScenarioId ? findScenario(briefingScenarioId) : undefined;
+
+  // Active campaign (loaded from storage when mode.kind === 'campaign').
+  const activeCampaignId = mode.kind === 'campaign' ? mode.campaignId : null;
+  const { campaign: activeCampaign, update: updateCampaign } = useCampaign(activeCampaignId);
+
+  // Settings used by the spawn pipeline. Campaign mode pulls from the
+  // campaign record; free play / scenario-only use safe defaults.
+  const effectiveSettings: SpawnSettings = activeCampaign
+    ? {
+        ownedModels: activeCampaign.ownedModels,
+        lessRandomShips: activeCampaign.lessRandomShips,
+        introducedShipTypes: activeCampaign.introducedShipTypes,
+      }
+    : DEFAULT_SPAWN_SETTINGS;
 
   function handleNewShipSelection(value: ShipId) {
     setSquadrons((prev) => [...prev, freshSquadron(value, playersRank)]);
@@ -118,21 +169,45 @@ function App() {
 
   function handlePickerSelect(scenarioId: string) {
     setShowScenarioPicker(false);
-    setBriefingScenarioId(scenarioId);
-    setBriefingMode('start');
+    const mission: MissionState = {
+      scenarioId,
+      phase: { kind: 'briefing', briefingMode: 'start' },
+    };
+    setMode({ kind: 'scenarioOnly', mission });
   }
 
   function handleStartScenario() {
     if (!briefingScenario) return;
-    setActiveScenarioId(briefingScenario.id);
-    setRound(1);
+    setResolvedDynamicSquads(new Set<string>());
+    const ctx: SpawnContext = {
+      scenario: briefingScenario,
+      playerCount,
+      avgRebelInit: playersRank,
+      playersRank,
+      upgradesSource: scenarioUpgradesSource,
+      round: 1,
+      priorVectors: new Map(),
+      settings: effectiveSettings,
+    };
     const setupSquadrons = briefingScenario.squads
       .filter((sq) => squadShouldSpawnAt(sq, 1))
-      .flatMap((sq) =>
-        spawnFromScenarioSquad(sq, playerCount, playersRank, playersRank, scenarioUpgradesSource),
-      );
+      .flatMap((sq) => spawnFromScenarioSquad(sq, ctx));
     setSquadrons(setupSquadrons);
-    setBriefingScenarioId(null);
+    setPendingArrivals(arrivalsFromSquadrons(setupSquadrons));
+    const mission: MissionState = {
+      scenarioId: briefingScenario.id,
+      phase: { kind: 'active', round: 1 },
+    };
+    if (mode.kind === 'campaign') {
+      setMode({
+        kind: 'campaign',
+        campaignId: mode.campaignId,
+        phase: 'mission',
+        mission,
+      });
+    } else {
+      setMode({ kind: 'scenarioOnly', mission });
+    }
   }
 
   function handleScenarioUpgradesSourceChange(source: UpgradeSource) {
@@ -151,40 +226,246 @@ function App() {
   }
 
   function handleBriefingBack() {
-    setBriefingScenarioId(null);
+    setMode(FREE_PLAY);
     setShowScenarioPicker(true);
   }
 
   function handleShowBriefing() {
     if (!activeScenarioId) return;
-    setBriefingScenarioId(activeScenarioId);
-    setBriefingMode('view');
+    setBriefingOverlayOpen(true);
+  }
+
+  function handleHideBriefing() {
+    if (briefingOverlayOpen) {
+      setBriefingOverlayOpen(false);
+    } else {
+      // Closing the pre-start briefing modal returns to free play.
+      setMode(FREE_PLAY);
+    }
+  }
+
+  function collectPendingHandlers(scenario: Scenario): PendingHandler[] {
+    const out: PendingHandler[] = [];
+    for (const sq of scenario.squads) {
+      const tag = hasTag(sq, 'dynamicSpawn');
+      if (!tag) continue;
+      const handler = findHandler(tag.handler);
+      if (!handler) continue;
+      if (!handler.recurring && resolvedDynamicSquads.has(sq.name)) continue;
+      out.push({ squadName: sq.name, handler });
+    }
+    return out;
+  }
+
+  function performRoundAdvance(outcomes: readonly HandlerOutcome[]) {
+    if (!activeScenario) return;
+    const nextRound = round + 1;
+    // Reseed priorVectors from already-spawned squadrons so oppositeOf can
+    // reach back across rounds (e.g. Bait's Support B references Support A).
+    const ctx: SpawnContext = {
+      scenario: activeScenario,
+      playerCount,
+      avgRebelInit: playersRank,
+      playersRank,
+      upgradesSource: scenarioUpgradesSource,
+      round: nextRound,
+      priorVectors: priorVectorsFromSquadrons(squadrons),
+      settings: effectiveSettings,
+    };
+    // Auto-spawn squads (round-trigger).
+    const autoSpawned = activeScenario.squads
+      .filter((sq) => squadShouldSpawnAt(sq, nextRound))
+      .flatMap((sq) => spawnFromScenarioSquad(sq, ctx));
+    // Dynamic-spawn squads from popup outcomes — same spawn entry point,
+    // optionally with synthesized composition ops.
+    const dynamicSpawned: Squadron[] = [];
+    for (const o of outcomes) {
+      if (!o.decision.spawn) continue;
+      const squad = activeScenario.squads.find((s) => s.name === o.squadName);
+      if (!squad) continue;
+      const override = o.decision.shipsOverride;
+      const compositionOverride = override
+        ? opsForShipsOverride(override.ship, override.count)
+        : undefined;
+      dynamicSpawned.push(...spawnFromScenarioSquad(squad, ctx, compositionOverride));
+    }
+    const allNew = [...autoSpawned, ...dynamicSpawned];
+    // Mark one-shot handlers that fired as resolved.
+    setResolvedDynamicSquads((prev) => {
+      const set = new Set(prev);
+      for (const o of outcomes) {
+        const squad = activeScenario.squads.find((s) => s.name === o.squadName);
+        if (!squad) continue;
+        const tag = hasTag(squad, 'dynamicSpawn');
+        if (!tag) continue;
+        const handler = findHandler(tag.handler);
+        if (handler && !handler.recurring && o.decision.spawn) {
+          set.add(o.squadName);
+        }
+      }
+      return set;
+    });
+    setSquadrons((prev) => [...prev, ...allNew]);
+    setMode((m) => bumpRound(m, nextRound));
+    if (allNew.length > 0) {
+      setPendingArrivals(arrivalsFromSquadrons(allNew));
+    }
   }
 
   function handleNextRound() {
     if (!activeScenario) {
-      setRound((r) => r + 1);
+      setFreePlayRound((r) => r + 1);
       return;
     }
-    const nextRound = round + 1;
-    const newSquadrons = activeScenario.squads
-      .filter((sq) => squadShouldSpawnAt(sq, nextRound))
-      .flatMap((sq) =>
-        spawnFromScenarioSquad(sq, playerCount, playersRank, playersRank, scenarioUpgradesSource),
-      );
-    setSquadrons((prev) => [...prev, ...newSquadrons]);
-    setRound(nextRound);
+    const pending = collectPendingHandlers(activeScenario);
+    if (pending.length > 0) {
+      setPendingHandlers(pending);
+      return;
+    }
+    performRoundAdvance([]);
+  }
+
+  function handleDynamicSpawnSubmit(outcomes: readonly HandlerOutcome[]) {
+    setPendingHandlers([]);
+    performRoundAdvance(outcomes);
   }
 
   function handleEndScenarioClick() {
     setShowEndScenario(true);
   }
 
-  function handleEndScenarioConfirmed() {
+  function handleEndScenarioCancel() {
     setShowEndScenario(false);
-    setActiveScenarioId(null);
     setSquadrons([]);
-    setRound(1);
+    setResolvedDynamicSquads(new Set<string>());
+    if (mode.kind === 'campaign') {
+      // Cancel returns to deck-pick (active campaign continues).
+      setMode({ kind: 'campaign', campaignId: mode.campaignId, phase: 'deckPick', mission: null });
+    } else {
+      setMode(FREE_PLAY);
+    }
+  }
+
+  /** Pick a mission from the active campaign's deck. */
+  function handleDeckPick(missionId: string) {
+    if (mode.kind !== 'campaign') return;
+    void updateCampaign((c) => pickMission(c, missionId));
+    const mission: MissionState = {
+      scenarioId: missionId,
+      phase: { kind: 'briefing', briefingMode: 'start' },
+    };
+    setMode({
+      kind: 'campaign',
+      campaignId: mode.campaignId,
+      phase: 'mission',
+      mission,
+    });
+  }
+
+  function handleEndScenarioResolve(kind: EndOutcomeKind) {
+    if (!activeScenario) return;
+    const outcome = kind === 'victory' ? activeScenario.victory : activeScenario.defeat;
+    const introductions: readonly ShipId[] = SHIP_INTRODUCTIONS[activeScenario.id] ?? [];
+    const scenarioId = activeScenario.id;
+
+    setShowEndScenario(false);
+    setSquadrons([]);
+    setResolvedDynamicSquads(new Set<string>());
+
+    // Campaign mode: route through applyOutcome and persist. Mode transition
+    // depends on the campaign's resulting state (deckPick / continued briefing
+    // / ended).
+    if (mode.kind === 'campaign') {
+      const campaignId = mode.campaignId;
+      void updateCampaign((c) =>
+        applyOutcome(c, scenarioId, kind, outcome, introductions),
+      ).then((updated) => {
+        if (!updated) return;
+        // Determine next phase from outcome + resulting status.
+        if (updated.status !== 'active') {
+          setMode({
+            kind: 'campaign',
+            campaignId,
+            phase: 'mission',
+            mission: { scenarioId, phase: { kind: 'ended' } },
+          });
+          return;
+        }
+        switch (outcome.next.kind) {
+          case 'arcLink':
+          case 'replay': {
+            // Stage the next briefing — arcLink names the next mission;
+            // replay re-stages the same one.
+            const targetId = outcome.next.kind === 'arcLink' ? outcome.next.missionId : scenarioId;
+            const mission: MissionState = {
+              scenarioId: targetId,
+              phase: { kind: 'briefing', briefingMode: 'start' },
+            };
+            setMode({
+              kind: 'campaign',
+              campaignId,
+              phase: 'mission',
+              mission,
+            });
+            // Mark the campaign's currentMissionId so resume picks up here.
+            void updateCampaign((c) => ({ ...c, currentMissionId: targetId }));
+            return;
+          }
+          case 'arcDiscard':
+          case 'reshuffle':
+          case 'campaignStart':
+          case 'campaignEnd':
+            // Back to deck-pick — applyOutcome already mutated the deck.
+            setMode({ kind: 'campaign', campaignId, phase: 'deckPick', mission: null });
+            return;
+          default: {
+            const _exhaustive: never = outcome.next;
+            void _exhaustive;
+            return;
+          }
+        }
+      });
+      return;
+    }
+
+    // Scenario-only mode: ship introductions don't carry forward (no
+    // campaign state to track them). The mission outcome just routes to
+    // the next mission's briefing or back to free play.
+    switch (outcome.next.kind) {
+      case 'arcLink': {
+        const target = findScenario(outcome.next.missionId);
+        if (target) {
+          setMode({
+            kind: 'scenarioOnly',
+            mission: {
+              scenarioId: target.id,
+              phase: { kind: 'briefing', briefingMode: 'start' },
+            },
+          });
+          return;
+        }
+        break;
+      }
+      case 'replay':
+        setMode({
+          kind: 'scenarioOnly',
+          mission: {
+            scenarioId,
+            phase: { kind: 'briefing', briefingMode: 'start' },
+          },
+        });
+        return;
+      case 'arcDiscard':
+      case 'reshuffle':
+      case 'campaignStart':
+      case 'campaignEnd':
+        break;
+      default: {
+        const _exhaustive: never = outcome.next;
+        void _exhaustive;
+      }
+    }
+    setMode(FREE_PLAY);
   }
 
   function handleSquadRemoval(index: number) {
@@ -195,7 +476,6 @@ function App() {
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[index];
-      if (!squad) return prev;
       const newUpgrades = getUpgrades(squad.shipType, playersRank, upgradesSource, squad.isElite);
       next[index] = {
         ...squad,
@@ -225,7 +505,6 @@ function App() {
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[index];
-      if (!squad) return prev;
       const newUpgrades = getUpgrades(squad.shipType, playersRank, squad.upgradesSource, isElite);
       next[index] = {
         ...squad,
@@ -241,7 +520,6 @@ function App() {
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[squadId];
-      if (!squad) return prev;
       const extras = countExtraHullAndShield(squad.upgrades.map((r) => r.upgrade));
       const baseStats = Ships[squad.shipType];
       next[squadId] = {
@@ -263,7 +541,6 @@ function App() {
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[squadId];
-      if (!squad) return prev;
       next[squadId] = { ...squad, ships: squad.ships.filter((_, i) => i !== shipIndex) };
       return next;
     });
@@ -273,7 +550,6 @@ function App() {
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[squadId];
-      if (!squad) return prev;
       const newShips = [...squad.ships];
       newShips[shipIndex] = ship;
       next[squadId] = { ...squad, ships: newShips };
@@ -298,6 +574,26 @@ function App() {
           value={{ squadrons, handleAddShip, handleShipRemoval: handleRemoveShip, handleShipChange }}
         >
           <div className="row menu d-flex align-items-center">
+            <div className="col-auto">
+              <MainMenu
+                onNewClick={() => { setShowNewGamePicker(true); }}
+                onOpenClick={() => { setShowOpenBrowser(true); }}
+                onLogoutClick={() => {
+                  // Stub: the app has no auth today. Will be wired to OAuth + Neon later.
+                  alert('Logout will be available once accounts land. Close the tab to end your session.');
+                }}
+              />
+            </div>
+            {mode.kind === 'campaign' && activeCampaign ? (
+              <div className="col-auto menu-text">
+                <span className="font-weight-bold">{activeCampaign.name}</span>
+                <span className="ml-2 small menu-text-dim">
+                  Rebel VP {activeCampaign.rebelPoints.toString()} ·
+                  {' '}Imperial VP {activeCampaign.imperialPoints.toString()} ·
+                  {' '}{activeCampaign.completedArcs.length.toString()} arcs done
+                </span>
+              </div>
+            ) : null}
             {activeScenario ? (
               <>
                 <div className="col-auto menu-text">
@@ -342,7 +638,7 @@ function App() {
                   <button
                     type="button"
                     className="btn btn-light"
-                    onClick={() => setShowScenarioPicker(true)}
+                    onClick={() => { setShowScenarioPicker(true); }}
                   >
                     Load Scenario
                   </button>
@@ -352,7 +648,7 @@ function App() {
                   type="radio"
                   name="rank"
                   value={playersRank}
-                  onChange={(value: number) => handleSetPlayersRank(value)}
+                  onChange={(value: number) => { handleSetPlayersRank(value); }}
                 >
                   {RANK_OPTIONS.map((n) => (
                     <ToggleButton key={n} value={n}>{n}</ToggleButton>
@@ -365,17 +661,17 @@ function App() {
                     className="btn btn-primary btn-counter"
                     style={{ backgroundColor: '#0062cc', borderColor: '#005cbf' }}
                     aria-label="Decrease round"
-                    onClick={() => setRound((r) => Math.max(1, r - 1))}
+                    onClick={() => { setFreePlayRound((r) => Math.max(1, r - 1)); }}
                   >
                     −
                   </button>
-                  <span className="counterValue" style={{ margin: '0 10px' }}>{round}</span>
+                  <span className="counterValue" style={{ margin: '0 10px' }}>{freePlayRound}</span>
                   <button
                     type="button"
                     className="btn btn-primary btn-counter"
                     style={{ backgroundColor: '#0062cc', borderColor: '#005cbf' }}
                     aria-label="Increase round"
-                    onClick={() => setRound((r) => r + 1)}
+                    onClick={() => { setFreePlayRound((r) => r + 1); }}
                   >
                     +
                   </button>
@@ -383,11 +679,22 @@ function App() {
               </>
             )}
           </div>
-          <SquadGenerator squadrons={squadrons} onAddShip={handleNewShipSelection} />
+          {mode.kind === 'campaign' && mode.phase === 'deckPick' && activeCampaign ? (
+            <DeckPickView campaign={activeCampaign} onPickMission={handleDeckPick} />
+          ) : (
+            <SquadGenerator squadrons={squadrons} onAddShip={handleNewShipSelection} />
+          )}
           <LoadScenarioModal
             show={showScenarioPicker}
-            onHide={() => setShowScenarioPicker(false)}
+            ownedModels={effectiveSettings.ownedModels}
+            onHide={() => { setShowScenarioPicker(false); }}
             onSelect={handlePickerSelect}
+          />
+          <DynamicSpawnPromptModal
+            show={pendingHandlers.length > 0}
+            pending={pendingHandlers}
+            onSubmit={handleDynamicSpawnSubmit}
+            onCancel={() => { setPendingHandlers([]); }}
           />
           {briefingScenario ? (
             <ScenarioBriefingModal
@@ -404,16 +711,82 @@ function App() {
               onUpgradesSourceChange={handleScenarioUpgradesSourceChange}
               onStart={handleStartScenario}
               onBack={handleBriefingBack}
-              onHide={() => setBriefingScenarioId(null)}
+              onHide={handleHideBriefing}
             />
           ) : null}
           {activeScenario && showEndScenario ? (
             <EndScenarioModal
               show={true}
               scenario={activeScenario}
-              onClose={handleEndScenarioConfirmed}
+              onResolve={handleEndScenarioResolve}
+              onClose={handleEndScenarioCancel}
             />
           ) : null}
+          <ArrivalNotificationModal
+            arrivals={pendingArrivals}
+            onClose={() => { setPendingArrivals([]); }}
+          />
+          <NewGamePickerModal
+            show={showNewGamePicker}
+            onClose={() => { setShowNewGamePicker(false); }}
+            onPickCampaign={() => { setShowCampaignSetup(true); }}
+            onPickScenario={() => {
+              setShowScenarioPicker(true);
+            }}
+            onPickFreePlay={() => {
+              setMode(FREE_PLAY);
+              setSquadrons([]);
+              setFreePlayRound(1);
+            }}
+          />
+          <CampaignSetupModal
+            show={showCampaignSetup}
+            onClose={() => { setShowCampaignSetup(false); }}
+            onCreated={(campaignId) => {
+              setSquadrons([]);
+              setFreePlayRound(1);
+              setResolvedDynamicSquads(new Set<string>());
+              setMode({
+                kind: 'campaign',
+                campaignId,
+                phase: 'deckPick',
+                mission: null,
+              });
+            }}
+          />
+          <OpenCampaignModal
+            show={showOpenBrowser}
+            onClose={() => { setShowOpenBrowser(false); }}
+            onResume={(id) => {
+              // Resume into the right phase. If a mission was in progress
+              // when last saved we drop back to its briefing (active mid-mission
+              // state isn't persisted — that's a deliberate scope boundary).
+              setSquadrons([]);
+              setResolvedDynamicSquads(new Set<string>());
+              void campaignStore.load(id).then((c) => {
+                if (!c) return;
+                if (c.currentMissionId !== null) {
+                  const mission: MissionState = {
+                    scenarioId: c.currentMissionId,
+                    phase: { kind: 'briefing', briefingMode: 'start' },
+                  };
+                  setMode({
+                    kind: 'campaign',
+                    campaignId: id,
+                    phase: 'mission',
+                    mission,
+                  });
+                } else {
+                  setMode({
+                    kind: 'campaign',
+                    campaignId: id,
+                    phase: 'deckPick',
+                    mission: null,
+                  });
+                }
+              });
+            }}
+          />
         </ShipHandlingContext.Provider>
       </GlobalSquadsValuesContext.Provider>
     </div>

@@ -2,6 +2,7 @@ import { createContext } from 'react';
 import type { AiEngine, ShipId, UpgradeSource } from '../data/Ships';
 import type { Position } from '../data/Maneuvers';
 import type { UpgradeRow } from '../data/UpgradeRow';
+import type { SimpleVector } from '../data/scenarios/types';
 
 /**
  * Squad-local UI state for the position picker, AI engine selector, and stress toggle.
@@ -55,6 +56,14 @@ export interface Squadron {
   ships: ShipInstance[];
   /** Set when this squadron was spawned by a scenario; matches `ScenarioSquad.name`. */
   scenarioSquadName?: string;
+  /** Concrete spawn vector resolved at arrival time (1d6/tuple → fixed). */
+  arrivedFromVector?: SimpleVector;
+  /** Optional human-readable label override for the approach (e.g. "Bay 1"). */
+  approachLabel?: string;
+  /** Round on which this squadron arrived. Set on spawn. */
+  arrivedAtRound?: number;
+  /** Rebel player index (1-based) this enemy squadron is hunting. */
+  huntsPlayerIndex?: number;
 }
 
 export interface ShipInstance {

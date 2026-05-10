@@ -48,8 +48,12 @@ export const localTrouble: Scenario = {
     },
   ],
   victory: {
-    rebel: '"Great work pilots! Our convoy is safe from harm. Now we can begin operations against Empire in this system." — Play the full campaign!',
-    imperial: '"That Imperial patrol has located our convoy; call off the operation. Our base in this system must remain a secret." — Replay this mission, or begin the full campaign.',
+    text: '"Great work pilots! Our convoy is safe from harm. Now we can begin operations against Empire in this system." — Play the full campaign!',
+    next: { kind: 'campaignStart' },
+  },
+  defeat: {
+    text: '"That Imperial patrol has located our convoy; call off the operation. Our base in this system must remain a secret." — Replay this mission, or begin the full campaign.',
+    next: { kind: 'replay' },
   },
   squads: [
     {
@@ -80,7 +84,7 @@ export const localTrouble: Scenario = {
       arrival: { kind: 'turn', turn: 4 },
       vector: '1d6',
       aiTag: 'Attack',
-      noUpgrades: true,
+      tags: [{ kind: 'noUpgrades' }],
       composition: {
         1: [{ kind: 'add', ship: 'TIEIN' }],
         4: [{ kind: 'add', ship: 'TIEIN' }],
@@ -97,6 +101,26 @@ export const localTrouble: Scenario = {
         5: [{ kind: 'add', ship: 'TIELN' }],
         6: [{ kind: 'add', ship: 'TIELN' }],
       },
+    },
+  ],
+  specialRules: [
+    {
+      title: 'Your First Mission',
+      body: `This mission is only intended for a group of new players just starting a campaign as X-wing or Y-wing pilots of Initiative 2. As such, this squad composition table doesn't have scaling for players with higher pilot skill.`,
+    },
+    {
+      title: 'TIE Interceptors',
+      body: `The TIE Interceptors in Gamma squad do not have upgrades, and therefore you do not need to draw an Imperial Pilot card for them.
+
+However, unlike TIE Fighters, notice they do have "linked" actions.`,
+    },
+    {
+      title: 'Reminders',
+      body: `As you play your first game against the AI, concentrate on how it operates. Take note of the different action selection for TIE Fighters and TIE Interceptors.
+
+Don't forget to track experience points when players deal damage to, or destroy, enemy ships.
+
+The mission is set in Friendly Territory, so if things go badly, damaged players can escape from any board edge.`,
     },
   ],
 };

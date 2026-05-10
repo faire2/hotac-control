@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { AI } from '../../../data/Ships';
 import type { AiEngine, ShipId } from '../../../data/Ships';
 import { PriorityList } from '../../Rule';

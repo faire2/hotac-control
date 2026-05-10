@@ -23,7 +23,7 @@ export function parseRule(text: string): RulePart[] {
     if (start > last) {
       parts.push({ kind: 'text', text: text.slice(last, start) });
     }
-    parts.push({ kind: 'icon', key: match[1]! });
+    parts.push({ kind: 'icon', key: match[1] });
     last = start + match[0].length;
   }
   if (last < text.length) {
@@ -33,5 +33,5 @@ export function parseRule(text: string): RulePart[] {
 }
 
 export function extractShortcodes(text: string): string[] {
-  return Array.from(text.matchAll(SHORTCODE_RE), (m) => m[1]!);
+  return Array.from(text.matchAll(SHORTCODE_RE), (m) => m[1]);
 }

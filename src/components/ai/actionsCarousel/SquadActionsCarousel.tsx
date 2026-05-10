@@ -19,9 +19,9 @@ interface Props {
 export default function SquadActionsCarousel({ aiEngine, shipType }: Props) {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(1);
   const content = [
-    <SquadTargetSelection aiEngine={aiEngine} shipType={shipType} />,
-    <SquadActions aiEngine={aiEngine} shipType={shipType} />,
-    <SquadAttack aiEngine={aiEngine} shipType={shipType} />,
+    <SquadTargetSelection key="target" aiEngine={aiEngine} shipType={shipType} />,
+    <SquadActions key="actions" aiEngine={aiEngine} shipType={shipType} />,
+    <SquadAttack key="attack" aiEngine={aiEngine} shipType={shipType} />,
   ];
   const headlines = ['Target for maneuver:', 'Select and perform action:', 'Target for attack:'];
 
@@ -48,8 +48,8 @@ export default function SquadActionsCarousel({ aiEngine, shipType }: Props) {
           </ul>
         </div>
         {content[currentSlideIndex]}
-        <Arrow direction={DIRECTIONS.LEFT} onClick={() => handleArrowClick(DIRECTIONS.LEFT)} glyph="<" />
-        <Arrow direction={DIRECTIONS.RIGHT} onClick={() => handleArrowClick(DIRECTIONS.RIGHT)} glyph=">" />
+        <Arrow direction={DIRECTIONS.LEFT} onClick={() => { handleArrowClick(DIRECTIONS.LEFT); }} glyph="<" />
+        <Arrow direction={DIRECTIONS.RIGHT} onClick={() => { handleArrowClick(DIRECTIONS.RIGHT); }} glyph=">" />
       </div>
     </div>
   );
@@ -63,7 +63,18 @@ interface ArrowProps {
 
 function Arrow({ direction, onClick, glyph }: ArrowProps) {
   return (
-    <div className={`slide-arrow ${direction}`} onClick={onClick} role="button" tabIndex={0}>
+    <div
+      className={`slide-arrow ${direction}`}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+    >
       {glyph}
     </div>
   );

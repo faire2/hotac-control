@@ -9,13 +9,13 @@
  * returns an empty list rather than throwing so the UI dispatch stays clean.
  */
 
-import { Ships, UPGRADES } from '../../../data/Ships';
-import type { ShipId, UpgradeSource } from '../../../data/Ships';
-import type { UpgradeRow } from '../../../data/UpgradeRow';
-import { FgaUpgrades } from '../../../data/fga/FgaUpgrades';
-import { CommunityUpgradeTree } from '../../../data/fga/CommunityUpgradeTree';
-import { FgaUpgradePool } from '../../../data/fga/FgaUpgradePool';
-import { fgaRow } from '../../../data/UpgradeRow';
+import { Ships, UPGRADES } from '../Ships';
+import type { ShipId, UpgradeSource } from '../Ships';
+import type { UpgradeRow } from '../UpgradeRow';
+import { FgaUpgrades } from '../fga/FgaUpgrades';
+import { CommunityUpgradeTree } from '../fga/CommunityUpgradeTree';
+import { FgaUpgradePool } from '../fga/FgaUpgradePool';
+import { fgaRow } from '../UpgradeRow';
 
 export default function getUpgrades(
   shipType: ShipId,
@@ -82,7 +82,7 @@ function filterFgaByRank(
   } else {
     xpLevel = isElite ? 3 : 2;
   }
-  return rows.filter((r) => r.source !== 'FGA' || r.tier <= xpLevel) as UpgradeRow[];
+  return rows.filter((r) => r.source !== 'FGA' || r.tier <= xpLevel);
 }
 
 function getCommunity(
@@ -91,7 +91,7 @@ function getCommunity(
   isElite: boolean,
 ): readonly UpgradeRow[] {
   const variants = CommunityUpgradeTree[shipType] ?? [];
-  let rows = [...pickVariant(variants)];
+  const rows = [...pickVariant(variants)];
 
   if (!isElite || shipType === Ships.TIELN.id) {
     return rows.slice(0, 1);

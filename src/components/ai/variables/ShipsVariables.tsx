@@ -11,7 +11,6 @@ export function ShipsVariables({ squadId }: Props) {
   const globalCtx = useContext(GlobalSquadsValuesContext);
   if (!shipCtx || !globalCtx) return null;
   const squadron = shipCtx.squadrons[squadId];
-  if (!squadron) return null;
 
   return (
     <div className="shipsBlock">
@@ -23,14 +22,14 @@ export function ShipsVariables({ squadId }: Props) {
         <button
           type="button"
           className="btn btn-primary btn-sm"
-          onClick={() => shipCtx.handleAddShip(squadId)}
+          onClick={() => { shipCtx.handleAddShip(squadId); }}
         >
           Add ship
         </button>
         <button
           type="button"
           className="btn btn-danger btn-sm"
-          onClick={() => globalCtx.handleSquadRemoval(squadId)}
+          onClick={() => { globalCtx.handleSquadRemoval(squadId); }}
         >
           Remove squad
         </button>

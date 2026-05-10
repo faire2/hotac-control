@@ -68,7 +68,7 @@ export default function TargetPositionDiagram() {
     const arcs = [];
     for (let i = 0; i < 4; i++) {
       const transform = i * 45;
-      const id = `R1${i}`;
+      const id = `R1${i.toString()}`;
       arcs.push(
         <path
           key={id}
@@ -78,14 +78,14 @@ export default function TargetPositionDiagram() {
           strokeWidth={strokeWidth}
           fill={arc1Color}
           className={opacityClass(id)}
-          onClick={() => handleSetPosition(1, i as Exclude<SectorIndex, 'B'>, id)}
-          transform={`rotate(${transform}, 0, ${totalRadius})`}
+          onClick={() => { handleSetPosition(1, i as Exclude<SectorIndex, 'B'>, id); }}
+          transform={`rotate(${transform.toString()}, 0, ${totalRadius.toString()})`}
         />,
       );
     }
     for (let i = 0; i < 4; i++) {
       const transform = i * 45;
-      const id = `R3${i}`;
+      const id = `R3${i.toString()}`;
       arcs.push(
         <path
           key={id}
@@ -95,14 +95,14 @@ export default function TargetPositionDiagram() {
           strokeWidth={strokeWidth}
           fill={arc23Color}
           className={opacityClass(id)}
-          onClick={() => handleSetPosition(3, i as Exclude<SectorIndex, 'B'>, id)}
-          transform={`rotate(${transform}, 0, ${totalRadius})`}
+          onClick={() => { handleSetPosition(3, i as Exclude<SectorIndex, 'B'>, id); }}
+          transform={`rotate(${transform.toString()}, 0, ${totalRadius.toString()})`}
         />,
       );
     }
     for (let i = 0; i < 4; i++) {
       const transform = i * 45;
-      const id = `R4${i}`;
+      const id = `R4${i.toString()}`;
       arcs.push(
         <path
           key={id}
@@ -112,8 +112,8 @@ export default function TargetPositionDiagram() {
           strokeWidth={strokeWidth}
           fill={arc4Color}
           className={opacityClass(id)}
-          onClick={() => handleSetPosition(4, i as Exclude<SectorIndex, 'B'>, id)}
-          transform={`rotate(${transform}, 0, ${totalRadius})`}
+          onClick={() => { handleSetPosition(4, i as Exclude<SectorIndex, 'B'>, id); }}
+          transform={`rotate(${transform.toString()}, 0, ${totalRadius.toString()})`}
         />,
       );
     }
@@ -133,7 +133,7 @@ export default function TargetPositionDiagram() {
           strokeWidth={strokeWidth}
           id="B1"
           className={opacityClass('B1')}
-          onClick={() => handleSetPosition(1, 'B', 'B1')}
+          onClick={() => { handleSetPosition(1, 'B', 'B1'); }}
         />
         <rect
           x="0"
@@ -145,7 +145,7 @@ export default function TargetPositionDiagram() {
           strokeWidth={strokeWidth}
           id="B3"
           className={opacityClass('B3')}
-          onClick={() => handleSetPosition(3, 'B', 'B3')}
+          onClick={() => { handleSetPosition(3, 'B', 'B3'); }}
         />
         <rect
           x="0"
@@ -157,7 +157,7 @@ export default function TargetPositionDiagram() {
           strokeWidth={strokeWidth}
           id="B4"
           className={opacityClass('B4')}
-          onClick={() => handleSetPosition(4, 'B', 'B4')}
+          onClick={() => { handleSetPosition(4, 'B', 'B4'); }}
         />
       </svg>
       <svg width={totalRadius} height={(totalRadius + strokeWidth) * 2}>

@@ -11,7 +11,7 @@ interface Props {
 
 export const SquadStats = ({ shipType, upgrades, headerExtra }: Props) => {
   const ship = Ships[shipType];
-  const lastRow = upgrades[upgrades.length - 1];
+  const lastRow = upgrades.at(-1);
   const initiative = lastRow?.initiative ?? ship.initiative;
   const xp = xpForRow(lastRow);
 

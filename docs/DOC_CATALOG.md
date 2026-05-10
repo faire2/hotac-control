@@ -1,6 +1,6 @@
 # Documentation catalog
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 Central index of all project documentation. Update this file whenever you add, rename, or materially change a doc.
 

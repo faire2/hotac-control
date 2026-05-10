@@ -15,13 +15,13 @@ export function AddSquadronCard({ onAddShip }: Props) {
         type="button"
         className="addSquadronCard"
         aria-label="Add new squadron"
-        onClick={() => setShowPicker(true)}
+        onClick={() => { setShowPicker(true); }}
       >
         +
       </button>
       <ShipPickerModal
         show={showPicker}
-        onHide={() => setShowPicker(false)}
+        onHide={() => { setShowPicker(false); }}
         onSelect={onAddShip}
       />
     </>

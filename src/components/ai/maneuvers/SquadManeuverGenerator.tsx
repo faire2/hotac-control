@@ -56,16 +56,17 @@ export default function SquadManeuverGenerator() {
   if (!ctx) return null;
 
   const tables = ctx.aiEngine === AI.FGA ? fgaManeuvers : andersonManeuvers;
-  const positionKey = Array.isArray(ctx.targetPosition) ? ctx.targetPosition[0] : ctx.targetPosition;
-  const shipTable = tables[ctx.shipType as keyof typeof tables];
+  const targetPos = ctx.targetPosition;
+  const positionKey: string = typeof targetPos === 'string' ? targetPos : targetPos[0];
+  const shipTable = tables[ctx.shipType];
   const row = shipTable && positionKey ? shipTable[positionKey as keyof typeof shipTable] : undefined;
   if (!row) {
     return <div className="xw-man"><span className="red">TODO (phase 5b)</span></div>;
   }
-  const maneuver = row[ctx.maneuverRandNum] as Maneuver;
+  const maneuver = row[ctx.maneuverRandNum];
   const presentation = MANEUVER_PRESENTATION[maneuver];
   if (!presentation) {
-    return <div className="xw-man"><span className="red">?{String(maneuver)}</span></div>;
+    return <div className="xw-man"><span className="red">?{maneuver}</span></div>;
   }
   return (
     <div className="xw-man">

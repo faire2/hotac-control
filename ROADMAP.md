@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-02 (Phases 2-4 complete; on `vite-migration` branch, uncommitted)
+Last updated: 2026-05-06 (Phase 11 complete — campaign mode landed; OAuth/Neon migration deferred)
 
 ## Project summary
 
@@ -132,9 +132,158 @@ See [`docs/SCENARIOS.md`](docs/SCENARIOS.md) for the feature spec.
 - [x] `EndScenarioModal` shows outcomes recap (objectives + Rebel/Imperial victory text) before clearing state
 - [x] Squadrons spawn lazily on arrival turn via `spawnFromScenarioSquad`. Scenario engine + upgrades-source flow through `GlobalSquadsValuesContext` (`scenarioAiEngine`, `scenarioUpgradesSource`); changes mid-play propagate to all spawned squadrons
 - [x] CSS: subgrid in `SquadStats` so Init/Attack/Agility/XP values line up under headers; ghost-style buttons (`.btn-scenario-action`) for Briefing/End scenario/Next round
-- [ ] Author additional missions; expand resolver as random/replace/elite ops appear in the wild
-- [ ] Implement the `1d6` arrival roll (currently `rolledTurn` arrivals are treated as plain `turn`); not yet exercised by Local Trouble
-- [ ] Surface `scenarioSquadName` (Alpha/Beta/etc.) in the Squad header for in-scenario labelling
+- [x] Author all 17 missions of HotAC Mission Pack V2.07.04 (intro + 5 story arcs) — Phase 9
+- [x] Surface `scenarioSquadName` + approach vector + huntsPlayer on the Squad card — Phase 9
+- [ ] Implement the `1d6` arrival roll (currently `rolledTurn` arrivals are treated as plain `turn`); deferred
+
+### Phase 9 — Mission pack & extensibility (2026-05-06)
+
+Authored all 17 missions, decoded the X-Wing icon font glyphs, and built the surrounding infrastructure (campaign settings, dynamic spawn, outcome branching, ally data model). Build clean, 21 tests passing, lint clean for files touched this session.
+
+**Data — full mission pack**
+- [x] All 17 scenarios encoded in `src/data/scenarios/` (intro + Capture Officer 1-3 + Refueling Station 1-3 + Minefields 1-3 + Chasing Phantoms 1-4 + Defection 1-3)
+- [x] All squad-cell glyphs decoded via interactive PDF review (no `unparsed` cells remain in any mission)
+- [x] `src/data/campaigns/index.ts` — 6 Campaign objects (intro + 5 arcs)
+- [x] `src/data/rebelAllies.ts` — REBEL_ALLIES registry for HWK-290, GR-75, Outer Rim Smuggler
+
+**Types & resolver extensions**
+- [x] `Outcome` model with discriminated `OutcomeNext` (mission / reshuffle / replay / campaignStart / campaignEnd) + per-side rebelPoints/imperialPoints
+- [x] `SpecialRule` field for mission sidebars (Shuttle AI, Escort AI, etc.)
+- [x] `SquadTag` discriminated-union extensibility point: `uniqueApproach`, `huntsPlayer`, `dynamicSpawn`, `noUpgrades`. `hasTag` helper for typed lookup.
+- [x] `SetupOp.addShields` (count: number) — handles the `+N*` shield-bonus glyph
+- [x] `SetupOp.addElite.ship?` — optional specific ship for medal+specific-ship cells (mission 8 Elite Bomber, captureOfficer2 Elite Lambda)
+- [x] `Vector` extended: numbers 1-12, `'1d12'`, `'1d6+6'`, tuples `[2,3]` (PDF "2/3"), `{ kind: 'oppositeOf', squadName }` for sibling-relative spawns (Bait's Support B)
+- [x] `OPPOSITE_VECTOR` pairs (1↔7, 2↔9, 3↔8, 4↔10, 5↔12, 6↔11) and `resolveSquadVector` with priorVectors map
+- [x] `resolveVector` standalone resolver (handles fixed/dice/tuple); covered by tests
+- [x] `Scenario.randomPoolExclusions` — per-mission ship-type exclusions (Bait, Cloak and Dagger, Defector, Pride of the Empire)
+- [x] `Scenario.requiredModels` — physical-model prerequisites (free-form strings); 13 missions tagged
+- [x] `Scenario.allies` — NPC rebel ship setup (7 missions tagged with HWK / GR-75 / Outer Rim Smuggler)
+- [x] `ScenarioSquad.approachLabel` — display override for non-edge spawn points (Bay 1, Diagonal)
+
+**Spawn pipeline**
+- [x] Per-ship squadron emission when `uniqueApproach` or `huntsPlayer` tag set (Revenge's Aces)
+- [x] `rollUniqueVector` with retry-on-duplicate (max 200 attempts)
+- [x] `shufflePlayerIndices` Fisher-Yates assignment for `huntsPlayer`
+- [x] Vector resolution at spawn time (not data load) for `'1d6'` / `'1d12'` / `'1d6+6'` / tuples
+- [x] `Squadron.arrivedFromVector`, `arrivedAtRound`, `huntsPlayerIndex`, `approachLabel` stamped at spawn
+- [x] `priorVectors` map reseeded from already-spawned squadrons each round (cross-round `oppositeOf` works)
+
+**Campaign settings**
+- [x] `src/data/campaigns/settings.ts` — `CampaignSettings` (ownedModels, lessRandomShips, introducedShipTypes), `STANDARD_MODELS`, `SHIP_INTRODUCTIONS`, localStorage persistence
+- [x] `CampaignSettingsModal` — owned-models checklist, less-random-ships toggle, exotic-ships introduction overrides
+- [x] `LoadScenarioModal` greys missions whose `requiredModels` aren't all in `ownedModels`, with "Requires: X" hint
+- [x] "Less random ships" 1d20 weighted table in `randomShipPool.ts` (5 brackets + fallbacks for not-yet-introduced exotics)
+- [x] `introducedShipTypes` auto-updates on rebel victory of unlock missions (chasing-phantoms-1, defection-2)
+
+**Dynamic spawn**
+- [x] `src/data/scenarios/dynamicSpawnHandlers.ts` — registry pattern, two concrete handlers (`sensorCheckPatrol`, `inspectionSquadOnIdentify`)
+- [x] `DynamicSpawnPromptModal` — generic typed-prompt renderer (confirm/count) gated to "Next round" before spawn-advance
+- [x] One-shot vs recurring lifecycle; `resolvedDynamicSquads` set reset on scenario start/end
+
+**Outcome branching**
+- [x] `EndScenarioModal` redesigned: two outcome buttons (Rebel/Imperial victory) instead of single Close
+- [x] `handleEndScenarioResolve` follows `Outcome.next`: `mission` stages the next briefing, `replay` re-stages this one, others fall through to free play
+- [x] Rebel victory auto-applies `SHIP_INTRODUCTIONS` updates to campaign settings
+
+**Arrival notification**
+- [x] `ArrivalNotificationModal` — fires on Start Scenario and Next Round when ships spawned. Lists "N× Ship labelled as Squad approaching from Vector — hunts player N"
+- [x] Squad card displays `scenarioSquadName` + approach + huntsPlayer line in scenario mode
+
+**Tests**
+- [x] `tests/scenarioResolvers.test.ts` — 20 tests covering `resolveVector`, `resolveSquadVector`, `OPPOSITE_VECTOR`, `pickFromD20Table`, `rollD20RandomShip`
+
+**Deferred to follow-up**
+- [ ] Render ally squadrons in the UI — task #12 in TaskList. Data foundation landed; full integration needs a `Squadron.shipType` discriminated-union decision (or parallel `allySquadrons` state). Per-mission upgrade lists (Quantum Storm, Damage Control Team, etc.) live in `specialRules` text.
+
+### Phase 10 — Architectural cleanup pass (2026-05-06, in progress)
+
+After the Phase 9 push, an architectural review identified several growth pressures
+(see `docs/SCENARIOS.md` and the session retrospective). Tackling step-by-step.
+
+**Step 1 — Extract spawn pipeline** ✓ (2026-05-06)
+- [x] `src/data/scenarios/spawn.ts` — `spawnFromScenarioSquad`, `SpawnContext`,
+  `priorVectorsFromSquadrons`, `opsForShipsOverride`, `shufflePlayerIndices`,
+  `rollUniqueVector`. Pure data-layer module, no React.
+- [x] `ResolveContext.compositionOverride` — `resolveSquad` accepts an ops list
+  that bypasses the per-player-count cell walk. Used by dynamic-spawn handlers.
+- [x] `App.tsx` `performRoundAdvance` — refactored from a hand-built synthetic
+  Squadron path to using the unified `spawnFromScenarioSquad` with
+  `compositionOverride`. The dynamic-spawn duplication (issue #6 from the review)
+  is gone.
+- [x] `getUpgrades` relocated from `src/components/ai/upgrades/UpgradesGenerator.ts`
+  to `src/data/upgrades/getUpgrades.ts` — pure data-layer code, was in the
+  components tree by accident.
+- [x] `tests/spawn.test.ts` — 6 tests covering grouping, empty-resolved
+  vector recording, `compositionOverride`, `priorVectorsFromSquadrons`,
+  `opsForShipsOverride`. Total test count: 27/27 passing.
+- [x] App.tsx shrunk from ~700 → ~570 lines. Spawn concerns no longer scattered
+  across the file.
+
+**Step 2 — `SettingsContext`** (deferred — defer until adding a new settings consumer)
+**Step 3 — `AppMode` discriminated state + transitions** (deferred — pays off when main menu / saved campaigns land; until then, the spread `useState`s are tractable)
+
+Other architectural concerns from the review still queued:
+- [ ] Typed `ModelId` registry (kills the parallel taxonomy of `ShipId` + free-form model strings)
+- [ ] Derive `Scenario.requiredModels` from data (kill hand-maintenance drift)
+- [ ] Move `SHIP_INTRODUCTIONS` from `settings.ts` onto scenarios as `Scenario.unlocksShipTypes`
+- [ ] Group scenario-spawn fields on Squadron under `scenarioMeta?: ScenarioSpawnMeta`
+- [x] Drop dead `unparsed` SetupOp kind (Phase 10 step 1.5)
+- [ ] Split validator into per-concern files
+
+### Phase 11 — Campaign mode (2026-05-06)
+
+End-to-end campaign play: main menu, multi-save campaigns persisted to
+localStorage (DB-friendly interface for future Neon swap), deck mechanics
+following the `arcLink` / `arcDiscard` / `reshuffle` / `campaignStart` /
+`campaignEnd` outcomes encoded on each mission. Free play remains the
+default landing.
+
+**Outcome model**
+- [x] `OutcomeNext` refined: `mission` → `arcLink` (rename), `arcDiscard` added (arc finale wins now use this).
+- [x] All 5 arc-finale rebel-victory outcomes switched from `reshuffle` to `arcDiscard`.
+- [x] Validator + UI consumers updated.
+
+**Persistence layer**
+- [x] `Campaign` (active save) type with deck/completedArcs/history/points/status/timestamps.
+- [x] `CampaignArc` (template, renamed from old `Campaign`).
+- [x] `CampaignStore` interface — Promise-based, future-DB-friendly.
+- [x] `localStorageCampaignStore` impl with single-blob version-wrapped persistence (`hotac.v1` key).
+- [x] `storage.active.ts` single import point — only file that picks the backend.
+- [x] `factory.ts` — `newCampaign(opts)`, `applyOutcome(c, missionId, kind, outcome, intros)`, `pickMission`. Pure functions. 13 unit tests covering deck transitions.
+
+**App mode shape**
+- [x] `AppMode` discriminated union (`freePlay` / `scenarioOnly` / `campaign`) in `src/state/appMode.ts`.
+- [x] `App.tsx` refactored: 4 scattered `useState` calls (activeScenarioId / briefingScenarioId / briefingMode / round) → 1 `mode: AppMode` plus `briefingOverlayOpen` and `freePlayRound`.
+- [x] All transition handlers route through `setMode(...)`. Briefing-during-play is a modal overlay, not a phase change.
+
+**UI**
+- [x] `MainMenu.tsx` — top-bar dropdown (New / Open / Logout).
+- [x] `NewGamePickerModal.tsx` — Campaign / Scenario / Free Play.
+- [x] `CampaignSetupModal.tsx` — name + intro toggle + owned-models + less-random + arc selection.
+- [x] `OpenCampaignModal.tsx` — saved-campaign browser with delete confirm.
+- [x] `DeckPickView.tsx` — between-missions screen, one card per arc head.
+- [x] Campaign-info banner in top bar (name, RP, IP, arcs done).
+
+**Wiring**
+- [x] `useCampaign(id)` hook — load + functional update + persist in one call.
+- [x] `handleEndScenarioResolve` routes through `applyOutcome` for campaign mode; `arcLink`/`replay` stage next briefing, others → deckPick or terminal.
+- [x] Resume from `campaignStore.load()` drops to briefing if a mission was in progress, else deckPick.
+- [x] `handleStartScenario` and `performRoundAdvance` work in both `scenarioOnly` and `campaign` modes (vary by `mode.kind`).
+
+**Settings cleanup**
+- [x] Legacy `CampaignSettings` retired. All settings now live on the `Campaign` record. Free play / scenario-only use `DEFAULT_SPAWN_SETTINGS`.
+- [x] `loadSettings` / `saveSettings` / `CampaignSettingsModal` removed.
+- [x] `SpawnSettings` type — the subset (ownedModels, lessRandomShips, introducedShipTypes) the spawn pipeline needs. Both `Campaign` and the default fit.
+
+**Tests**
+- [x] `tests/storage.test.ts` (8 tests) — round-trip, list ordering, idempotent delete, version wrapper, garbage-handling.
+- [x] `tests/campaign.test.ts` (13 tests) — deck mechanics across all OutcomeNext kinds.
+- Total: 48/48 passing across 5 files.
+
+**Deferred** (next phases)
+- [ ] OAuth + Neon DB backend. The persistence interface is designed for this swap — drop in a `storage.neon.ts`, change one import. User explicitly deferred ("come back to it later").
+- [ ] Per-mission upgrade lists for ally ships (Quantum Storm, Damage Control Team, etc.) — still in `specialRules` text.
+- [ ] Render ally squadrons in the UI — task #12. Data foundation in place since Phase 10.
 
 ### Backlog (Needs Planning)
 - Encode Gozanti-Class Cruiser as a "huge ship" with its own schema (Bonus Attacks, Docking Clamps, no Select Target step)

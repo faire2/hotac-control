@@ -61,7 +61,7 @@ export function Squad({ squad, squadId }: Props) {
       name={`ai-engine-${String(squadId)}`}
       value={aiEngine}
       size="sm"
-      onChange={(value) => handleSetAi(value)}
+      onChange={(value: AiEngine) => { handleSetAi(value); }}
     >
       {ship.ai.includes(AI.FGA) && <ToggleButton value={AI.FGA}>{AI.FGA}</ToggleButton>}
       {ship.ai.includes(AI.ANDERSON) && <ToggleButton value={AI.ANDERSON}>{AI.ANDERSON}</ToggleButton>}
@@ -87,12 +87,37 @@ export function Squad({ squad, squadId }: Props) {
             <h3 className="squadTitle">{ship.name}</h3>
           </div>
           <div className="col-7">
-            <Select
-              options={SQUAD_NAMES}
-              defaultValue={SQUAD_NAMES[squadId] ?? SQUAD_NAME_FALLBACK}
-            />
+            {squad.scenarioSquadName !== undefined ? (
+              <div className="scenarioSquadName">
+                {squad.scenarioSquadName}
+                {squad.isElite ? <span className="badge badge-warning ml-2">Elite</span> : null}
+              </div>
+            ) : (
+              <Select
+                options={SQUAD_NAMES}
+                defaultValue={SQUAD_NAMES[squadId] ?? SQUAD_NAME_FALLBACK}
+              />
+            )}
           </div>
         </div>
+        {(squad.arrivedFromVector !== undefined || squad.huntsPlayerIndex !== undefined) && (
+          <div className="scenarioSquadMeta small text-muted">
+            {squad.arrivedFromVector !== undefined && (
+              <span>
+                Approach:{' '}
+                <strong>{squad.approachLabel ?? String(squad.arrivedFromVector)}</strong>
+              </span>
+            )}
+            {squad.arrivedAtRound !== undefined && (
+              <span className="ml-3">Arrived: turn {squad.arrivedAtRound.toString()}</span>
+            )}
+            {squad.huntsPlayerIndex !== undefined && (
+              <span className="ml-3">
+                Hunts: <strong>player {squad.huntsPlayerIndex.toString()}</strong>
+              </span>
+            )}
+          </div>
+        )}
         <SquadStats shipType={shipType} upgrades={squad.upgrades} headerExtra={aiToggle} />
         <ShipsVariables squadId={squadId} />
         <div className="row no-gutters align-items-stretch">

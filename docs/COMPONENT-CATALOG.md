@@ -1,6 +1,6 @@
 # Component catalog
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 Reusable UI components in `src/`. Update this file when you add, rename, or materially change a component.
 
@@ -8,13 +8,13 @@ Reusable UI components in `src/`. Update this file when you add, rename, or mate
 
 ### Top-level
 
-- **`App.tsx`** — root. Owns squadron list state, rank slider, round counter, scenario state (active id, briefing modal mode, scenario-wide AI engine + upgrades source), and ship-selection dropdown. Provides `GlobalSquadsValuesContext` (now also carrying `scenarioAiEngine` / `scenarioUpgradesSource` when a scenario is active) and `ShipHandlingContext` to its subtree. Wires the validator side-effect import (dev only).
+- **`App.tsx`** — root. Owns squadron list state, rank slider, round counter, scenario state (active id, briefing modal mode, scenario-wide AI engine + upgrades source), campaign settings (loaded from localStorage), pending arrivals, pending dynamic-spawn handlers, and the resolved-dynamic-squads set. Orchestrates round advance via `performRoundAdvance` — composes a `SpawnContext` and delegates to `spawnFromScenarioSquad` from `src/data/scenarios/spawn.ts` (the pure-function pipeline). Provides `GlobalSquadsValuesContext` and `ShipHandlingContext` to its subtree. Wires the validator side-effect import (dev only).
 - **`main.jsx`** — Vite entrypoint. `ReactDOM.render(<App />, ...)`. Replaces CRA's `index.js`.
 
 ### Squadron tree (`src/components/ai/`)
 
 - **`SquadGenerator.jsx`** — maps the squadron list to `Squad` instances. Wraps each in a column.
-- **`Squad.tsx`** — single squadron. Owns target-position, local AI-engine, stress-flag state via `TargetPositionContext`. When `GlobalSquadsValuesContext.scenarioAiEngine` is set, the per-squadron AI engine toggle is hidden and the scenario engine is used (`aiEngine = scenarioAiEngine ?? localAiEngine`). Renders `SquadStats` + `ShipsVariables` + `SquadActionsCarousel` (left column) and `TargetPosition` picker (right column), plus `UpgradesCard` below.
+- **`Squad.tsx`** — single squadron. Owns target-position, local AI-engine, stress-flag state via `TargetPositionContext`. When `GlobalSquadsValuesContext.scenarioAiEngine` is set, the per-squadron AI engine toggle is hidden and the scenario engine is used (`aiEngine = scenarioAiEngine ?? localAiEngine`). When the squadron has `scenarioSquadName` (was scenario-spawned), the editable squad-name dropdown is replaced with a read-only label including any Elite badge, and a `.scenarioSquadMeta` line displays "Approach: X · Arrived: turn N · Hunts: player N" when those fields are set. Renders `SquadStats` + `ShipsVariables` + `SquadActionsCarousel` (left column) and `TargetPosition` picker (right column), plus `UpgradesCard` below.
 - **`SquadStats.tsx`** — display-only ship stats card (init / attack / agility / XP). Uses CSS subgrid (`.squadStats` is a 5-column grid; rows use `display: grid; grid-template-columns: subgrid`) so values line up under their headers regardless of the optional AI-toggle column width.
 
 ### Variables (`src/components/ai/variables/`)
@@ -38,15 +38,23 @@ Reusable UI components in `src/`. Update this file when you add, rename, or mate
 ### Upgrades (`src/components/ai/upgrades/`)
 
 - **`UpgradesCard.tsx`** — renders the elite upgrade list for a squadron, with a column-2 layout. Reads upgrades from the squadron's `upgrades` array. Hides the per-squadron source toggle (Community / FGA / Anderson) when `GlobalSquadsValuesContext.scenarioUpgradesSource` is set — scenario play drives the source from the briefing modal header.
-- **`UpgradesGenerator.js`** — pure logic (not a component; named here because of file location). Picks a variant + filters rows by rank/elite. Engine-aware. The FGA tier ladder branching at lines 41-81 is flagged in ROADMAP backlog for cleanup to a lookup table.
+
+The pure-logic `getUpgrades(shipType, playersRank, source, isElite)` picker — engine-aware, walks the FGA / Community / Anderson trees and filters by rank — now lives at `src/data/upgrades/getUpgrades.ts` (relocated from this directory in 2026-05-06's refactor; only data-layer dependencies, doesn't belong in the components tree). Imported by `Squad`, `UpgradesCard`, `App.tsx`, and the spawn pipeline.
 
 ### Scenarios (`src/components/scenarios/`)
 
 See [`SCENARIOS.md`](./SCENARIOS.md) for the full feature description.
 
-- **`LoadScenarioModal.tsx`** — picker (step 1 of the scenario flow). Lists `SCENARIOS`; selecting one stages it for briefing.
+- **`LoadScenarioModal.tsx`** — picker (step 1 of the scenario flow). Lists `SCENARIOS`. Disables scenarios whose `requiredModels` aren't all in the active settings' `ownedModels` (campaign mode reads from the campaign record, free-play uses `DEFAULT_SPAWN_SETTINGS`). Greyed entries use `btn-outline-secondary`.
 - **`ScenarioBriefingModal.tsx`** — briefing + setup (step 2) and view-during-play. Custom blue header (`.scenarioModalHeader`) hosts four toggle groups: rank, number, AI engine, upgrades source. Body renders briefing text, centered ASCII map + notes, objectives. Footer differs per `mode`: `start` shows Back + Start scenario; `view` shows Close. XP rewards use `.badge-xp` (blue).
-- **`EndScenarioModal.tsx`** — outcomes recap shown when the End scenario button is clicked. Renders objectives + Rebel/Imperial victory text. Closing clears scenario state.
+- **`EndScenarioModal.tsx`** — outcome picker shown when End scenario is clicked. Renders objectives + both Outcome panels (Rebel and Imperial), each with its `text`, the `Outcome.next` description, VP badges, and a resolve button. Picking one calls `onResolve(kind)`; the App applies points + ship-introduction unlocks and routes via `Outcome.next` (next mission staged in `ScenarioBriefingModal`, replay, reshuffle, etc.). Cancel returns to free play.
+- **`menu/MainMenu.tsx`** — top-bar dropdown: New / Open / Logout. Wired in `App.tsx`'s top bar and visible in every mode.
+- **`menu/NewGamePickerModal.tsx`** — three-option picker (Campaign / Scenario / Free Play) shown after Menu → New.
+- **`menu/CampaignSetupModal.tsx`** — name + intro toggle + owned-models checklist + less-random toggle + arc selection (auto-disables arcs whose required models aren't owned). On Save, creates a `Campaign` via `newCampaign(opts)`, persists via `campaignStore.save`, and reports the new id back.
+- **`menu/OpenCampaignModal.tsx`** — saved-campaign browser. Lists summaries from `campaignStore.list()` sorted by recency. Resume routes to deck-pick (or saved current-mission briefing); Delete shows a confirm.
+- **`menu/DeckPickView.tsx`** — between-missions screen for active campaigns. One card per arc head currently in the deck. Picking transitions mode to `briefing` and sets `currentMissionId` on the campaign.
+- **`ArrivalNotificationModal.tsx`** — listing of new spawns shown after Start Scenario or Next Round when any scenario-squad ships arrived. Each row reads "N× Ship Name labelled as Squad approaching from Vector — hunts player N" with an Elite badge where applicable.
+- **`DynamicSpawnPromptModal.tsx`** — generic per-handler prompt renderer. Shown before round advance when the active scenario has any unresolved dynamic-spawn handlers. Renders one section per pending handler with its typed prompts (confirm checkbox or count input). Submit invokes each handler's `decide(input)` and feeds outcomes back to `App.performRoundAdvance`.
 
 ## Rules for using or extending these components
 

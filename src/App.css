@@ -33,6 +33,18 @@ h3 {
   text-overflow: ellipsis;
 }
 
+.scenarioSquadName {
+  font-weight: 600;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+.scenarioSquadMeta {
+  padding: 0.15rem 0.5rem 0.25rem 0.5rem;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 0.35rem;
+}
+
 .squadSectionHeader {
   font-size: 1.05em !important;
   padding-top: 8px !important;

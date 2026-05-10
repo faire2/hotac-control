@@ -4,7 +4,6 @@ import { Ships } from '../../../data/Ships';
 import { ShipHandlingContext } from '../../../context/Contexts';
 import type { ShipInstance } from '../../../context/Contexts';
 import { countExtraHullAndShield } from '../../../data/shared/coreUpgrades';
-import type { UpgradeRow } from '../../../data/UpgradeRow';
 
 interface Props {
   ship: ShipInstance;
@@ -20,11 +19,10 @@ export default function Variables({ ship, squadId, keyIndex }: Props) {
   const ctx = useContext(ShipHandlingContext);
   if (!ctx) return null;
   const squadron = ctx.squadrons[squadId];
-  if (!squadron) return null;
   const shipType = squadron.shipType;
   const baseStats = Ships[shipType];
   const extras = countExtraHullAndShield(
-    (squadron.upgrades as readonly UpgradeRow[]).map((r) => r.upgrade),
+    (squadron.upgrades).map((r) => r.upgrade),
   );
   const maxShields = baseStats.shields + extras.extraShield;
   const maxHull = baseStats.hull + extras.extraHull;
@@ -44,18 +42,20 @@ export default function Variables({ ship, squadId, keyIndex }: Props) {
       <div className="shipCellId">
         <Select
           options={ID_OPTIONS}
-          onChange={(e: { value: number } | null) => e && update('tokenId', e.value)}
+          onChange={(e: { value: number } | null) => {
+            if (e) update('tokenId', e.value);
+          }}
           value={{ label: String(ship.tokenId), value: ship.tokenId }}
         />
       </div>
-      <Counter label="shields" value={ship.shields} onChange={(v) => update('shields', v)} />
-      <Counter label="hull" value={ship.hull} onChange={(v) => update('hull', v)} />
+      <Counter label="shields" value={ship.shields} onChange={(v) => { update('shields', v); }} />
+      <Counter label="hull" value={ship.hull} onChange={(v) => { update('hull', v); }} />
       <div className="shipCellRemove">
         <button
           type="button"
           className="btn btn-danger btn-sm btn-remove-ship"
           aria-label="Remove ship"
-          onClick={() => ctx.handleShipRemoval(keyIndex, squadId)}
+          onClick={() => { ctx.handleShipRemoval(keyIndex, squadId); }}
         >
           ×
         </button>
@@ -79,7 +79,7 @@ function Counter({
         type="button"
         className="btn btn-primary btn-counter"
         aria-label={`Decrease ${label}`}
-        onClick={() => onChange(value - 1)}
+        onClick={() => { onChange(value - 1); }}
       >
         −
       </button>
@@ -88,7 +88,7 @@ function Counter({
         type="button"
         className="btn btn-primary btn-counter"
         aria-label={`Increase ${label}`}
-        onClick={() => onChange(value + 1)}
+        onClick={() => { onChange(value + 1); }}
       >
         +
       </button>
