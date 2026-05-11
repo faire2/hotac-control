@@ -46,6 +46,24 @@ export interface ShipHandlingContextValue {
   handleShipChange: (ship: ShipInstance, shipIndex: number, squadId: number) => void;
 }
 
+/**
+ * Provenance + display state stamped on a squadron at scenario-spawn time.
+ * Presence of this object is the discriminator for "this squadron came from
+ * a scenario" (free play leaves `Squadron.scenarioMeta` undefined).
+ */
+export interface ScenarioSpawnMeta {
+  /** Matches `ScenarioSquad.name`. */
+  squadName: string;
+  /** Concrete spawn vector resolved at arrival time (1d6/tuple → fixed). */
+  fromVector: SimpleVector;
+  /** Optional human-readable label override (e.g. "Bay 1"). */
+  approachLabel?: string;
+  /** Round on which this squadron arrived. */
+  arrivedAtRound: number;
+  /** Rebel player index (1-based) this enemy squadron is hunting. */
+  huntsPlayerIndex?: number;
+}
+
 export interface Squadron {
   /** Stable per-squad identifier — used as React key. */
   id: string;
@@ -54,16 +72,8 @@ export interface Squadron {
   upgradesSource: UpgradeSource;
   upgrades: readonly UpgradeRow[];
   ships: ShipInstance[];
-  /** Set when this squadron was spawned by a scenario; matches `ScenarioSquad.name`. */
-  scenarioSquadName?: string;
-  /** Concrete spawn vector resolved at arrival time (1d6/tuple → fixed). */
-  arrivedFromVector?: SimpleVector;
-  /** Optional human-readable label override for the approach (e.g. "Bay 1"). */
-  approachLabel?: string;
-  /** Round on which this squadron arrived. Set on spawn. */
-  arrivedAtRound?: number;
-  /** Rebel player index (1-based) this enemy squadron is hunting. */
-  huntsPlayerIndex?: number;
+  /** Set iff spawned by a scenario. Free play leaves this undefined. */
+  scenarioMeta?: ScenarioSpawnMeta;
 }
 
 export interface ShipInstance {

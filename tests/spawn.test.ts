@@ -36,9 +36,9 @@ describe('spawnFromScenarioSquad', () => {
     expect(out).toHaveLength(1);
     expect(out[0].shipType).toBe('TIELN');
     expect(out[0].ships).toHaveLength(2);
-    expect(out[0].scenarioSquadName).toBe('Alpha');
-    expect(out[0].arrivedAtRound).toBe(1);
-    expect(out[0].arrivedFromVector).toBe(3);
+    expect(out[0].scenarioMeta?.squadName).toBe('Alpha');
+    expect(out[0].scenarioMeta?.arrivedAtRound).toBe(1);
+    expect(out[0].scenarioMeta?.fromVector).toBe(3);
   });
 
   it('records a vector even for empty-resolved squads (oppositeOf reachability)', () => {
@@ -76,8 +76,7 @@ describe('priorVectorsFromSquadrons', () => {
         upgradesSource: UPGRADES.FGA,
         upgrades: [],
         ships: [],
-        scenarioSquadName: 'Alpha',
-        arrivedFromVector: 3,
+        scenarioMeta: { squadName: 'Alpha', fromVector: 3, arrivedAtRound: 1 },
       },
       {
         id: 'b',
@@ -86,7 +85,7 @@ describe('priorVectorsFromSquadrons', () => {
         upgradesSource: UPGRADES.FGA,
         upgrades: [],
         ships: [],
-        // No scenarioSquadName — should be skipped.
+        // No scenarioMeta — should be skipped.
       },
     ];
     const map = priorVectorsFromSquadrons(squadrons);

@@ -93,15 +93,18 @@ function freshSquadron(shipType: ShipId, playersRank: number): Squadron {
 }
 
 function arrivalsFromSquadrons(squadrons: readonly Squadron[]): readonly Arrival[] {
-  return squadrons.map((sq) => ({
-    squadName: sq.scenarioSquadName ?? '',
-    shipType: sq.shipType,
-    shipName: Ships[sq.shipType].name,
-    count: sq.ships.length,
-    isElite: sq.isElite,
-    approach: sq.approachLabel ?? (sq.arrivedFromVector !== undefined ? String(sq.arrivedFromVector) : '?'),
-    huntsPlayerIndex: sq.huntsPlayerIndex,
-  }));
+  return squadrons.map((sq) => {
+    const meta = sq.scenarioMeta;
+    return {
+      squadName: meta?.squadName ?? '',
+      shipType: sq.shipType,
+      shipName: Ships[sq.shipType].name,
+      count: sq.ships.length,
+      isElite: sq.isElite,
+      approach: meta?.approachLabel ?? (meta ? String(meta.fromVector) : '?'),
+      huntsPlayerIndex: meta?.huntsPlayerIndex,
+    };
+  });
 }
 
 function squadShouldSpawnAt(squad: ScenarioSquad, round: number): boolean {

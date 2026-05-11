@@ -87,9 +87,9 @@ export function Squad({ squad, squadId }: Props) {
             <h3 className="squadTitle">{ship.name}</h3>
           </div>
           <div className="col-7">
-            {squad.scenarioSquadName !== undefined ? (
+            {squad.scenarioMeta ? (
               <div className="scenarioSquadName">
-                {squad.scenarioSquadName}
+                {squad.scenarioMeta.squadName}
                 {squad.isElite ? <span className="badge badge-warning ml-2">Elite</span> : null}
               </div>
             ) : (
@@ -100,20 +100,20 @@ export function Squad({ squad, squadId }: Props) {
             )}
           </div>
         </div>
-        {(squad.arrivedFromVector !== undefined || squad.huntsPlayerIndex !== undefined) && (
+        {squad.scenarioMeta && (
           <div className="scenarioSquadMeta small text-muted">
-            {squad.arrivedFromVector !== undefined && (
-              <span>
-                Approach:{' '}
-                <strong>{squad.approachLabel ?? String(squad.arrivedFromVector)}</strong>
-              </span>
-            )}
-            {squad.arrivedAtRound !== undefined && (
-              <span className="ml-3">Arrived: turn {squad.arrivedAtRound.toString()}</span>
-            )}
-            {squad.huntsPlayerIndex !== undefined && (
+            <span>
+              Approach:{' '}
+              <strong>
+                {squad.scenarioMeta.approachLabel ?? String(squad.scenarioMeta.fromVector)}
+              </strong>
+            </span>
+            <span className="ml-3">
+              Arrived: turn {squad.scenarioMeta.arrivedAtRound.toString()}
+            </span>
+            {squad.scenarioMeta.huntsPlayerIndex !== undefined && (
               <span className="ml-3">
-                Hunts: <strong>player {squad.huntsPlayerIndex.toString()}</strong>
+                Hunts: <strong>player {squad.scenarioMeta.huntsPlayerIndex.toString()}</strong>
               </span>
             )}
           </div>

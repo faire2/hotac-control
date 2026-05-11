@@ -110,10 +110,10 @@ export function spawnFromScenarioSquad(
     const playerIndices = wantHuntsPlayer ? shufflePlayerIndices(ctx.playerCount) : [];
     const usedVectors = new Set<SimpleVector>();
     const squadrons = resolved.ships.map((shipType, i) => {
-      const arrivedFromVector = wantUniqueApproach
+      const fromVector = wantUniqueApproach
         ? rollUniqueVector(squad, ctx.priorVectors, usedVectors)
         : resolveSquadVector(squad.vector, ctx.priorVectors);
-      usedVectors.add(arrivedFromVector);
+      usedVectors.add(fromVector);
       const upgrades = upgradesFor(shipType);
       const squadron: Squadron = {
         id: crypto.randomUUID(),
@@ -121,24 +121,26 @@ export function spawnFromScenarioSquad(
         isElite: eliteSet.has(i),
         upgradesSource: ctx.upgradesSource,
         upgrades,
-        scenarioSquadName: squad.name,
-        arrivedFromVector,
-        approachLabel: squad.approachLabel,
-        arrivedAtRound: ctx.round,
+        scenarioMeta: {
+          squadName: squad.name,
+          fromVector,
+          approachLabel: squad.approachLabel,
+          arrivedAtRound: ctx.round,
+          ...(wantHuntsPlayer ? { huntsPlayerIndex: playerIndices[i] } : {}),
+        },
         ships: [shipInstance(shipType, upgrades, resolved.bonusShields[i])],
       };
-      if (wantHuntsPlayer) squadron.huntsPlayerIndex = playerIndices[i];
       return squadron;
     });
-    if (squadrons.length > 0 && squadrons[0].arrivedFromVector !== undefined) {
-      ctx.priorVectors.set(squad.name, squadrons[0].arrivedFromVector);
+    if (squadrons.length > 0 && squadrons[0].scenarioMeta) {
+      ctx.priorVectors.set(squad.name, squadrons[0].scenarioMeta.fromVector);
     }
     return squadrons;
   }
 
   // Default path: group resolved ships by (shipType, isElite) into one Squadron each.
-  const arrivedFromVector = resolveSquadVector(squad.vector, ctx.priorVectors);
-  ctx.priorVectors.set(squad.name, arrivedFromVector);
+  const fromVector = resolveSquadVector(squad.vector, ctx.priorVectors);
+  ctx.priorVectors.set(squad.name, fromVector);
   const groups = new Map<
     string,
     { shipType: ShipId; isElite: boolean; count: number; bonusShield: number }
@@ -163,10 +165,12 @@ export function spawnFromScenarioSquad(
       isElite,
       upgradesSource: ctx.upgradesSource,
       upgrades,
-      scenarioSquadName: squad.name,
-      arrivedFromVector,
-      approachLabel: squad.approachLabel,
-      arrivedAtRound: ctx.round,
+      scenarioMeta: {
+        squadName: squad.name,
+        fromVector,
+        approachLabel: squad.approachLabel,
+        arrivedAtRound: ctx.round,
+      },
       ships: Array.from({ length: count }, () => shipInstance(shipType, upgrades, bonusShield)),
     } satisfies Squadron;
   });
@@ -216,8 +220,8 @@ export function priorVectorsFromSquadrons(
 ): Map<string, SimpleVector> {
   const out = new Map<string, SimpleVector>();
   for (const sq of squadrons) {
-    if (sq.scenarioSquadName !== undefined && sq.arrivedFromVector !== undefined) {
-      out.set(sq.scenarioSquadName, sq.arrivedFromVector);
+    if (sq.scenarioMeta) {
+      out.set(sq.scenarioMeta.squadName, sq.scenarioMeta.fromVector);
     }
   }
   return out;
