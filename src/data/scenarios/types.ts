@@ -213,10 +213,19 @@ export type Territory = 'friendly' | 'hostile' | 'enemy';
 /**
  * Free-text rules block printed alongside the mission (Shuttle AI, Escort AI,
  * special equipment, reminders, etc.). One per sidebar in the source PDF.
+ *
+ * The briefing modal renders these as a "Special Rules" section. Entries
+ * flagged `coveredOnSquadCard: true` are skipped in the briefing because
+ * the same info is surfaced inline on the squad card; the text stays in
+ * data as the canonical PDF transcription for future toggling.
  */
 export interface SpecialRule {
   title: string;
   body: string;
+  /** When true, briefing rendering skips this entry — the same content is
+   * surfaced inline on a squad card (via `fixedUpgrades` or
+   * `behaviorDescriptions`). Full text remains in data as the PDF reference. */
+  coveredOnSquadCard?: boolean;
 }
 
 export interface Scenario {

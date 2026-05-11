@@ -59,6 +59,10 @@ h3 {
   margin-top: 0.25rem;
 }
 
+.specialRule {
+  margin-bottom: 0.75rem;
+}
+
 .squadSectionHeader {
   font-size: 1.05em !important;
   padding-top: 8px !important;

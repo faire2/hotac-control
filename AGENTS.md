@@ -13,7 +13,7 @@ Single-author hobby SPA. Heroes of the Aturi Cluster Imperial AI helper. React +
 ## Workflow
 
 - **Plan before code.** Update `ROADMAP.md` as work progresses; never re-litigate confirmed decisions.
-- **Never commit or push** without an explicit in-thread request.
+- **Never commit or push** without an explicit in-thread request. A request for a commit *message* ("conventional commit message?", "what would the commit message be?", "draft a commit message") is NOT authorization to commit — print the message text and stop. Only run `git commit` when the user uses an explicit imperative verb ("commit this", "go ahead and commit", "please commit").
 - **Never run destructive operations** (`rm -rf`, `git reset --hard`, `git push --force`, branch deletes) without explicit approval.
 - **Never silently expand scope.** A bug fix is a bug fix; refactors get their own task.
 - **Distinguish pre-existing failures from newly introduced ones** in any verification report.

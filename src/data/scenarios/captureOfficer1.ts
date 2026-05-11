@@ -155,6 +155,7 @@ Sensor Jammer: When defending, you may change 1 of the attacker's hit results to
 Anti-Pursuit Lasers: After an Enemy ship performs a maneuver that causes it to overlap your ship, roll 1 Attack die. On a :hit: or :crit: result, the Enemy ship suffers one damage.
 
 In addition, the shuttle gains extra shields based on the number of players — see above.`,
+      coveredOnSquadCard: true,
     },
     {
       title: 'Disabling the Shuttle',
@@ -165,10 +166,12 @@ Once the shuttle is disabled, it no longer moves. Remaining enemy ships also cha
     {
       title: 'Shuttle AI',
       body: `The Lambda Shuttle will engage and attack the nearest target as usual. Once the shuttle has suffered 5 shield damage, it will change tactics and attempt to flee via the Imperial Escape Edge (B). Treat that edge as its priority target for movement, and always use the shuttle's maximum speed for the selected bearing.`,
+      coveredOnSquadCard: true,
     },
     {
       title: 'Escort AI',
       body: `Escort-type enemy ships have modified action priority. After moving, if they are within range 1 of the shuttle, they will perform the Protect action to assign it an evade token.`,
+      coveredOnSquadCard: true,
     },
   ],
   behaviorDescriptions: {

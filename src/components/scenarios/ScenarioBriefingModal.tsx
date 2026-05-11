@@ -4,6 +4,7 @@ import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { AI, UPGRADES } from '../../data/Ships';
 import type { AiEngine, UpgradeSource } from '../../data/Ships';
 import type { PlayerCount, Scenario } from '../../data/scenarios/types';
+import { Rule } from '../Rule';
 
 const RANK_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
 const PLAYER_COUNT_OPTIONS: PlayerCount[] = [1, 2, 3, 4, 5, 6];
@@ -147,6 +148,29 @@ export function ScenarioBriefingModal({
             </li>
           ))}
         </ul>
+
+        {(() => {
+          // Entries flagged `coveredOnSquadCard` are surfaced inline on the
+          // squad card; skip them in the briefing for now. The flag + full
+          // text stay in data for future toggling.
+          const visibleRules = scenario.specialRules?.filter((r) => !r.coveredOnSquadCard) ?? [];
+          if (visibleRules.length === 0) return null;
+          return (
+            <>
+              <h5 className="mt-4">Special Rules</h5>
+              {visibleRules.map((rule, i) => (
+                <div key={i} className="specialRule">
+                  <h6>{rule.title}</h6>
+                  {rule.body.split(/\n\s*\n/).map((para, j) => (
+                    <p key={j} style={{ whiteSpace: 'pre-wrap' }}>
+                      <Rule text={para} />
+                    </p>
+                  ))}
+                </div>
+              ))}
+            </>
+          );
+        })()}
       </Modal.Body>
       <Modal.Footer>
         {isStart ? (
