@@ -1,10 +1,10 @@
 import Modal from 'react-bootstrap/Modal';
 import { useEffect, useMemo, useState } from 'react';
-import { MAIN_CAMPAIGN_ARCS } from '../../data/campaigns';
+import { MAIN_CAMPAIGN_ARCS } from '../../data/campaigns/arcs';
 import { newCampaign } from '../../data/campaigns/factory';
 import { campaignStore } from '../../data/campaigns/storage.active';
-import { STANDARD_MODELS, ownsRequiredModels } from '../../data/campaigns/settings';
-import { findScenario } from '../../data/scenarios';
+import { standardModels, ownsRequiredModels } from '../../data/campaigns/settings';
+import { findScenario } from '../../data/scenarios/registry';
 import { requiredModelsFor } from '../../data/scenarios/requiredModels';
 
 interface Props {
@@ -25,7 +25,7 @@ interface Props {
 export function CampaignSetupModal({ show, onCreated, onClose }: Props) {
   const [name, setName] = useState('');
   const [includeIntro, setIncludeIntro] = useState(true);
-  const [ownedModels, setOwnedModels] = useState<readonly string[]>(STANDARD_MODELS);
+  const [ownedModels, setOwnedModels] = useState<readonly string[]>(standardModels());
   const [lessRandomShips, setLessRandomShips] = useState(false);
   const [freePickFromDeck, setFreePickFromDeck] = useState(false);
   const [includedArcIds, setIncludedArcIds] = useState<readonly string[]>(
@@ -37,7 +37,7 @@ export function CampaignSetupModal({ show, onCreated, onClose }: Props) {
     if (show) {
       setName('');
       setIncludeIntro(true);
-      setOwnedModels(STANDARD_MODELS);
+      setOwnedModels(standardModels());
       setLessRandomShips(false);
       setFreePickFromDeck(false);
       setIncludedArcIds(MAIN_CAMPAIGN_ARCS.map((a) => a.id));
@@ -167,7 +167,7 @@ export function CampaignSetupModal({ show, onCreated, onClose }: Props) {
           Arcs requiring a model you don&apos;t own will be disabled below.
         </p>
         <div className="row mb-3">
-          {STANDARD_MODELS.map((model) => (
+          {standardModels().map((model) => (
             <div key={model} className="col-6 col-md-4">
               <label className="d-inline-flex align-items-center">
                 <input

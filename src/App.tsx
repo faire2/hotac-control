@@ -25,7 +25,7 @@ import { runValidator } from './data/__validate__';
 import { LoadScenarioModal } from './components/scenarios/LoadScenarioModal';
 import { ScenarioBriefingModal } from './components/scenarios/ScenarioBriefingModal';
 import { EndScenarioModal } from './components/scenarios/EndScenarioModal';
-import { findScenario } from './data/scenarios';
+import { findScenario } from './data/scenarios/registry';
 import {
   spawnFromScenarioSquad,
   spawnAlliesFromScenario,
@@ -40,7 +40,7 @@ import type {
   ScenarioSquad,
 } from './data/scenarios/types';
 import {
-  DEFAULT_SPAWN_SETTINGS,
+  defaultSpawnSettings,
   type SpawnSettings,
 } from './data/campaigns/settings';
 import type { EndOutcomeKind } from './components/scenarios/EndScenarioModal';
@@ -164,7 +164,7 @@ function App() {
         lessRandomShips: activeCampaign.lessRandomShips,
         introducedShipTypes: activeCampaign.introducedShipTypes,
       }
-    : DEFAULT_SPAWN_SETTINGS;
+    : defaultSpawnSettings();
 
   function handleNewShipSelection(value: ShipId) {
     setSquadrons((prev) => [...prev, freshSquadron(value, playersRank)]);

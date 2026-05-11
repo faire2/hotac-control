@@ -13,7 +13,7 @@
  */
 
 import { Ships, type ShipId } from '../Ships';
-import { SCENARIOS } from '.';
+import { SCENARIOS } from './registry';
 
 export const DEFAULT_RANDOM_SHIP_POOL: readonly ShipId[] = Object.freeze([
   'TIEIN',    // TIE/in Interceptor
@@ -28,13 +28,20 @@ export const DEFAULT_RANDOM_SHIP_POOL: readonly ShipId[] = Object.freeze([
  * Ships gated by prior-mission introduction. Derived from every scenario's
  * `unlocksShipTypes` (victory + defeat) — declaring an unlock automatically
  * gates the ship in the random pool until a mission introduces it.
+ *
+ * Computed lazily (and memoized) on first call so the SCENARIOS read happens
+ * after the registry module has finished initializing. Reading at module-load
+ * time here triggers an ESM circular-import TDZ error in Vite dev mode.
  */
-const REQUIRES_INTRO: ReadonlySet<ShipId> = new Set(
-  SCENARIOS.flatMap((s) => [
-    ...(s.victory.unlocksShipTypes ?? []),
-    ...(s.defeat.unlocksShipTypes ?? []),
-  ]),
-);
+let _requiresIntro: ReadonlySet<ShipId> | undefined;
+function requiresIntro(): ReadonlySet<ShipId> {
+  return _requiresIntro ??= new Set(
+    SCENARIOS.flatMap((s) => [
+      ...(s.victory.unlocksShipTypes ?? []),
+      ...(s.defeat.unlocksShipTypes ?? []),
+    ]),
+  );
+}
 
 /**
  * Filter `pool` down to ships the player owns and (for exotic types) has
@@ -49,10 +56,11 @@ export function eligibleShipsFromPool(
 ): readonly ShipId[] {
   const owned = new Set(ownedModels.map((m) => m.toLowerCase()));
   const introduced = new Set(introducedShipTypes);
+  const gated = requiresIntro();
   return pool.filter((s) => {
     const ship = Ships[s];
     if (!ship.alwaysOwned && !owned.has(ship.name.toLowerCase())) return false;
-    if (REQUIRES_INTRO.has(s) && !introduced.has(s)) return false;
+    if (gated.has(s) && !introduced.has(s)) return false;
     return true;
   });
 }

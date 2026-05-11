@@ -1,5 +1,5 @@
 import { Ships } from '../Ships';
-import { SCENARIOS } from '../scenarios';
+import { SCENARIOS } from '../scenarios/registry';
 import type { Scenario, ScenarioSquad, SetupOp } from '../scenarios/types';
 import { hasTag } from '../scenarios/types';
 import { checkShortcodes } from './shortcodes';

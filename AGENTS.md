@@ -43,6 +43,11 @@ Flat config built from:
 
 Project rules: `no-explicit-any: error`, `no-floating-promises: ["error", { ignoreVoid: true }]`, `no-misused-promises: error`, `await-thenable: error`, `consistent-type-imports: error`, `ban-ts-comment` requires descriptions.
 
+## Module structure (no barrels)
+
+- **No barrel `index.ts` files.** Each module file has a descriptive name (`registry.ts`, `arcs.ts`, `resolve.ts`, etc.). Importing from a folder path (`from './scenarios'`) is forbidden — always name the file explicitly (`from './scenarios/registry'`). Reason: barrels that mix data and helper re-exports invite ESM circular imports, which manifest as TDZ `ReferenceError` in Vite dev (production-build often masks them). Hit once in 2026-05-11 (`randomShipPool` ↔ scenarios barrel).
+- **No top-level reads of registry data.** Inside `src/data/`, never write `const FOO = registryArray.flatMap(...)` at module scope when that registry lives in another file you import. Wrap the derivation in a function so the read is deferred to call time. Same reason as above.
+
 ## Data layer (this is the load-bearing rule for this project)
 
 The `src/data/` tree is the source of truth for AI behavior. Specific rules apply:

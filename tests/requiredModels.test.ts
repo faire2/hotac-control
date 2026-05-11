@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { requiredModelsFor } from '../src/data/scenarios/requiredModels';
-import { findScenario } from '../src/data/scenarios';
+import { findScenario } from '../src/data/scenarios/registry';
 import type { Scenario } from '../src/data/scenarios/types';
 
 function scenarioOrThrow(id: string): Scenario {

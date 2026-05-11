@@ -13,13 +13,13 @@ import type {
   Outcome,
   ScenarioOutcomeKind,
 } from '../scenarios/types';
-import { MAIN_CAMPAIGN_ARCS, findArc, introduction } from './index';
-import { STANDARD_MODELS } from './settings';
+import { MAIN_CAMPAIGN_ARCS, findArc, introduction } from './arcs';
+import { standardModels } from './settings';
 
 export interface NewCampaignOptions {
   name: string;
   includeIntro: boolean;
-  /** Defaults to STANDARD_MODELS (own everything). */
+  /** Defaults to `standardModels()` (own everything). */
   ownedModels?: readonly string[];
   /** Defaults to false. */
   lessRandomShips?: boolean;
@@ -37,7 +37,7 @@ export function newCampaign(opts: NewCampaignOptions): Campaign {
   const now = Date.now();
   const id = crypto.randomUUID();
 
-  const ownedModels = opts.ownedModels ?? STANDARD_MODELS;
+  const ownedModels = opts.ownedModels ?? standardModels();
   const arcIds = opts.includedArcIds ?? MAIN_CAMPAIGN_ARCS.map((a) => a.id);
 
   // Initial deck:

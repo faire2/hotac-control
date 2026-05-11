@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Campaign } from '../../data/scenarios/types';
-import { findScenario } from '../../data/scenarios';
-import { findArc } from '../../data/campaigns';
+import { findScenario } from '../../data/scenarios/registry';
+import { findArc } from '../../data/campaigns/arcs';
 
 interface Props {
   campaign: Campaign;

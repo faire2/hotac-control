@@ -1,5 +1,5 @@
 import Modal from 'react-bootstrap/Modal';
-import { SCENARIOS } from '../../data/scenarios';
+import { SCENARIOS } from '../../data/scenarios/registry';
 import { requiredModelsFor } from '../../data/scenarios/requiredModels';
 import { ownsRequiredModels } from '../../data/campaigns/settings';
 

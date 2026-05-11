@@ -1,6 +1,6 @@
 import Modal from 'react-bootstrap/Modal';
 import type { Outcome, OutcomeNext, Scenario } from '../../data/scenarios/types';
-import { findScenario } from '../../data/scenarios';
+import { findScenario } from '../../data/scenarios/registry';
 
 export type EndOutcomeKind = 'victory' | 'defeat';
 

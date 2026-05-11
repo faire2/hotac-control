@@ -40,22 +40,3 @@ export const SCENARIOS: readonly Scenario[] = Object.freeze([
 export function findScenario(id: string): Scenario | undefined {
   return SCENARIOS.find((s) => s.id === id);
 }
-
-export type {
-  Scenario,
-  ScenarioSquad,
-  SetupOp,
-  ArrivalTrigger,
-  Vector,
-  Territory,
-  Outcome,
-  OutcomeNext,
-  SpecialRule,
-  CampaignArc,
-  Campaign,
-  CampaignSummary,
-  CampaignHistoryEntry,
-  DeckEntry,
-} from './types';
-export { resolveSquad, summarizeSquad } from './resolve';
-export type { ResolvedSquad, ResolveContext } from './resolve';

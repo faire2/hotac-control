@@ -4,7 +4,7 @@
  * The legacy `CampaignSettings` slot (per-player localStorage record) was
  * retired in 2026-05-06's Phase 10 cleanup — all settings now live on the
  * active `Campaign` record. Free play / scenario-only modes use
- * `DEFAULT_SPAWN_SETTINGS` (own everything, less-random off, no
+ * `defaultSpawnSettings()` (own everything, less-random off, no
  * introductions).
  */
 
@@ -17,12 +17,20 @@ import type { ShipId } from '../Ships';
  * included since they're regular Ship entries with `ai: []`.
  * Used to gate mission availability via `requiredModelsFor(scenario)` and
  * to drive the campaign-setup checklist.
+ *
+ * Lazy + memoized: the read of `Ships` happens on first call, not at
+ * module-load time, so this stays safe even if `Ships.tsx`'s dependency
+ * graph ever loops back through `settings.ts`. See AGENTS.md "Module
+ * structure".
  */
-export const STANDARD_MODELS: readonly string[] = Object.freeze(
-  Object.values(Ships)
-    .filter((s) => !s.alwaysOwned)
-    .map((s) => s.name),
-);
+let _standardModels: readonly string[] | undefined;
+export function standardModels(): readonly string[] {
+  return _standardModels ??= Object.freeze(
+    Object.values(Ships)
+      .filter((s) => !s.alwaysOwned)
+      .map((s) => s.name),
+  );
+}
 
 /**
  * The subset of campaign state the spawn pipeline cares about. Both
@@ -36,11 +44,14 @@ export interface SpawnSettings {
 }
 
 /** Defaults used outside of campaign mode (own everything, no introductions). */
-export const DEFAULT_SPAWN_SETTINGS: SpawnSettings = Object.freeze({
-  ownedModels: STANDARD_MODELS,
-  lessRandomShips: false,
-  introducedShipTypes: [],
-});
+let _defaultSpawnSettings: SpawnSettings | undefined;
+export function defaultSpawnSettings(): SpawnSettings {
+  return _defaultSpawnSettings ??= Object.freeze({
+    ownedModels: standardModels(),
+    lessRandomShips: false,
+    introducedShipTypes: [],
+  });
+}
 
 /**
  * Returns true iff every entry in `required` is present in `owned`.

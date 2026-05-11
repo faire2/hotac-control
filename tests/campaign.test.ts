@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyOutcome, newCampaign, pickMission } from '../src/data/campaigns/factory';
-import { MAIN_CAMPAIGN_ARCS, introduction } from '../src/data/campaigns';
+import { MAIN_CAMPAIGN_ARCS, introduction } from '../src/data/campaigns/arcs';
 import type { Outcome } from '../src/data/scenarios/types';
 import type { ShipId } from '../src/data/Ships';
 
