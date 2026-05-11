@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-11 (Phase 10 Steps D + E: `Scenario.requiredModels` replaced by derived `requiredModelsFor(scenario)`; scenario-spawn fields grouped on `Squadron.scenarioMeta?: ScenarioSpawnMeta`)
+Last updated: 2026-05-11 (Phase 10 Step F: validator split into per-concern files under `src/data/validate/`; `__validate__.ts` slimmed to 38-line orchestrator)
 
 ## Project summary
 
@@ -228,7 +228,7 @@ Other architectural concerns from the review still queued:
 - [x] Step D — Derive `Scenario.requiredModels` from data (2026-05-11). New `src/data/scenarios/requiredModels.ts` exports `requiredModelsFor(scenario)`, which walks `composition[*][*]` for `add`/`replace`/`addElite` ops carrying a specific `ship`, walks `allies[*].ship`, filters `Ships[id].alwaysOwned`, and dedupes by display name. `Scenario.requiredModels` field dropped; 13 hand-maintained per-scenario lines deleted. Consumers (`LoadScenarioModal`, `CampaignSetupModal`) call the helper. Validator's name-existence check is gone — correctness is now structural. Side effect: missions that reference common Imperials (TIE/in, TIE/sa) now correctly include them in the gating set, where they were silently omitted before.
 - [x] Step E — Group scenario-spawn fields on Squadron under `scenarioMeta?: ScenarioSpawnMeta` (2026-05-11). New `ScenarioSpawnMeta` interface in `Contexts.ts`; 5 scattered optional fields (`scenarioSquadName`, `arrivedFromVector`, `approachLabel`, `arrivedAtRound`, `huntsPlayerIndex`) collapsed into one `scenarioMeta?` substructure. Names shortened where redundant (`fromVector`, `squadName`). Co-required invariants (`squadName` + `fromVector` + `arrivedAtRound`) now structural. Spawn pipeline (2 write sites + `priorVectorsFromSquadrons` reader) and consumers (`App.tsx`, `Squad.tsx`) read from the nested object; `scenarioMeta` is the single discriminator for "scenario-spawned".
 - [x] Drop dead `unparsed` SetupOp kind (Phase 10 step 1.5)
-- [ ] Split validator into per-concern files
+- [x] Step F — Split validator into per-concern files (2026-05-11). `src/data/__validate__.ts` (38 lines) now orchestrates per-concern modules under `src/data/validate/`: `maneuvers.ts` (FGA + Anderson tables, AI coverage), `upgrades.ts` (source enum + FGA content shortcodes), `scenarios.ts` (composition, outcomes, vectors, allies), `shortcodes.ts` (helpers), `types.ts` (`ValidationFailure`). Import sites unchanged.
 
 ### Phase 11 — Campaign mode (2026-05-06)
 
