@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-06 (Phase 11 complete — campaign mode landed; OAuth/Neon migration deferred)
+Last updated: 2026-05-11 (Phase 10 Steps B + C: model name taxonomy unified on `Ship.name`/`AllyShipDef.name`; ship-introduction unlocks moved onto `Outcome.unlocksShipTypes`)
 
 ## Project summary
 
@@ -223,10 +223,10 @@ After the Phase 9 push, an architectural review identified several growth pressu
 **Step 3 — `AppMode` discriminated state + transitions** (deferred — pays off when main menu / saved campaigns land; until then, the spread `useState`s are tractable)
 
 Other architectural concerns from the review still queued:
-- [ ] Typed `ModelId` registry (kills the parallel taxonomy of `ShipId` + free-form model strings)
-- [ ] Derive `Scenario.requiredModels` from data (kill hand-maintenance drift)
-- [ ] Move `SHIP_INTRODUCTIONS` from `settings.ts` onto scenarios as `Scenario.unlocksShipTypes`
-- [ ] Group scenario-spawn fields on Squadron under `scenarioMeta?: ScenarioSpawnMeta`
+- [x] Step B — Unify model name taxonomy via `Ship.name` + `AllyShipDef.name` (2026-05-11). Resolved instead of introducing a parallel `ModelId` type: `Ship.name` is the canonical physical-model identity; `STANDARD_MODELS` derives from `Ships` (excluding `alwaysOwned`) + `REBEL_ALLIES`; `SHIP_TO_MODEL` map deleted; validator asserts `Scenario.requiredModels` entries match a known Ship/Ally name.
+- [x] Step C — Move ship-introduction unlocks onto `Outcome` (2026-05-11). `SHIP_INTRODUCTIONS` map replaced by `Outcome.unlocksShipTypes`; `applyOutcome` reads from the outcome (signature lost the `shipsToIntroduce` arg); `REQUIRES_INTRO` in `randomShipPool.ts` derived from `SCENARIOS.flatMap(s => [victory.unlocksShipTypes, defeat.unlocksShipTypes])` — outcome declaration is now the single source of truth for introduction-gated ships.
+- [ ] Step D — Derive `Scenario.requiredModels` from data (kill hand-maintenance drift)
+- [ ] Step E — Group scenario-spawn fields on Squadron under `scenarioMeta?: ScenarioSpawnMeta`
 - [x] Drop dead `unparsed` SetupOp kind (Phase 10 step 1.5)
 - [ ] Split validator into per-concern files
 

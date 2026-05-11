@@ -39,7 +39,6 @@ import type {
   ScenarioSquad,
 } from './data/scenarios/types';
 import {
-  SHIP_INTRODUCTIONS,
   DEFAULT_SPAWN_SETTINGS,
   type SpawnSettings,
 } from './data/campaigns/settings';
@@ -365,7 +364,6 @@ function App() {
   function handleEndScenarioResolve(kind: EndOutcomeKind) {
     if (!activeScenario) return;
     const outcome = kind === 'victory' ? activeScenario.victory : activeScenario.defeat;
-    const introductions: readonly ShipId[] = SHIP_INTRODUCTIONS[activeScenario.id] ?? [];
     const scenarioId = activeScenario.id;
 
     setShowEndScenario(false);
@@ -378,7 +376,7 @@ function App() {
     if (mode.kind === 'campaign') {
       const campaignId = mode.campaignId;
       void updateCampaign((c) =>
-        applyOutcome(c, scenarioId, kind, outcome, introductions),
+        applyOutcome(c, scenarioId, kind, outcome),
       ).then((updated) => {
         if (!updated) return;
         // Determine next phase from outcome + resulting status.

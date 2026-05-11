@@ -56,6 +56,7 @@ export const defection2: Scenario = {
   victory: {
     text: `"We've captured a TIE Defender! We may be able to adapt some of this ship's advanced weapons technology."`,
     next: { kind: 'arcLink', missionId: 'defection-3' },
+    unlocksShipTypes: ['TIEDEF'],
   },
   defeat: {
     text: `"The Defector is dead, and took the secrets of the prototype TIE Defender with her. All of this effort has been a waste."`,

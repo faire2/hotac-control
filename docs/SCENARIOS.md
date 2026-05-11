@@ -80,13 +80,15 @@ interface Scenario {
 interface Outcome {
   text: string;
   next:
-    | { kind: 'mission'; missionId: string }
-    | { kind: 'reshuffle' }
-    | { kind: 'replay' }
-    | { kind: 'campaignStart' }
-    | { kind: 'campaignEnd' };
+    | { kind: 'arcLink'; missionId: string }   // advance the arc head
+    | { kind: 'arcDiscard' }                    // remove arc from deck (finale win)
+    | { kind: 'reshuffle' }                     // deck unchanged
+    | { kind: 'replay' }                        // intro-defeat path; deck unchanged
+    | { kind: 'campaignStart' }                 // discard intro, populate main deck
+    | { kind: 'campaignEnd' };                  // terminal: imperial campaign victory
   rebelPoints?: number;
   imperialPoints?: number;
+  unlocksShipTypes?: readonly ShipId[];        // added to campaign.introducedShipTypes
 }
 
 interface ScenarioSquad {
@@ -251,9 +253,9 @@ src/data/scenarios/
 └── index.ts                      # SCENARIOS registry + findScenario(id) + type re-exports
 
 src/data/campaigns/
-├── settings.ts                   # SpawnSettings, STANDARD_MODELS, SHIP_INTRODUCTIONS, ownsRequiredModels
+├── settings.ts                   # SpawnSettings, STANDARD_MODELS (derived), ownsRequiredModels
 ├── index.ts                      # CAMPAIGN_ARCS / MAIN_CAMPAIGN_ARCS / findArc registry
-├── factory.ts                    # newCampaign(opts), applyOutcome(c, missionId, kind, outcome, intros), pickMission
+├── factory.ts                    # newCampaign(opts), applyOutcome(c, missionId, kind, outcome), pickMission
 ├── storage.ts                    # CampaignStore interface (Promise-based, future-DB-friendly)
 ├── storage.localStorage.ts       # CampaignStore impl backed by localStorage (`hotac.v1` key, version-wrapped)
 └── storage.active.ts             # single import point: `campaignStore` — only file that picks the backend

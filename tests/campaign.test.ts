@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { applyOutcome, newCampaign, pickMission } from '../src/data/campaigns/factory';
 import { MAIN_CAMPAIGN_ARCS, introduction } from '../src/data/campaigns';
 import type { Outcome } from '../src/data/scenarios/types';
+import type { ShipId } from '../src/data/Ships';
 
-function dummyOutcome(next: Outcome['next'], rebelPoints = 0, imperialPoints = 0): Outcome {
-  return { text: 'test', next, rebelPoints, imperialPoints };
+function dummyOutcome(
+  next: Outcome['next'],
+  rebelPoints = 0,
+  imperialPoints = 0,
+  unlocksShipTypes?: readonly ShipId[],
+): Outcome {
+  return { text: 'test', next, rebelPoints, imperialPoints, unlocksShipTypes };
 }
 
 describe('newCampaign', () => {
@@ -100,23 +106,21 @@ describe('applyOutcome — deck mechanics', () => {
     expect(after.deck).toEqual(c.deck);
   });
 
-  it('introduces ship types only on victory', () => {
+  it('introduces ship types declared on the outcome', () => {
     let c = newCampaign({ name: 't', includeIntro: false });
     c = applyOutcome(
       c,
       'chasing-phantoms-1',
       'victory',
-      dummyOutcome({ kind: 'arcLink', missionId: 'chasing-phantoms-2' }),
-      ['TIEPH'],
+      dummyOutcome({ kind: 'arcLink', missionId: 'chasing-phantoms-2' }, 0, 0, ['TIEPH']),
     );
     expect(c.introducedShipTypes).toContain('TIEPH');
-    // Defeat doesn't introduce.
+    // An outcome without `unlocksShipTypes` does not introduce.
     c = applyOutcome(
       c,
       'defection-1',
       'defeat',
       dummyOutcome({ kind: 'reshuffle' }),
-      ['TIEDEF'],
     );
     expect(c.introducedShipTypes).not.toContain('TIEDEF');
   });

@@ -8,7 +8,8 @@
  * introductions).
  */
 
-import { Ships, type ShipId } from '../Ships';
+import { Ships } from '../Ships';
+import type { ShipId } from '../Ships';
 import { REBEL_ALLIES } from '../rebelAllies';
 
 /**
@@ -40,16 +41,6 @@ export const DEFAULT_SPAWN_SETTINGS: SpawnSettings = Object.freeze({
   ownedModels: STANDARD_MODELS,
   lessRandomShips: false,
   introducedShipTypes: [],
-});
-
-/**
- * Mission-id → ShipId(s) introduced by completing it. Consumed by
- * `applyOutcome` to update the campaign's `introducedShipTypes` on
- * rebel victory.
- */
-export const SHIP_INTRODUCTIONS: Readonly<Partial<Record<string, readonly ShipId[]>>> = Object.freeze({
-  'chasing-phantoms-1': ['TIEPH'],
-  'defection-2': ['TIEDEF'],
 });
 
 /**

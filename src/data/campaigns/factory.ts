@@ -90,12 +90,11 @@ export function applyOutcome(
   missionId: string,
   result: ScenarioOutcomeKind,
   outcome: Outcome,
-  shipsToIntroduce: readonly Campaign['introducedShipTypes'][number][] = [],
 ): Campaign {
   const next = outcome.next;
   const now = Date.now();
 
-  // 1. Append history + accumulate points + introduce ships (rebel-victory only side).
+  // 1. Append history + accumulate points + introduce ships declared on the outcome.
   const history: Campaign['history'] = [
     ...campaign.history,
     {
@@ -107,8 +106,9 @@ export function applyOutcome(
     },
   ];
 
+  const shipsToIntroduce = outcome.unlocksShipTypes ?? [];
   const introducedShipTypes =
-    result === 'victory' && shipsToIntroduce.length > 0
+    shipsToIntroduce.length > 0
       ? Array.from(new Set([...campaign.introducedShipTypes, ...shipsToIntroduce]))
       : campaign.introducedShipTypes;
 

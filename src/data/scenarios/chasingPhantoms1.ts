@@ -51,6 +51,7 @@ export const chasingPhantoms1: Scenario = {
   victory: {
     text: `"We've recovered the crew, but now we've got a new problem — a cloaked Imperial fighter."`,
     next: { kind: 'arcLink', missionId: 'chasing-phantoms-2' },
+    unlocksShipTypes: ['TIEPH'],
   },
   defeat: {
     // Per the PDF, both outcomes lead to "Bait" — the recovery itself either

@@ -180,6 +180,17 @@ export interface Outcome {
   rebelPoints?: number;
   /** Campaign points awarded to the Empire on this outcome. */
   imperialPoints?: number;
+  /**
+   * ShipIds added to the campaign's `introducedShipTypes` set when this
+   * outcome resolves. Drives the eligible-pool filter and the 1d20 table's
+   * exotic-ship fallbacks. Conventionally set on `victory`, but defeat-side
+   * unlocks are supported.
+   *
+   * Doubles as the source of truth for "which ships are introduction-gated"
+   * — `eligibleShipsFromPool` derives its `REQUIRES_INTRO` set from the
+   * union of every scenario's `unlocksShipTypes`.
+   */
+  unlocksShipTypes?: readonly ShipId[];
 }
 
 /** Which side won the scenario; chosen via the End-Scenario modal. */

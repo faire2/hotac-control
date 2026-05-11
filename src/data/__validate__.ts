@@ -291,6 +291,14 @@ function checkOutcome(
       detail: `${scope}: imperialPoints must be >= 0`,
     });
   }
+  outcome.unlocksShipTypes?.forEach((id, i) => {
+    if (!(id in Ships)) {
+      failures.push({
+        rule: 'Scenario outcome unlocksShipTypes',
+        detail: `${scope}.unlocksShipTypes[${i.toString()}]: "${id}" is not a known ShipId`,
+      });
+    }
+  });
   checkShortcodes(`${scope}.text`, outcome.text, failures);
 }
 

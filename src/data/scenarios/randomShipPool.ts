@@ -13,6 +13,7 @@
  */
 
 import { Ships, type ShipId } from '../Ships';
+import { SCENARIOS } from '.';
 
 export const DEFAULT_RANDOM_SHIP_POOL: readonly ShipId[] = Object.freeze([
   'TIEIN',    // TIE/in Interceptor
@@ -22,6 +23,18 @@ export const DEFAULT_RANDOM_SHIP_POOL: readonly ShipId[] = Object.freeze([
   'LAMBDA',   // Lambda-class T-4A Shuttle
   'VT49',     // VT-49 Decimator
 ]);
+
+/**
+ * Ships gated by prior-mission introduction. Derived from every scenario's
+ * `unlocksShipTypes` (victory + defeat) — declaring an unlock automatically
+ * gates the ship in the random pool until a mission introduces it.
+ */
+const REQUIRES_INTRO: ReadonlySet<ShipId> = new Set(
+  SCENARIOS.flatMap((s) => [
+    ...(s.victory.unlocksShipTypes ?? []),
+    ...(s.defeat.unlocksShipTypes ?? []),
+  ]),
+);
 
 /**
  * Filter `pool` down to ships the player owns and (for exotic types) has
@@ -36,7 +49,6 @@ export function eligibleShipsFromPool(
 ): readonly ShipId[] {
   const owned = new Set(ownedModels.map((m) => m.toLowerCase()));
   const introduced = new Set(introducedShipTypes);
-  const REQUIRES_INTRO = new Set<ShipId>(['TIEPH', 'TIEDEF']);
   return pool.filter((s) => {
     const ship = Ships[s];
     if (!ship.alwaysOwned && !owned.has(ship.name.toLowerCase())) return false;
