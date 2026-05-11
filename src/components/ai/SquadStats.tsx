@@ -1,19 +1,21 @@
 import type { ReactNode } from 'react';
 import { Ships } from '../../data/Ships';
 import type { ShipId } from '../../data/Ships';
-import type { UpgradeRow } from '../../data/UpgradeRow';
+import type { UpgradeRollMeta } from '../../context/Contexts';
 
 interface Props {
   shipType: ShipId;
-  upgrades: readonly UpgradeRow[];
+  /** Upgrade-roll bookkeeping. Absent for mission-fixed / ally / `noUpgrades`
+   * squads — the Init column falls back to `ship.initiative` and the XP
+   * column shows `0`. */
+  rollMeta?: UpgradeRollMeta;
   headerExtra?: ReactNode;
 }
 
-export const SquadStats = ({ shipType, upgrades, headerExtra }: Props) => {
+export const SquadStats = ({ shipType, rollMeta, headerExtra }: Props) => {
   const ship = Ships[shipType];
-  const lastRow = upgrades.at(-1);
-  const initiative = lastRow?.initiative ?? ship.initiative;
-  const xp = xpForRow(lastRow);
+  const initiative = rollMeta?.initiative ?? ship.initiative;
+  const xp = rollMeta?.xp ?? 0;
 
   return (
     <div className="squadStats">
@@ -40,10 +42,3 @@ export const SquadStats = ({ shipType, upgrades, headerExtra }: Props) => {
     </div>
   );
 };
-
-function xpForRow(row: UpgradeRow | undefined): number | string {
-  if (!row) return 0;
-  if (row.source === 'COMMUNITY') return row.xpCost;
-  if (row.source === 'FGA') return row.tier;
-  return '—';
-}

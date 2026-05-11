@@ -15,19 +15,23 @@ export default function UpgradesCard({ squadId }: Props) {
   if (!globalValues) return null;
   const squad = globalValues.squadrons[squadId];
   const isElite = squad.isElite;
-  const rows = squad.upgrades;
-  const columns = rows.length < 2 ? '' : 'columns2';
+  const upgrades = squad.upgrades;
+  const columns = upgrades.length < 2 ? '' : 'columns2';
 
-  const hideSourceToggle = globalValues.scenarioUpgradesSource !== undefined;
+  // Source toggle is meaningful only for rolled squads. Mission-fixed and
+  // ally squads (no rollMeta) get no toggle, so the upgrades stay
+  // authoritative. The scenario-level source override also hides it.
+  const showSourceToggle =
+    squad.rollMeta !== undefined && globalValues.scenarioUpgradesSource === undefined;
 
   return (
     <div>
-      {hideSourceToggle ? null : (
+      {showSourceToggle && (
         <div className="d-flex justify-content-center">
           <ToggleButtonGroup
             type="radio"
             name="radio"
-            value={squad.upgradesSource}
+            value={squad.rollMeta?.source}
             onChange={(e) => { globalValues.handleSetUpgradesSource(squadId, e as never); }}
           >
             <ToggleButton value={UPGRADES.COMMUNITY}>{UPGRADES.COMMUNITY}</ToggleButton>
@@ -45,8 +49,8 @@ export default function UpgradesCard({ squadId }: Props) {
         Is ship elite?
       </label>
       <div className={columns}>
-        {rows.map((row, i) => (
-          <Skill key={i} upgrade={row.upgrade} />
+        {upgrades.map((upgrade, i) => (
+          <Skill key={i} upgrade={upgrade} />
         ))}
         <br />
       </div>

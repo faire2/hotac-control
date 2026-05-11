@@ -20,7 +20,7 @@ import { GlobalSquadsValuesContext, ShipHandlingContext, approachDisplay } from 
 import type { ShipInstance, Squadron } from './context/Contexts';
 import getUpgrades from './data/upgrades/getUpgrades';
 import { countExtraHullAndShield } from './data/shared/coreUpgrades';
-import type { UpgradeRow } from './data/UpgradeRow';
+import type { Upgrade } from './data/shared/coreUpgrades';
 import { runValidator } from './data/__validate__';
 import { LoadScenarioModal } from './components/scenarios/LoadScenarioModal';
 import { ScenarioBriefingModal } from './components/scenarios/ScenarioBriefingModal';
@@ -74,15 +74,15 @@ if (import.meta.env.DEV) {
 const RANK_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
 
 function freshSquadron(shipType: ShipId, playersRank: number): Squadron {
-  const upgrades = getUpgrades(shipType, playersRank, UPGRADES.FGA, false);
-  const extras = countExtraHullAndShield(upgrades.map((r) => r.upgrade));
+  const { upgrades, rollMeta } = getUpgrades(shipType, playersRank, UPGRADES.FGA, false);
+  const extras = countExtraHullAndShield(upgrades);
   const baseStats = Ships[shipType];
   return {
     id: crypto.randomUUID(),
     shipType,
     isElite: false,
-    upgradesSource: UPGRADES.FGA,
     upgrades,
+    rollMeta,
     ships: [
       {
         tokenId: 0,
@@ -220,11 +220,19 @@ function App() {
     setScenarioUpgradesSource(source);
     setSquadrons((prev) =>
       prev.map((squad) => {
-        const newUpgrades = getUpgrades(squad.shipType, playersRank, source, squad.isElite);
+        // Squads without rollMeta (mission-fixed, ally, noUpgrades) opt out of
+        // source-driven re-rolls — their upgrade list is authoritative.
+        if (!squad.rollMeta) return squad;
+        const { upgrades: newUpgrades, rollMeta } = getUpgrades(
+          squad.shipType,
+          playersRank,
+          source,
+          squad.isElite,
+        );
         return {
           ...squad,
-          upgradesSource: source,
           upgrades: newUpgrades,
+          rollMeta,
           ships: resetHullShieldDelta(squad.upgrades, newUpgrades, squad.ships),
         };
       }),
@@ -481,11 +489,17 @@ function App() {
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[index];
-      const newUpgrades = getUpgrades(squad.shipType, playersRank, upgradesSource, squad.isElite);
+      if (!squad.rollMeta) return prev;
+      const { upgrades: newUpgrades, rollMeta } = getUpgrades(
+        squad.shipType,
+        playersRank,
+        upgradesSource,
+        squad.isElite,
+      );
       next[index] = {
         ...squad,
-        upgradesSource,
         upgrades: newUpgrades,
+        rollMeta,
         ships: resetHullShieldDelta(squad.upgrades, newUpgrades, squad.ships),
       };
       return next;
@@ -495,10 +509,18 @@ function App() {
   function handleSetPlayersRank(newRank: number) {
     setSquadrons((prev) =>
       prev.map((squad) => {
-        const newUpgrades = getUpgrades(squad.shipType, newRank, squad.upgradesSource, squad.isElite);
+        // Mission-fixed and ally squads don't re-roll on rank change.
+        if (!squad.rollMeta) return squad;
+        const { upgrades: newUpgrades, rollMeta } = getUpgrades(
+          squad.shipType,
+          newRank,
+          squad.rollMeta.source,
+          squad.isElite,
+        );
         return {
           ...squad,
           upgrades: newUpgrades,
+          rollMeta,
           ships: resetHullShieldDelta(squad.upgrades, newUpgrades, squad.ships),
         };
       }),
@@ -510,11 +532,22 @@ function App() {
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[index];
-      const newUpgrades = getUpgrades(squad.shipType, playersRank, squad.upgradesSource, isElite);
+      if (!squad.rollMeta) {
+        // Mission-fixed / ally: flip the flag but don't re-roll.
+        next[index] = { ...squad, isElite };
+        return next;
+      }
+      const { upgrades: newUpgrades, rollMeta } = getUpgrades(
+        squad.shipType,
+        playersRank,
+        squad.rollMeta.source,
+        isElite,
+      );
       next[index] = {
         ...squad,
         isElite,
         upgrades: newUpgrades,
+        rollMeta,
         ships: resetHullShieldDelta(squad.upgrades, newUpgrades, squad.ships),
       };
       return next;
@@ -525,7 +558,7 @@ function App() {
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[squadId];
-      const extras = countExtraHullAndShield(squad.upgrades.map((r) => r.upgrade));
+      const extras = countExtraHullAndShield(squad.upgrades);
       const baseStats = Ships[squad.shipType];
       next[squadId] = {
         ...squad,
@@ -799,12 +832,12 @@ function App() {
 }
 
 function resetHullShieldDelta(
-  previousUpgrades: readonly UpgradeRow[],
-  newUpgrades: readonly UpgradeRow[],
+  previousUpgrades: readonly Upgrade[],
+  newUpgrades: readonly Upgrade[],
   ships: readonly ShipInstance[],
 ): ShipInstance[] {
-  const previous = countExtraHullAndShield(previousUpgrades.map((r: UpgradeRow) => r.upgrade));
-  const next = countExtraHullAndShield(newUpgrades.map((r: UpgradeRow) => r.upgrade));
+  const previous = countExtraHullAndShield(previousUpgrades);
+  const next = countExtraHullAndShield(newUpgrades);
   return ships.map((s) => ({
     ...s,
     hull: s.hull + next.extraHull - previous.extraHull,

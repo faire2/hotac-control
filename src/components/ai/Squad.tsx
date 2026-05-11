@@ -119,7 +119,7 @@ export function Squad({ squad, squadId }: Props) {
             )}
           </div>
         )}
-        <SquadStats shipType={shipType} upgrades={squad.upgrades} headerExtra={aiToggle} />
+        <SquadStats shipType={shipType} rollMeta={squad.rollMeta} headerExtra={aiToggle} />
         <ShipsVariables squadId={squadId} />
         <div className="row no-gutters align-items-stretch">
           <div className="col-6 pr-1 d-flex flex-column">

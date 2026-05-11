@@ -17,6 +17,7 @@
  */
 
 import type { ShipId } from '../Ships';
+import type { Upgrade } from '../shared/coreUpgrades';
 import type { AllySetup } from '../rebelAllies';
 
 export type PlayerCount = 1 | 2 | 3 | 4 | 5 | 6;
@@ -142,6 +143,17 @@ export interface ScenarioSquad {
    * mission mechanics (per-ship spawn, dynamic spawn, no upgrades, etc.).
    */
   tags?: readonly SquadTag[];
+  /**
+   * Mission-fixed upgrades for this squad. When present, the spawn pipeline
+   * uses this list directly instead of rolling from the engine pool — the
+   * resulting Squadron has `upgrades` set to this list and no `rollMeta`.
+   *
+   * Prefer referencing canonical objects from `CommunityUpgrades` /
+   * `FgaUpgradePool`. Author inline only when a mission introduces a
+   * genuinely unique upgrade not represented in any pool. Supports
+   * `:icon:` shortcodes in descriptions.
+   */
+  fixedUpgrades?: readonly Upgrade[];
   composition: Partial<Record<PlayerCount, readonly SetupOp[]>>;
 }
 

@@ -22,9 +22,7 @@ export default function Variables({ ship, squadId, keyIndex }: Props) {
   const shipType = squadron.shipType;
   const baseStats = Ships[shipType];
   const hasEnergy = baseStats.hasEnergy === true;
-  const extras = countExtraHullAndShield(
-    (squadron.upgrades).map((r) => r.upgrade),
-  );
+  const extras = countExtraHullAndShield(squadron.upgrades);
   const maxShields = baseStats.shields + extras.extraShield;
   const maxHull = baseStats.hull + extras.extraHull;
 

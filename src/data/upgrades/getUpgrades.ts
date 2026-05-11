@@ -1,12 +1,19 @@
 /**
- * Upgrade picker.
+ * Upgrade roller.
  *
  * Given (shipType, playersRank, upgradeSource, isElite), pick a variant from
- * the relevant tree, then filter rows by rank ladder. Returns an array of
- * `UpgradeRow` — the discriminated union from `src/data/UpgradeRow.ts`.
+ * the relevant tree, then filter by rank ladder. Returns the bare upgrade
+ * list plus an `UpgradeRollMeta` snapshot — source + initiative override +
+ * XP/tier for the XP-column display.
+ *
+ * Internally we still iterate `UpgradeRow` values (the typed tree shape from
+ * `FgaUpgrades` / `CommunityUpgradeTree`) since the per-row tier/xp data
+ * drives the filtering. We collapse the rows into `Upgrade[]` + meta at the
+ * end so the runtime squadron state doesn't carry roll-time bookkeeping
+ * on every row.
  *
  * Anderson is currently a no-op (Phase 5b transcribes the upgrade trees);
- * returns an empty list rather than throwing so the UI dispatch stays clean.
+ * returns empty upgrades with `xp: '—'` rather than throwing.
  */
 
 import { Ships, UPGRADES } from '../Ships';
@@ -16,22 +23,50 @@ import { FgaUpgrades } from '../fga/FgaUpgrades';
 import { CommunityUpgradeTree } from '../fga/CommunityUpgradeTree';
 import { FgaUpgradePool } from '../fga/FgaUpgradePool';
 import { fgaRow } from '../UpgradeRow';
+import type { Upgrade } from '../shared/coreUpgrades';
+import type { UpgradeRollMeta } from '../../context/Contexts';
+
+export interface UpgradeRollResult {
+  upgrades: readonly Upgrade[];
+  rollMeta: UpgradeRollMeta;
+}
 
 export default function getUpgrades(
   shipType: ShipId,
   playersRank: number,
   upgradesSource: UpgradeSource,
   isElite: boolean,
-): readonly UpgradeRow[] {
+): UpgradeRollResult {
   switch (upgradesSource) {
     case UPGRADES.FGA:
-      return getFga(shipType, playersRank, isElite);
+      return collapse(getFga(shipType, playersRank, isElite), UPGRADES.FGA);
     case UPGRADES.COMMUNITY:
-      return getCommunity(shipType, playersRank, isElite);
+      return collapse(getCommunity(shipType, playersRank, isElite), UPGRADES.COMMUNITY);
     case UPGRADES.ANDERSON:
       // Phase 5b will populate Anderson trees.
-      return [];
+      return { upgrades: [], rollMeta: { source: UPGRADES.ANDERSON, xp: '—' } };
   }
+}
+
+/** Collapse an internal `UpgradeRow[]` into the runtime shape: bare upgrades
+ * plus a roll-meta snapshot derived from the last row (highest tier). */
+function collapse(rows: readonly UpgradeRow[], source: UpgradeSource): UpgradeRollResult {
+  const last = rows.at(-1);
+  return {
+    upgrades: rows.map((r) => r.upgrade),
+    rollMeta: {
+      source,
+      initiative: last?.initiative,
+      xp: xpFromRow(last),
+    },
+  };
+}
+
+function xpFromRow(row: UpgradeRow | undefined): number | string {
+  if (!row) return 0;
+  if (row.source === 'COMMUNITY') return row.xpCost;
+  if (row.source === 'FGA') return row.tier;
+  return '—';
 }
 
 function pickVariant<T>(variants: readonly (readonly T[])[]): T[] {

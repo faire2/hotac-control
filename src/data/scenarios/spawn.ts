@@ -16,12 +16,12 @@
  * goes through the same Squadron stamping path — no separate code branch.
  */
 
-import { Ships, UPGRADES } from '../Ships';
+import { Ships } from '../Ships';
 import type { ShipId, UpgradeSource } from '../Ships';
 import { countExtraHullAndShield } from '../shared/coreUpgrades';
-import type { UpgradeRow } from '../UpgradeRow';
+import type { Upgrade } from '../shared/coreUpgrades';
 import getUpgrades from '../upgrades/getUpgrades';
-import type { Squadron, ShipInstance } from '../../context/Contexts';
+import type { Squadron, ShipInstance, UpgradeRollMeta } from '../../context/Contexts';
 import type { SpawnSettings } from '../campaigns/settings';
 import { resolveSquad, resolveSquadVector } from './resolve';
 import { hasTag } from './types';
@@ -80,17 +80,20 @@ export function spawnFromScenarioSquad(
   const wantHuntsPlayer = hasTag(squad, 'huntsPlayer') !== undefined;
   const splitPerShip = wantUniqueApproach || wantHuntsPlayer;
 
-  function upgradesFor(shipType: ShipId): readonly UpgradeRow[] {
-    return skipUpgrades
-      ? []
-      : getUpgrades(shipType, ctx.playersRank, ctx.upgradesSource, false);
+  function upgradesFor(shipType: ShipId): {
+    upgrades: readonly Upgrade[];
+    rollMeta?: UpgradeRollMeta;
+  } {
+    if (skipUpgrades) return { upgrades: [] };
+    if (squad.fixedUpgrades) return { upgrades: squad.fixedUpgrades };
+    return getUpgrades(shipType, ctx.playersRank, ctx.upgradesSource, false);
   }
   function shipInstance(
     shipType: ShipId,
-    upgrades: readonly UpgradeRow[],
+    upgrades: readonly Upgrade[],
     bonusShield: number,
   ): ShipInstance {
-    const extras = countExtraHullAndShield(upgrades.map((r) => r.upgrade));
+    const extras = countExtraHullAndShield(upgrades);
     const baseStats = Ships[shipType];
     return {
       tokenId: 0,
@@ -114,13 +117,13 @@ export function spawnFromScenarioSquad(
         ? rollUniqueVector(squad, ctx.priorVectors, usedVectors)
         : resolveSquadVector(squad.vector, ctx.priorVectors);
       usedVectors.add(fromVector);
-      const upgrades = upgradesFor(shipType);
+      const { upgrades, rollMeta } = upgradesFor(shipType);
       const squadron: Squadron = {
         id: crypto.randomUUID(),
         shipType,
         isElite: eliteSet.has(i),
-        upgradesSource: ctx.upgradesSource,
         upgrades,
+        ...(rollMeta ? { rollMeta } : {}),
         scenarioMeta: {
           squadName: squad.name,
           fromVector,
@@ -161,13 +164,13 @@ export function spawnFromScenarioSquad(
     }
   }
   return Array.from(groups.values()).map(({ shipType, isElite, count, bonusShield }) => {
-    const upgrades = upgradesFor(shipType);
+    const { upgrades, rollMeta } = upgradesFor(shipType);
     return {
       id: crypto.randomUUID(),
       shipType,
       isElite,
-      upgradesSource: ctx.upgradesSource,
       upgrades,
+      ...(rollMeta ? { rollMeta } : {}),
       scenarioMeta: {
         squadName: squad.name,
         fromVector,
@@ -245,7 +248,6 @@ export function spawnAlliesFromScenario(scenario: Scenario): Squadron[] {
       id: crypto.randomUUID(),
       shipType: ally.ship,
       isElite: false,
-      upgradesSource: UPGRADES.FGA,
       upgrades: [],
       ships: [shipInstance],
       scenarioMeta: {

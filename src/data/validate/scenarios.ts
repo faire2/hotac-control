@@ -239,6 +239,14 @@ function checkScenario(
     }
 
     checkSquadComposition(sqScope, squad, failures);
+
+    squad.fixedUpgrades?.forEach((upgrade, i) => {
+      checkShortcodes(
+        `${sqScope}.fixedUpgrades[${i.toString()}].description`,
+        upgrade.description,
+        failures,
+      );
+    });
   });
 }
 

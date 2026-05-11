@@ -73,7 +73,6 @@ describe('priorVectorsFromSquadrons', () => {
         id: 'a',
         shipType: 'TIELN',
         isElite: false,
-        upgradesSource: UPGRADES.FGA,
         upgrades: [],
         ships: [],
         scenarioMeta: { squadName: 'Alpha', fromVector: 3, arrivedAtRound: 1 },
@@ -82,7 +81,6 @@ describe('priorVectorsFromSquadrons', () => {
         id: 'b',
         shipType: 'TIELN',
         isElite: false,
-        upgradesSource: UPGRADES.FGA,
         upgrades: [],
         ships: [],
         // No scenarioMeta — should be skipped.

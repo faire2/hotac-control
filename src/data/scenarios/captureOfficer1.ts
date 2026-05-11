@@ -1,4 +1,16 @@
 import type { Scenario } from './types';
+import { CommunityUpgrades } from '../fga/CommunityUpgrades';
+
+// Mission-fixed equipment for the Lambda Shuttle. References the canonical
+// objects in `CommunityUpgrades` rather than re-authoring inline — keeps a
+// single source of truth for the card text. Mission PDF wording differs
+// slightly (unconditional Flight Instructor Focus reroll; Sensor Jammer
+// "no reroll" clause) but the divergence is negligible play-balance.
+const shuttleUpgrades = [
+  CommunityUpgrades.flightInstructor,
+  CommunityUpgrades.sensorJammer,
+  CommunityUpgrades.antiPursuitLasers,
+] as const;
 
 const briefing = `"Our operatives have been watching the Imperial starport traffic coming in and out of the Nulan system for weeks, and we have managed to decrypt some holocomm messages.
 
@@ -58,6 +70,7 @@ export const captureOfficer1: Scenario = {
       arrival: { kind: 'setup' },
       vector: 'C',
       aiTag: 'Special',
+      fixedUpgrades: shuttleUpgrades,
       composition: {
         1: [{ kind: 'add', ship: 'LAMBDA' }],
         3: [{ kind: 'addShields', count: 2 }],

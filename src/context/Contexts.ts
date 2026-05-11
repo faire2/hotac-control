@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import type { AiEngine, ShipId, UpgradeSource } from '../data/Ships';
 import type { Position } from '../data/Maneuvers';
-import type { UpgradeRow } from '../data/UpgradeRow';
+import type { Upgrade } from '../data/shared/coreUpgrades';
 import type { SimpleVector } from '../data/scenarios/types';
 
 /**
@@ -87,13 +87,41 @@ export function approachDisplay(meta: ScenarioSpawnMeta): string {
   return '?';
 }
 
+/**
+ * Bookkeeping from the upgrade roll that produced a Squadron's `upgrades`.
+ *
+ * Present when upgrades came from `getUpgrades` (the pool-rolled path):
+ * free-play squads and most scenario-spawned squads. Absent for squads
+ * whose upgrades didn't come from a roll: mission-fixed upgrades, rebel
+ * allies, and squads tagged `noUpgrades`.
+ *
+ * Used to:
+ *   - drive the source-toggle UI (visibility + current value)
+ *   - show the rolled tier/xp in the SquadStats XP column
+ *   - override the ship's printed initiative when an upgrade row implies a
+ *     higher pilot init
+ *   - re-roll on rank/elite/source changes
+ */
+export interface UpgradeRollMeta {
+  source: UpgradeSource;
+  /** Initiative override from the highest-tier row; undefined for empty rolls. */
+  initiative?: number;
+  /** XP-column display: 1/2/3 for FGA, xpCost for Community, `'—'` for Anderson, `0` for empty. */
+  xp: number | string;
+}
+
 export interface Squadron {
   /** Stable per-squad identifier — used as React key. */
   id: string;
   shipType: ShipId;
   isElite: boolean;
-  upgradesSource: UpgradeSource;
-  upgrades: readonly UpgradeRow[];
+  /** The squad's upgrade cards (bare data). Source-of-truth for render +
+   * hull/shield extras. Roll bookkeeping (which source, what tier) lives
+   * on `rollMeta` so mission-fixed/ally squads don't need fake roll data. */
+  upgrades: readonly Upgrade[];
+  /** Present iff `upgrades` came from `getUpgrades`. Absent for mission-fixed,
+   * ally, and `noUpgrades`-tagged squads. */
+  rollMeta?: UpgradeRollMeta;
   ships: ShipInstance[];
   /** Set iff spawned by a scenario. Free play leaves this undefined. */
   scenarioMeta?: ScenarioSpawnMeta;
