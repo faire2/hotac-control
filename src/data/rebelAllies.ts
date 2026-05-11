@@ -17,10 +17,11 @@
 export type AllyShipId = 'HWK290' | 'GR75' | 'OUTER_RIM_SMUGGLER';
 
 export interface AllyShipDef {
-  /** Display name in the UI. */
+  /**
+   * Display name in the UI — also serves as the physical-model identity
+   * for ownership/gating purposes.
+   */
   name: string;
-  /** Required physical model (matches `STANDARD_MODELS` strings). */
-  requiredModel: string;
   /** Base hull. */
   hull: number;
   /** Base shields. */
@@ -32,21 +33,18 @@ export interface AllyShipDef {
 export const REBEL_ALLIES: Readonly<Record<AllyShipId, AllyShipDef>> = Object.freeze({
   HWK290: {
     name: 'HWK-290',
-    requiredModel: 'HWK-290',
     hull: 4,
     shields: 1,
     agility: 2,
   },
   GR75: {
     name: 'GR-75 Transport',
-    requiredModel: 'GR-75',
     hull: 12,
     shields: 4,
     agility: 0,
   },
   OUTER_RIM_SMUGGLER: {
     name: 'Outer Rim Smuggler',
-    requiredModel: 'Outer Rim Smuggler',
     hull: 6,
     shields: 4,
     agility: 1,

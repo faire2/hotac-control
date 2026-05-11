@@ -37,6 +37,12 @@ export interface Ship {
   id: ShipId;
   ai: readonly AiEngine[];
   upgrades: readonly UpgradeSource[];
+  /**
+   * If true, every player is assumed to own this miniature; it does not
+   * appear in the owned-models checklist and never gates a mission. Only
+   * the base TIE/ln Starfighter qualifies today.
+   */
+  alwaysOwned?: boolean;
 }
 
 export type ShipId =
@@ -71,6 +77,7 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     id: 'TIELN',
     ai: [AI.FGA, AI.ANDERSON],
     upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
+    alwaysOwned: true,
   },
   TIEIN: {
     name: 'TIE/in Interceptor',
@@ -95,7 +102,7 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
   },
   VT49: {
-    name: 'VT-49',
+    name: 'VT-49 Decimator',
     initiative: 2,
     shields: 4,
     hull: 12,
@@ -106,7 +113,7 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
   },
   TIEADVX: {
-    name: 'Tie Advanced x1',
+    name: 'TIE Advanced x1',
     initiative: 2,
     shields: 2,
     hull: 3,
@@ -117,7 +124,7 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
   },
   TIEDEF: {
-    name: 'TIE/D Defender',
+    name: 'TIE/d Defender',
     initiative: 2,
     shields: 2,
     hull: 3,
@@ -128,7 +135,7 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     upgrades: [UPGRADES.FGA, UPGRADES.ANDERSON],
   },
   TIEPH: {
-    name: 'TIE/PH Phantom',
+    name: 'TIE/ph Phantom',
     initiative: 3,
     shields: 2,
     hull: 3,

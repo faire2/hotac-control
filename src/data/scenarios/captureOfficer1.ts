@@ -52,7 +52,7 @@ export const captureOfficer1: Scenario = {
     text: `"We've failed this time, but this won't be the last Imperial inspection we can intercept. As far as we can tell, they aren't aware of the security breach in their holocomm network."`,
     next: { kind: 'reshuffle' },
   },
-  requiredModels: ['Lambda-class Shuttle'],
+  requiredModels: ['Lambda-class T-4A Shuttle'],
   squads: [
     {
       name: 'Shuttle',

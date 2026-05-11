@@ -8,24 +8,20 @@
  * introductions).
  */
 
-import type { ShipId } from '../Ships';
+import { Ships, type ShipId } from '../Ships';
+import { REBEL_ALLIES } from '../rebelAllies';
 
 /**
- * Free-form names of physical X-Wing models the player can own. Used to
- * gate mission availability via `Scenario.requiredModels` and to drive
- * the campaign-setup checklist.
+ * Names of physical X-Wing models the player can own. Derived from the
+ * Ship registry (excluding `alwaysOwned` types) plus the ally registry.
+ * Used to gate mission availability via `Scenario.requiredModels` and to
+ * drive the campaign-setup checklist.
  */
 export const STANDARD_MODELS: readonly string[] = Object.freeze([
-  'TIE Bomber',
-  'TIE Interceptor',
-  'TIE Advanced',
-  'TIE Defender',
-  'TIE Phantom',
-  'Lambda-class Shuttle',
-  'VT-49 Decimator',
-  'GR-75',
-  'HWK-290',
-  'Outer Rim Smuggler',
+  ...Object.values(Ships)
+    .filter((s) => !s.alwaysOwned)
+    .map((s) => s.name),
+  ...Object.values(REBEL_ALLIES).map((a) => a.name),
 ]);
 
 /**

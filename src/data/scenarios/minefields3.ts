@@ -59,7 +59,7 @@ export const minefields3: Scenario = {
     next: { kind: 'reshuffle' },
     imperialPoints: 1,
   },
-  requiredModels: ['GR-75'],
+  requiredModels: ['GR-75 Transport'],
   allies: [
     { ship: 'GR75', displayName: 'Quantum Storm' },
   ],

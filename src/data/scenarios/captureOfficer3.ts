@@ -60,7 +60,7 @@ export const captureOfficer3: Scenario = {
     next: { kind: 'reshuffle' },
     imperialPoints: 1,
   },
-  requiredModels: ['Lambda-class Shuttle'],
+  requiredModels: ['Lambda-class T-4A Shuttle'],
   squads: [
     {
       name: 'Cargo',

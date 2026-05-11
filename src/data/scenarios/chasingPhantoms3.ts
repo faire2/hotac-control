@@ -53,7 +53,7 @@ export const chasingPhantoms3: Scenario = {
     next: { kind: 'reshuffle' },
     imperialPoints: 1,
   },
-  requiredModels: ['TIE Phantom'],
+  requiredModels: ['TIE/ph Phantom'],
   randomPoolExclusions: ['TIEPH'],
   squads: [
     {

@@ -12,34 +12,22 @@
  * draw with a 1d20 weighted table (see `pickFromD20Table`).
  */
 
-import type { ShipId } from '../Ships';
+import { Ships, type ShipId } from '../Ships';
 
 export const DEFAULT_RANDOM_SHIP_POOL: readonly ShipId[] = Object.freeze([
   'TIEIN',    // TIE/in Interceptor
   'TIEADVX',  // TIE Advanced x1
-  'TIEDEF',   // TIE/D Defender
-  'TIEPH',    // TIE/PH Phantom
-  'LAMBDA',   // Lambda-class Shuttle
+  'TIEDEF',   // TIE/d Defender
+  'TIEPH',    // TIE/ph Phantom
+  'LAMBDA',   // Lambda-class T-4A Shuttle
   'VT49',     // VT-49 Decimator
 ]);
 
 /**
- * Map each ShipId to its required physical model name (matches strings in
- * `STANDARD_MODELS` / `Scenario.requiredModels`). Used to filter the pool
- * by what the player actually owns.
- */
-const SHIP_TO_MODEL: Readonly<Record<string, string>> = Object.freeze({
-  TIEIN: 'TIE Interceptor',
-  TIEADVX: 'TIE Advanced',
-  TIEDEF: 'TIE Defender',
-  TIEPH: 'TIE Phantom',
-  LAMBDA: 'Lambda-class Shuttle',
-  VT49: 'VT-49 Decimator',
-});
-
-/**
  * Filter `pool` down to ships the player owns and (for exotic types) has
  * already had introduced by a prior mission. Returns ships that pass.
+ * Ownership matches `Ships[id].name` against `ownedModels`; ships flagged
+ * `alwaysOwned` skip the ownership check.
  */
 export function eligibleShipsFromPool(
   pool: readonly ShipId[],
@@ -50,8 +38,8 @@ export function eligibleShipsFromPool(
   const introduced = new Set(introducedShipTypes);
   const REQUIRES_INTRO = new Set<ShipId>(['TIEPH', 'TIEDEF']);
   return pool.filter((s) => {
-    const model = SHIP_TO_MODEL[s];
-    if (model && !owned.has(model.toLowerCase())) return false;
+    const ship = Ships[s];
+    if (!ship.alwaysOwned && !owned.has(ship.name.toLowerCase())) return false;
     if (REQUIRES_INTRO.has(s) && !introduced.has(s)) return false;
     return true;
   });
