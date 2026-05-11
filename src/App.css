@@ -139,6 +139,13 @@ h3 {
   max-width: 530px;
 }
 
+.squadContainerAlly {
+  border-left: 4px solid #2c7be5;
+  padding-left: 8px;
+  background: rgba(44, 123, 229, 0.04);
+}
+
+
 .addSquadronCard {
   margin-top: 10px;
   width: 100%;

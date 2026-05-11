@@ -10,20 +10,19 @@
 
 import { Ships } from '../Ships';
 import type { ShipId } from '../Ships';
-import { REBEL_ALLIES } from '../rebelAllies';
 
 /**
  * Names of physical X-Wing models the player can own. Derived from the
- * Ship registry (excluding `alwaysOwned` types) plus the ally registry.
+ * Ship registry (excluding `alwaysOwned` types). Rebel ally ships are
+ * included since they're regular Ship entries with `ai: []`.
  * Used to gate mission availability via `requiredModelsFor(scenario)` and
  * to drive the campaign-setup checklist.
  */
-export const STANDARD_MODELS: readonly string[] = Object.freeze([
-  ...Object.values(Ships)
+export const STANDARD_MODELS: readonly string[] = Object.freeze(
+  Object.values(Ships)
     .filter((s) => !s.alwaysOwned)
     .map((s) => s.name),
-  ...Object.values(REBEL_ALLIES).map((a) => a.name),
-]);
+);
 
 /**
  * The subset of campaign state the spawn pipeline cares about. Both

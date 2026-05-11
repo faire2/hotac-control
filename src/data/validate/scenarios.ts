@@ -2,7 +2,6 @@ import { Ships } from '../Ships';
 import { SCENARIOS } from '../scenarios';
 import type { Scenario, ScenarioSquad, SetupOp } from '../scenarios/types';
 import { hasTag } from '../scenarios/types';
-import { REBEL_ALLIES } from '../rebelAllies';
 import { checkShortcodes } from './shortcodes';
 import type { ValidationFailure } from './types';
 
@@ -180,10 +179,15 @@ function checkScenario(
   checkOutcome(`${scope}.defeat`, scenario.defeat, scenarioIds, failures);
 
   scenario.allies?.forEach((ally, i) => {
-    if (!(ally.ship in REBEL_ALLIES)) {
+    if (!(ally.ship in Ships)) {
       failures.push({
         rule: 'Scenario ally references',
         detail: `${scope}.allies[${i.toString()}]: unknown ally ship "${ally.ship}"`,
+      });
+    } else if (Ships[ally.ship].ai.length > 0) {
+      failures.push({
+        rule: 'Scenario ally references',
+        detail: `${scope}.allies[${i.toString()}]: "${ally.ship}" is an AI ship, not a rebel ally`,
       });
     }
     if (ally.startingHull !== undefined && ally.startingHull < 0) {
@@ -197,6 +201,20 @@ function checkScenario(
         rule: 'Scenario ally starting shields',
         detail: `${scope}.allies[${i.toString()}]: startingShields must be >= 0`,
       });
+    }
+    if (ally.startingEnergy !== undefined) {
+      if (ally.startingEnergy < 0) {
+        failures.push({
+          rule: 'Scenario ally starting energy',
+          detail: `${scope}.allies[${i.toString()}]: startingEnergy must be >= 0`,
+        });
+      }
+      if (ally.ship in Ships && !Ships[ally.ship].hasEnergy) {
+        failures.push({
+          rule: 'Scenario ally starting energy',
+          detail: `${scope}.allies[${i.toString()}]: startingEnergy set but "${ally.ship}" has no energy resource`,
+        });
+      }
     }
   });
 

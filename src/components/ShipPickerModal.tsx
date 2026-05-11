@@ -9,7 +9,9 @@ interface Props {
 }
 
 export function ShipPickerModal({ show, onHide, onSelect }: Props) {
-  const ships = Object.keys(Ships) as ShipId[];
+  const ships = (Object.keys(Ships) as ShipId[]).filter(
+    (id) => Ships[id].ai.length > 0,
+  );
 
   return (
     <Modal show={show} onHide={onHide} centered scrollable>

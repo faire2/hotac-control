@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-11 (Phase 10 Step F: validator split into per-concern files under `src/data/validate/`; `__validate__.ts` slimmed to 38-line orchestrator)
+Last updated: 2026-05-11 (Phase 11 ally rendering: allies folded into `Ships`, ally Squadrons spawn at scenario start, GR-75 energy tracker, blue-accent ally card)
 
 ## Project summary
 
@@ -283,7 +283,7 @@ default landing.
 **Deferred** (next phases)
 - [ ] OAuth + Neon DB backend. The persistence interface is designed for this swap — drop in a `storage.neon.ts`, change one import. User explicitly deferred ("come back to it later").
 - [ ] Per-mission upgrade lists for ally ships (Quantum Storm, Damage Control Team, etc.) — still in `specialRules` text.
-- [ ] Render ally squadrons in the UI — task #12. Data foundation in place since Phase 10.
+- [x] Render ally squadrons in the UI (2026-05-11). Allies folded into `Ships` registry (`ai: []`, `upgrades: []`) so squad cards look them up uniformly; `Squadron.shipType` widened implicitly to include ally IDs. `Squadron.energy?: number` + `Ship.hasEnergy?: boolean` track the GR-75 huge-ship energy resource. `AllySetup.startingEnergy?: number` overrides per-mission. New `spawnAlliesFromScenario` in `spawn.ts` spawns one Squadron per `scenario.allies` entry at scenario start (placed alongside Imperial squads, no arrival modal). `ScenarioSpawnMeta.fromVector` now optional — allies have no approach edge. `Squad.tsx` branches presentation on `ship.ai.length === 0`: AI machinery (engine toggle, upgrades) renders empty/inert; new `.squadContainerAlly` CSS gives ally cards a blue accent. `ShipsVariables` renders an Energy +/- row when `squadron.energy !== undefined`. `ShipPickerModal` filters to AI-only ships. Per-mission ally upgrade lists stay in `specialRules` text (briefing modal).
 
 ### Backlog (Needs Planning)
 - Encode Gozanti-Class Cruiser as a "huge ship" with its own schema (Bonus Attacks, Docking Clamps, no Select Target step)

@@ -11,7 +11,7 @@ import { SquadStats } from './SquadStats';
 import SquadActionsCarousel from './actionsCarousel/SquadActionsCarousel';
 import { TargetPosition } from './maneuvers/TargetPosition';
 import UpgradesCard from './upgrades/UpgradesCard';
-import { GlobalSquadsValuesContext, TargetPositionContext } from '../../context/Contexts';
+import { GlobalSquadsValuesContext, TargetPositionContext, approachDisplay } from '../../context/Contexts';
 import type { Squadron } from '../../context/Contexts';
 
 interface Props {
@@ -30,6 +30,7 @@ const SQUAD_NAME_FALLBACK = { value: 'Squadron designation', label: 'Squadron de
 export function Squad({ squad, squadId }: Props) {
   const shipType = squad.shipType;
   const ship = Ships[shipType];
+  const isAlly = ship.ai.length === 0;
   const globalValues = useContext(GlobalSquadsValuesContext);
   const scenarioAiEngine = globalValues?.scenarioAiEngine;
 
@@ -81,7 +82,7 @@ export function Squad({ squad, squadId }: Props) {
         handleStress,
       }}
     >
-      <div className="squadContainer">
+      <div className={isAlly ? 'squadContainer squadContainerAlly' : 'squadContainer'}>
         <div className="row align-items-center">
           <div className="col-5">
             <h3 className="squadTitle">{ship.name}</h3>
@@ -105,7 +106,7 @@ export function Squad({ squad, squadId }: Props) {
             <span>
               Approach:{' '}
               <strong>
-                {squad.scenarioMeta.approachLabel ?? String(squad.scenarioMeta.fromVector)}
+                {approachDisplay(squad.scenarioMeta)}
               </strong>
             </span>
             <span className="ml-3">

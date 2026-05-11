@@ -16,8 +16,6 @@
 
 import { Ships } from '../Ships';
 import type { ShipId } from '../Ships';
-import { REBEL_ALLIES } from '../rebelAllies';
-import type { AllyShipId } from '../rebelAllies';
 import type { Scenario, SetupOp } from './types';
 
 function shipIdFromOp(op: SetupOp): ShipId | undefined {
@@ -33,30 +31,26 @@ function shipIdFromOp(op: SetupOp): ShipId | undefined {
 }
 
 export function requiredModelsFor(scenario: Scenario): readonly string[] {
-  const shipIds = new Set<ShipId>();
-  const allyIds = new Set<AllyShipId>();
+  const ids = new Set<ShipId>();
 
   for (const squad of scenario.squads) {
     for (const ops of Object.values(squad.composition)) {
       for (const op of ops) {
         const id = shipIdFromOp(op);
-        if (id !== undefined) shipIds.add(id);
+        if (id !== undefined) ids.add(id);
       }
     }
   }
 
   for (const ally of scenario.allies ?? []) {
-    allyIds.add(ally.ship);
+    ids.add(ally.ship);
   }
 
   const names: string[] = [];
-  for (const id of shipIds) {
+  for (const id of ids) {
     const ship = Ships[id];
     if (ship.alwaysOwned) continue;
     names.push(ship.name);
-  }
-  for (const id of allyIds) {
-    names.push(REBEL_ALLIES[id].name);
   }
 
   return Array.from(new Set(names));

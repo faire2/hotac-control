@@ -52,16 +52,30 @@ export interface ShipHandlingContextValue {
  * a scenario" (free play leaves `Squadron.scenarioMeta` undefined).
  */
 export interface ScenarioSpawnMeta {
-  /** Matches `ScenarioSquad.name`. */
+  /** Matches `ScenarioSquad.name` for Imperial squads; the ally display name
+   * (or fallback to ship name) for rebel allies. */
   squadName: string;
-  /** Concrete spawn vector resolved at arrival time (1d6/tuple → fixed). */
-  fromVector: SimpleVector;
-  /** Optional human-readable label override (e.g. "Bay 1"). */
+  /** Concrete spawn vector resolved at arrival time (1d6/tuple → fixed).
+   * Behavioral — consumed by `priorVectorsFromSquadrons` for `oppositeOf`
+   * math. Undefined for rebel allies (no approach edge). For display, use
+   * `approachDisplay(meta)` rather than reading this field directly. */
+  fromVector?: SimpleVector;
+  /** Optional human-readable label override (e.g. "Bay 1", "Setup"). Wins
+   * over `fromVector` in `approachDisplay(meta)`. */
   approachLabel?: string;
   /** Round on which this squadron arrived. */
   arrivedAtRound: number;
   /** Rebel player index (1-based) this enemy squadron is hunting. */
   huntsPlayerIndex?: number;
+}
+
+/** Display string for a squadron's approach — label wins over vector number,
+ * with `'?'` as the last-resort fallback. Single source of truth for the
+ * label/number/fallback precedence. */
+export function approachDisplay(meta: ScenarioSpawnMeta): string {
+  if (meta.approachLabel !== undefined) return meta.approachLabel;
+  if (meta.fromVector !== undefined) return String(meta.fromVector);
+  return '?';
 }
 
 export interface Squadron {
@@ -80,6 +94,8 @@ export interface ShipInstance {
   tokenId: number;
   hull: number;
   shields: number;
+  /** GR-75 huge-ship energy resource. Present iff `Ships[squad.shipType].hasEnergy`. */
+  energy?: number;
 }
 
 export const TargetPositionContext = createContext<TargetPositionContextValue | null>(null);

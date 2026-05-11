@@ -16,7 +16,7 @@
  * goes through the same Squadron stamping path — no separate code branch.
  */
 
-import { Ships } from '../Ships';
+import { Ships, UPGRADES } from '../Ships';
 import type { ShipId, UpgradeSource } from '../Ships';
 import { countExtraHullAndShield } from '../shared/coreUpgrades';
 import type { UpgradeRow } from '../UpgradeRow';
@@ -132,8 +132,9 @@ export function spawnFromScenarioSquad(
       };
       return squadron;
     });
-    if (squadrons.length > 0 && squadrons[0].scenarioMeta) {
-      ctx.priorVectors.set(squad.name, squadrons[0].scenarioMeta.fromVector);
+    const firstVector = squadrons[0]?.scenarioMeta?.fromVector;
+    if (firstVector !== undefined) {
+      ctx.priorVectors.set(squad.name, firstVector);
     }
     return squadrons;
   }
@@ -213,14 +214,54 @@ export function rollUniqueVector(
   );
 }
 
+/**
+ * Spawn one Squadron per `scenario.allies` entry. Allies are player-piloted
+ * (no AI, no upgrades) so the spawn is much simpler than `spawnFromScenarioSquad`:
+ * one ship instance, base stats (with optional per-mission overrides), and
+ * energy initialized for huge ships (GR-75).
+ *
+ * `scenarioMeta.squadName` defaults to the ally's display name (or fallback
+ * to the ship's name). No approach vector — allies are part of scenario setup,
+ * not arriving from an edge.
+ */
+export function spawnAlliesFromScenario(scenario: Scenario): Squadron[] {
+  if (!scenario.allies?.length) return [];
+  return scenario.allies.map((ally) => {
+    const ship = Ships[ally.ship];
+    const squadName = ally.displayName ?? ship.name;
+    const shipInstance: ShipInstance = {
+      tokenId: 0,
+      hull: ally.startingHull ?? ship.hull,
+      shields: ally.startingShields ?? ship.shields,
+    };
+    if (ship.hasEnergy) {
+      shipInstance.energy = ally.startingEnergy ?? 0;
+    }
+    return {
+      id: crypto.randomUUID(),
+      shipType: ally.ship,
+      isElite: false,
+      upgradesSource: UPGRADES.FGA,
+      upgrades: [],
+      ships: [shipInstance],
+      scenarioMeta: {
+        squadName,
+        approachLabel: 'Setup',
+        arrivedAtRound: 1,
+      },
+    } satisfies Squadron;
+  });
+}
+
 /** Reseed `priorVectors` from already-spawned squadrons before a new round
- * so cross-round `oppositeOf` references resolve. */
+ * so cross-round `oppositeOf` references resolve. Allies (no `fromVector`)
+ * are skipped — they don't participate in vector relationships. */
 export function priorVectorsFromSquadrons(
   squadrons: readonly Squadron[],
 ): Map<string, SimpleVector> {
   const out = new Map<string, SimpleVector>();
   for (const sq of squadrons) {
-    if (sq.scenarioMeta) {
+    if (sq.scenarioMeta?.fromVector !== undefined) {
       out.set(sq.scenarioMeta.squadName, sq.scenarioMeta.fromVector);
     }
   }

@@ -16,7 +16,7 @@ import './fonts/xwing-miniatures.css';
 import { AI, Ships, UPGRADES } from './data/Ships';
 import type { AiEngine, ShipId, UpgradeSource } from './data/Ships';
 import SquadGenerator from './components/ai/SquadGenerator';
-import { GlobalSquadsValuesContext, ShipHandlingContext } from './context/Contexts';
+import { GlobalSquadsValuesContext, ShipHandlingContext, approachDisplay } from './context/Contexts';
 import type { ShipInstance, Squadron } from './context/Contexts';
 import getUpgrades from './data/upgrades/getUpgrades';
 import { countExtraHullAndShield } from './data/shared/coreUpgrades';
@@ -28,6 +28,7 @@ import { EndScenarioModal } from './components/scenarios/EndScenarioModal';
 import { findScenario } from './data/scenarios';
 import {
   spawnFromScenarioSquad,
+  spawnAlliesFromScenario,
   priorVectorsFromSquadrons,
   opsForShipsOverride,
 } from './data/scenarios/spawn';
@@ -101,7 +102,7 @@ function arrivalsFromSquadrons(squadrons: readonly Squadron[]): readonly Arrival
       shipName: Ships[sq.shipType].name,
       count: sq.ships.length,
       isElite: sq.isElite,
-      approach: meta?.approachLabel ?? (meta ? String(meta.fromVector) : '?'),
+      approach: meta ? approachDisplay(meta) : '?',
       huntsPlayerIndex: meta?.huntsPlayerIndex,
     };
   });
@@ -194,7 +195,10 @@ function App() {
     const setupSquadrons = briefingScenario.squads
       .filter((sq) => squadShouldSpawnAt(sq, 1))
       .flatMap((sq) => spawnFromScenarioSquad(sq, ctx));
-    setSquadrons(setupSquadrons);
+    const allySquadrons = spawnAlliesFromScenario(briefingScenario);
+    setSquadrons([...allySquadrons, ...setupSquadrons]);
+    // Arrival notification covers only Imperial squad arrivals — allies are
+    // placed during setup, not arriving from an edge.
     setPendingArrivals(arrivalsFromSquadrons(setupSquadrons));
     const mission: MissionState = {
       scenarioId: briefingScenario.id,

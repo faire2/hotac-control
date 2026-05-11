@@ -13,7 +13,7 @@ interface Props {
 
 const ID_OPTIONS = Array.from({ length: 10 }, (_, i) => ({ value: i, label: String(i) }));
 
-type Variable = 'tokenId' | 'shields' | 'hull';
+type Variable = 'tokenId' | 'shields' | 'hull' | 'energy';
 
 export default function Variables({ ship, squadId, keyIndex }: Props) {
   const ctx = useContext(ShipHandlingContext);
@@ -21,6 +21,7 @@ export default function Variables({ ship, squadId, keyIndex }: Props) {
   const squadron = ctx.squadrons[squadId];
   const shipType = squadron.shipType;
   const baseStats = Ships[shipType];
+  const hasEnergy = baseStats.hasEnergy === true;
   const extras = countExtraHullAndShield(
     (squadron.upgrades).map((r) => r.upgrade),
   );
@@ -32,6 +33,7 @@ export default function Variables({ ship, squadId, keyIndex }: Props) {
     const next: ShipInstance = { ...ship };
     if (variable === 'shields' && value >= 0 && value <= maxShields) next.shields = value;
     else if (variable === 'hull' && value >= 0 && value <= maxHull) next.hull = value;
+    else if (variable === 'energy' && value >= 0) next.energy = value;
     else if (variable === 'tokenId') next.tokenId = value;
     else return;
     ctx.handleShipChange(next, keyIndex, squadId);
@@ -50,6 +52,13 @@ export default function Variables({ ship, squadId, keyIndex }: Props) {
       </div>
       <Counter label="shields" value={ship.shields} onChange={(v) => { update('shields', v); }} />
       <Counter label="hull" value={ship.hull} onChange={(v) => { update('hull', v); }} />
+      {hasEnergy && (
+        <Counter
+          label="energy"
+          value={ship.energy ?? 0}
+          onChange={(v) => { update('energy', v); }}
+        />
+      )}
       <div className="shipCellRemove">
         <button
           type="button"

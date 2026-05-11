@@ -43,6 +43,11 @@ export interface Ship {
    * the base TIE/ln Starfighter qualifies today.
    */
   alwaysOwned?: boolean;
+  /**
+   * If true, this ship type uses an Energy resource (GR-75 huge ship).
+   * Squadrons of this type render an extra energy +/- tracker.
+   */
+  hasEnergy?: boolean;
 }
 
 export type ShipId =
@@ -63,7 +68,12 @@ export type ShipId =
   | 'TIERBH' // TIE/rb Heavy
   | 'TIECP' // TIE/ca Punisher
   | 'STARWING' // Alpha Class Star Wing
-  | 'SITH'; // Sith Infiltrator
+  | 'SITH' // Sith Infiltrator
+  // Rebel ally ships (player-piloted, no AI). Folded into Ships so squad
+  // cards can look up stats uniformly. AI-only consumers filter by `ai.length > 0`.
+  | 'HWK290'
+  | 'GR75'
+  | 'OUTER_RIM_SMUGGLER';
 // Gozanti-Class Cruiser deferred — needs a separate huge-ship schema
 
 export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
@@ -249,6 +259,45 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
     id: 'SITH',
     ai: [AI.ANDERSON],
     upgrades: [UPGRADES.ANDERSON],
+  },
+
+  // Rebel ally ships. `initiative` is 0 because HotAC doesn't model
+  // player-pilot initiative for allies; `attack` is empty because their
+  // attack dice depend on per-mission upgrades that live in `specialRules`
+  // text. Players track these manually.
+  HWK290: {
+    name: 'HWK-290',
+    initiative: 0,
+    shields: 1,
+    hull: 4,
+    attack: [],
+    agility: 2,
+    id: 'HWK290',
+    ai: [],
+    upgrades: [],
+  },
+  GR75: {
+    name: 'GR-75 Transport',
+    initiative: 0,
+    shields: 4,
+    hull: 12,
+    attack: [],
+    agility: 0,
+    id: 'GR75',
+    ai: [],
+    upgrades: [],
+    hasEnergy: true,
+  },
+  OUTER_RIM_SMUGGLER: {
+    name: 'Outer Rim Smuggler',
+    initiative: 0,
+    shields: 4,
+    hull: 6,
+    attack: [],
+    agility: 1,
+    id: 'OUTER_RIM_SMUGGLER',
+    ai: [],
+    upgrades: [],
   },
 });
 
