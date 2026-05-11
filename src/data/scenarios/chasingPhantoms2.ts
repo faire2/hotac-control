@@ -53,7 +53,6 @@ export const chasingPhantoms2: Scenario = {
     imperialPoints: 1,
   },
   randomPoolExclusions: ['LAMBDA', 'TIEPH'],
-  requiredModels: ['GR-75 Transport', 'TIE/ph Phantom', 'Lambda-class T-4A Shuttle'],
   allies: [
     { ship: 'GR75', displayName: 'Bright Hope', startingShields: 0 },
   ],

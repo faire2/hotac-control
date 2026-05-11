@@ -1,5 +1,6 @@
 import Modal from 'react-bootstrap/Modal';
 import { SCENARIOS } from '../../data/scenarios';
+import { requiredModelsFor } from '../../data/scenarios/requiredModels';
 import { ownsRequiredModels } from '../../data/campaigns/settings';
 
 interface Props {
@@ -18,8 +19,9 @@ export function LoadScenarioModal({ show, ownedModels, onHide, onSelect }: Props
       <Modal.Body>
         <div className="d-flex flex-column">
           {SCENARIOS.map((s) => {
-            const playable = ownsRequiredModels(s.requiredModels, ownedModels);
-            const missing = (s.requiredModels ?? []).filter(
+            const required = requiredModelsFor(s);
+            const playable = ownsRequiredModels(required, ownedModels);
+            const missing = required.filter(
               (r) => !ownedModels.some((o) => o.toLowerCase() === r.toLowerCase()),
             );
             return (

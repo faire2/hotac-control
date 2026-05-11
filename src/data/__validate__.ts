@@ -32,10 +32,6 @@ import { REBEL_ALLIES } from './rebelAllies';
 
 const KNOWN_MANEUVERS = new Set<string>(Object.values(MVRS));
 const KNOWN_POSITIONS = new Set<string>(Object.values(PSN));
-const KNOWN_MODEL_NAMES = new Set<string>([
-  ...Object.values(Ships).map((s) => s.name.toLowerCase()),
-  ...Object.values(REBEL_ALLIES).map((a) => a.name.toLowerCase()),
-]);
 
 type ManeuverTablesByShip = Record<string, Partial<Record<Position, readonly unknown[]>> | undefined>;
 
@@ -325,15 +321,6 @@ function checkScenario(
   });
   checkOutcome(`${scope}.victory`, scenario.victory, scenarioIds, failures);
   checkOutcome(`${scope}.defeat`, scenario.defeat, scenarioIds, failures);
-
-  scenario.requiredModels?.forEach((model, i) => {
-    if (!KNOWN_MODEL_NAMES.has(model.toLowerCase())) {
-      failures.push({
-        rule: 'Scenario requiredModels',
-        detail: `${scope}.requiredModels[${i.toString()}]: "${model}" doesn't match any Ship.name or REBEL_ALLIES name`,
-      });
-    }
-  });
 
   scenario.allies?.forEach((ally, i) => {
     if (!(ally.ship in REBEL_ALLIES)) {

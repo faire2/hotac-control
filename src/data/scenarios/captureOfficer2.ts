@@ -57,7 +57,6 @@ export const captureOfficer2: Scenario = {
     next: { kind: 'reshuffle' },
     imperialPoints: 1,
   },
-  requiredModels: ['Lambda-class T-4A Shuttle'],
   squads: [
     {
       name: 'Alpha',

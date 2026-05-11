@@ -60,7 +60,6 @@ export const chasingPhantoms1: Scenario = {
     text: `"Our supply lines are struggling, but now we've discovered a bigger threat to the Alliance."`,
     next: { kind: 'arcLink', missionId: 'chasing-phantoms-2' },
   },
-  requiredModels: ['Outer Rim Smuggler', 'TIE/ph Phantom'],
   allies: [
     { ship: 'OUTER_RIM_SMUGGLER', displayName: 'Recovery Ship' },
   ],

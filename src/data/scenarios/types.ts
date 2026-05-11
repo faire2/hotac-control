@@ -233,15 +233,6 @@ export interface Scenario {
    */
   randomPoolExclusions?: readonly ShipId[];
   /**
-   * Physical-model prerequisites — free-form names of X-Wing Miniatures
-   * ships/expansions the player must own to play this mission. Used by the
-   * future arc-gating feature so missions that need a GR-75, HWK-290, VT-49,
-   * etc. can be disabled in the picker if the player doesn't own the model.
-   * Free strings (not ShipId) since allies like GR-75 / HWK-290 / Outer Rim
-   * Smuggler aren't in the AI ship registry.
-   */
-  requiredModels?: readonly string[];
-  /**
    * Rebel ally NPC ships placed at scenario start (Operatives' HWK-290,
    * Bright Hope GR-75, Recovery Smuggler, etc.). Spawned as ally-flagged
    * Squadrons so hull/shield bookkeeping works in the UI.

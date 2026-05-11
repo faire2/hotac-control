@@ -56,7 +56,6 @@ export const refuelingStation1: Scenario = {
     text: `"We've lost two of our best operatives, their craft, and valuable intelligence data. The Empire is hiding something in that asteroid field — we need to know what!"`,
     next: { kind: 'reshuffle' },
   },
-  requiredModels: ['HWK-290'],
   allies: [
     { ship: 'HWK290', displayName: 'Rebel Operatives' },
   ],

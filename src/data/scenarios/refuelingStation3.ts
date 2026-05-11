@@ -56,7 +56,6 @@ export const refuelingStation3: Scenario = {
     next: { kind: 'reshuffle' },
     imperialPoints: 1,
   },
-  requiredModels: ['Outer Rim Smuggler'],
   allies: [
     { ship: 'OUTER_RIM_SMUGGLER', displayName: 'Assault Ship' },
   ],

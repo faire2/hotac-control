@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-11 (Phase 10 Steps B + C: model name taxonomy unified on `Ship.name`/`AllyShipDef.name`; ship-introduction unlocks moved onto `Outcome.unlocksShipTypes`)
+Last updated: 2026-05-11 (Phase 10 Step D: `Scenario.requiredModels` field replaced by derived `requiredModelsFor(scenario)`)
 
 ## Project summary
 
@@ -225,7 +225,7 @@ After the Phase 9 push, an architectural review identified several growth pressu
 Other architectural concerns from the review still queued:
 - [x] Step B — Unify model name taxonomy via `Ship.name` + `AllyShipDef.name` (2026-05-11). Resolved instead of introducing a parallel `ModelId` type: `Ship.name` is the canonical physical-model identity; `STANDARD_MODELS` derives from `Ships` (excluding `alwaysOwned`) + `REBEL_ALLIES`; `SHIP_TO_MODEL` map deleted; validator asserts `Scenario.requiredModels` entries match a known Ship/Ally name.
 - [x] Step C — Move ship-introduction unlocks onto `Outcome` (2026-05-11). `SHIP_INTRODUCTIONS` map replaced by `Outcome.unlocksShipTypes`; `applyOutcome` reads from the outcome (signature lost the `shipsToIntroduce` arg); `REQUIRES_INTRO` in `randomShipPool.ts` derived from `SCENARIOS.flatMap(s => [victory.unlocksShipTypes, defeat.unlocksShipTypes])` — outcome declaration is now the single source of truth for introduction-gated ships.
-- [ ] Step D — Derive `Scenario.requiredModels` from data (kill hand-maintenance drift)
+- [x] Step D — Derive `Scenario.requiredModels` from data (2026-05-11). New `src/data/scenarios/requiredModels.ts` exports `requiredModelsFor(scenario)`, which walks `composition[*][*]` for `add`/`replace`/`addElite` ops carrying a specific `ship`, walks `allies[*].ship`, filters `Ships[id].alwaysOwned`, and dedupes by display name. `Scenario.requiredModels` field dropped; 13 hand-maintained per-scenario lines deleted. Consumers (`LoadScenarioModal`, `CampaignSetupModal`) call the helper. Validator's name-existence check is gone — correctness is now structural. Side effect: missions that reference common Imperials (TIE/in, TIE/sa) now correctly include them in the gating set, where they were silently omitted before.
 - [ ] Step E — Group scenario-spawn fields on Squadron under `scenarioMeta?: ScenarioSpawnMeta`
 - [x] Drop dead `unparsed` SetupOp kind (Phase 10 step 1.5)
 - [ ] Split validator into per-concern files

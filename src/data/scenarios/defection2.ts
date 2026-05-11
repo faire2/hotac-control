@@ -63,7 +63,6 @@ export const defection2: Scenario = {
     next: { kind: 'reshuffle' },
     imperialPoints: 1,
   },
-  requiredModels: ['TIE/d Defender', 'Lambda-class T-4A Shuttle'],
   randomPoolExclusions: ['TIEDEF'],
   squads: [
     {

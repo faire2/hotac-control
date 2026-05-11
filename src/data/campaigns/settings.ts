@@ -15,8 +15,8 @@ import { REBEL_ALLIES } from '../rebelAllies';
 /**
  * Names of physical X-Wing models the player can own. Derived from the
  * Ship registry (excluding `alwaysOwned` types) plus the ally registry.
- * Used to gate mission availability via `Scenario.requiredModels` and to
- * drive the campaign-setup checklist.
+ * Used to gate mission availability via `requiredModelsFor(scenario)` and
+ * to drive the campaign-setup checklist.
  */
 export const STANDARD_MODELS: readonly string[] = Object.freeze([
   ...Object.values(Ships)

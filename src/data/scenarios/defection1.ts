@@ -58,7 +58,6 @@ export const defection1: Scenario = {
     text: `"The Empire has scrambled their local holonet protocols; Our spy is safe for now, but we'll have to start over."`,
     next: { kind: 'reshuffle' },
   },
-  requiredModels: ['HWK-290', 'Lambda-class T-4A Shuttle'],
   allies: [
     { ship: 'HWK290', displayName: 'Slicer Techs' },
   ],

@@ -5,6 +5,7 @@ import { newCampaign } from '../../data/campaigns/factory';
 import { campaignStore } from '../../data/campaigns/storage.active';
 import { STANDARD_MODELS, ownsRequiredModels } from '../../data/campaigns/settings';
 import { findScenario } from '../../data/scenarios';
+import { requiredModelsFor } from '../../data/scenarios/requiredModels';
 
 interface Props {
   show: boolean;
@@ -18,7 +19,7 @@ interface Props {
  * mode + arc selection. On Save, builds a `Campaign` via `newCampaign()`,
  * persists via `campaignStore.save()`, and reports the new id back.
  *
- * Arcs whose `requiredModels` aren't all in `ownedModels` are auto-disabled
+ * Arcs whose required models aren't all in `ownedModels` are auto-disabled
  * with a hint. The player can fix by checking the relevant model.
  */
 export function CampaignSetupModal({ show, onCreated, onClose }: Props) {
@@ -52,8 +53,8 @@ export function CampaignSetupModal({ show, onCreated, onClose }: Props) {
         const set = new Set<string>();
         for (const missionId of arc.missionIds) {
           const m = findScenario(missionId);
-          if (m?.requiredModels) {
-            for (const r of m.requiredModels) set.add(r);
+          if (m) {
+            for (const r of requiredModelsFor(m)) set.add(r);
           }
         }
         return [arc.id, Array.from(set)];
