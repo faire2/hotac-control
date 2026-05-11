@@ -158,4 +158,9 @@ Once the shuttle is disabled, it no longer moves. Remaining enemy ships also cha
       body: `Escort-type enemy ships have modified action priority. After moving, if they are within range 1 of the shuttle, they will perform the Protect action to assign it an evade token.`,
     },
   ],
+  behaviorDescriptions: {
+    Attack: `Engage the nearest enemy ship using the standard target/action/attack priority lists.`,
+    Escort: `Modified action priority: after moving, if within Range 1 of the Shuttle, perform the Protect action to give it an evade token instead of the usual action.`,
+    Special: `The Lambda Shuttle engages and attacks the nearest target normally. Once it has suffered 5 shield damage it switches to fleeing via the Imperial Escape Edge (B) — treat that edge as its priority target for movement, always at maximum speed.`,
+  },
 };

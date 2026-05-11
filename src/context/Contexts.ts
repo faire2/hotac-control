@@ -67,6 +67,15 @@ export interface ScenarioSpawnMeta {
   arrivedAtRound: number;
   /** Rebel player index (1-based) this enemy squadron is hunting. */
   huntsPlayerIndex?: number;
+  /** Mission-specified AI behavior tag (`Attack`, `Escort`, `Strike`,
+   * `Flee*`, `Special`, etc.). Asterisk = mission-modified — see
+   * `Scenario.specialRules`. Surfaced in the target-selection panel as
+   * informational text; not yet wired into AI dispatch. */
+  aiTag?: string;
+  /** Prose description of `aiTag` for this mission, copied from
+   * `Scenario.behaviorDescriptions[aiTag]` at spawn time. May contain
+   * `:icon:` shortcodes. Rendered under the target-priority list. */
+  behaviorDescription?: string;
 }
 
 /** Display string for a squadron's approach — label wins over vector number,

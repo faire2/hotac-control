@@ -226,6 +226,20 @@ export interface Scenario {
   /** Sidebar rules blocks printed with the mission. Optional. */
   specialRules?: readonly SpecialRule[];
   /**
+   * Per-tag behavior descriptions surfaced on the squad card under each
+   * squadron's target-priority panel. Keyed by `ScenarioSquad.aiTag` value
+   * (e.g. `'Special'`, `'Escort'`, `'Strike'`).
+   *
+   * Authored per mission because the same tag means different things in
+   * different missions — `'Special'` is the Lambda Shuttle in
+   * Capture-the-Officer 1 but the VT-49 Decimator in Minefields 2. Text
+   * supports `:icon:` shortcodes (rendered via `<Rule>`).
+   *
+   * Optional today; missions without it leave the description slot empty.
+   * Backfill is queued in the roadmap.
+   */
+  behaviorDescriptions?: Partial<Record<string, string>>;
+  /**
    * Ship types this mission's `addRandom`/`replaceRandom`/`addElite` ops
    * must NOT pick from, on top of any campaign-config exclusions. Bait,
    * for example, sets `['LAMBDA', 'TIEPH']` because both are placed

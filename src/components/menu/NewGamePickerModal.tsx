@@ -63,7 +63,7 @@ export function NewGamePickerModal({
           >
             <div className="font-weight-bold">Free Play</div>
             <div className="small text-muted">
-              Build squadrons manually for AI testing.
+              Build squadrons manually to test enemy behavior.
             </div>
           </button>
         </div>

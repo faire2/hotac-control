@@ -89,7 +89,7 @@ export function ScenarioBriefingModal({
               </ToggleButtonGroup>
             </div>
             <div className="d-flex align-items-center">
-              <span className="control-label">AI:</span>
+              <span className="control-label">Engine:</span>
               <ToggleButtonGroup
                 type="radio"
                 name="briefing-ai"

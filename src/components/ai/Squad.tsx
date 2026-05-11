@@ -126,7 +126,12 @@ export function Squad({ squad, squadId }: Props) {
             <TargetPosition />
           </div>
           <div className="col-6 pl-1 d-flex flex-column">
-            <SquadActionsCarousel aiEngine={aiEngine} shipType={shipType} />
+            <SquadActionsCarousel
+              aiEngine={aiEngine}
+              shipType={shipType}
+              aiTag={squad.scenarioMeta?.aiTag}
+              behaviorDescription={squad.scenarioMeta?.behaviorDescription}
+            />
           </div>
         </div>
         <UpgradesCard squadId={squadId} />

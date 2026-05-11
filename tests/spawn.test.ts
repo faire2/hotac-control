@@ -6,7 +6,7 @@ import {
   type SpawnContext,
 } from '../src/data/scenarios/spawn';
 import { localTrouble } from '../src/data/scenarios/localTrouble';
-import { DEFAULT_SPAWN_SETTINGS } from '../src/data/campaigns/settings';
+Whimport { defaultSpawnSettings } from '../src/data/campaigns/settings';
 import { UPGRADES } from '../src/data/Ships';
 import type { Squadron } from '../src/context/Contexts';
 import type { SimpleVector } from '../src/data/scenarios/types';
@@ -23,7 +23,7 @@ function ctxFor(
     upgradesSource: UPGRADES.FGA,
     round,
     priorVectors,
-    settings: DEFAULT_SPAWN_SETTINGS,
+    settings: defaultSpawnSettings(),
   };
 }
 

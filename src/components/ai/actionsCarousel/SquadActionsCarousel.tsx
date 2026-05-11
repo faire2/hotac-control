@@ -14,12 +14,30 @@ type Direction = (typeof DIRECTIONS)[keyof typeof DIRECTIONS];
 interface Props {
   aiEngine: AiEngine;
   shipType: ShipId;
+  /** Mission-specified behavior tag for scenario-spawned squadrons
+   * (Attack/Escort/Strike/Special/Flee*). Rendered under the target-selection
+   * panel for player reference. */
+  aiTag?: string;
+  /** Prose description of the behavior for this mission, sourced from
+   * `Scenario.behaviorDescriptions[aiTag]`. Optional. */
+  behaviorDescription?: string;
 }
 
-export default function SquadActionsCarousel({ aiEngine, shipType }: Props) {
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(1);
+export default function SquadActionsCarousel({
+  aiEngine,
+  shipType,
+  aiTag,
+  behaviorDescription,
+}: Props) {
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const content = [
-    <SquadTargetSelection key="target" aiEngine={aiEngine} shipType={shipType} />,
+    <SquadTargetSelection
+      key="target"
+      aiEngine={aiEngine}
+      shipType={shipType}
+      aiTag={aiTag}
+      behaviorDescription={behaviorDescription}
+    />,
     <SquadActions key="actions" aiEngine={aiEngine} shipType={shipType} />,
     <SquadAttack key="attack" aiEngine={aiEngine} shipType={shipType} />,
   ];

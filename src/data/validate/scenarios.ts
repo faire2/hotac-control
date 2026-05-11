@@ -175,6 +175,13 @@ function checkScenario(
   scenario.specialRules?.forEach((rule, i) => {
     checkShortcodes(`${scope}.specialRules[${i.toString()}].body`, rule.body, failures);
   });
+  if (scenario.behaviorDescriptions) {
+    for (const [tag, body] of Object.entries(scenario.behaviorDescriptions)) {
+      if (body !== undefined) {
+        checkShortcodes(`${scope}.behaviorDescriptions["${tag}"]`, body, failures);
+      }
+    }
+  }
   checkOutcome(`${scope}.victory`, scenario.victory, scenarioIds, failures);
   checkOutcome(`${scope}.defeat`, scenario.defeat, scenarioIds, failures);
 

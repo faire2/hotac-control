@@ -126,6 +126,8 @@ export function spawnFromScenarioSquad(
           fromVector,
           approachLabel: squad.approachLabel,
           arrivedAtRound: ctx.round,
+          aiTag: squad.aiTag,
+          behaviorDescription: ctx.scenario.behaviorDescriptions?.[squad.aiTag],
           ...(wantHuntsPlayer ? { huntsPlayerIndex: playerIndices[i] } : {}),
         },
         ships: [shipInstance(shipType, upgrades, resolved.bonusShields[i])],
@@ -171,6 +173,8 @@ export function spawnFromScenarioSquad(
         fromVector,
         approachLabel: squad.approachLabel,
         arrivedAtRound: ctx.round,
+        aiTag: squad.aiTag,
+        behaviorDescription: ctx.scenario.behaviorDescriptions?.[squad.aiTag],
       },
       ships: Array.from({ length: count }, () => shipInstance(shipType, upgrades, bonusShield)),
     } satisfies Squadron;
