@@ -90,7 +90,9 @@ export const refuelingStation1: Scenario = {
       vector: '1d6',
       aiTag: 'Attack',
       composition: {
-        3: [{ kind: 'addElite' }],
+        // 🏅⚙ — one Elite of the squad-consistent random ship type. Single
+        // cell in the PDF → applies at every player count via the column-walk.
+        1: [{ kind: 'addElite' }],
       },
     },
     {
