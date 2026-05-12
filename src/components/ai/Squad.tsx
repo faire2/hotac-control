@@ -1,7 +1,5 @@
 import { useContext, useState } from 'react';
 import Select from 'react-select';
-import ToggleButton from 'react-bootstrap/ToggleButton';
-import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 import { AI, Ships } from '../../data/Ships';
 import type { AiEngine } from '../../data/Ships';
 import { PSN } from '../../data/Maneuvers';
@@ -20,13 +18,21 @@ interface Props {
   squadId: number;
 }
 
-const SQUAD_NAMES = [
+interface DesignationOption {
+  value: string;
+  label: string;
+}
+
+const SQUAD_NAMES: readonly DesignationOption[] = [
   'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta',
   'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi',
   'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega',
 ].map((n) => ({ value: n, label: n }));
 
-const SQUAD_NAME_FALLBACK = { value: 'Squadron designation', label: 'Squadron designation' };
+const SQUAD_NAME_FALLBACK: DesignationOption = {
+  value: 'Squadron designation',
+  label: 'Squadron designation',
+};
 
 const DESIGNATION_PREFIXES = ['SQN', 'WNG', 'FLT', 'RDR', 'GAR'];
 
@@ -80,14 +86,36 @@ export function Squad({ squad, squadId }: Props) {
   const ship = Ships[shipType];
   const isAlly = ship.ai.length === 0;
   const globalValues = useContext(GlobalSquadsValuesContext);
-  const scenarioAiEngine = globalValues?.scenarioAiEngine;
+  // AI engine is set globally via the New / Load / Campaign-setup
+  // modals. We fall back to the ship's first supported engine if the
+  // ship doesn't support the globally-chosen one — keeps allies and
+  // out-of-deck ships behaving sensibly.
+  const scenarioAiEngine = globalValues?.scenarioAiEngine ?? AI.FGA;
+  const aiEngine: AiEngine = ship.ai.includes(scenarioAiEngine)
+    ? scenarioAiEngine
+    : ship.ai[0] ?? AI.FGA;
 
   const [targetPosition, setTargetPosition] = useState<Position | readonly Position[]>([PSN.R3FRONT]);
   const [maneuverRandNum, setManeuverRandNum] = useState(1);
-  const [localAiEngine, setLocalAiEngine] = useState<AiEngine>(AI.FGA);
   const [stressed, setStressed] = useState(false);
 
-  const aiEngine = scenarioAiEngine ?? localAiEngine;
+  // Squadron designation dropdown options. For scenario-spawned squads
+  // the prescribed name is prepended as the default-selected option so
+  // it shows up in the dropdown without polluting the Greek-letter list.
+  const scenarioOption = squad.scenarioMeta
+    ? { value: squad.scenarioMeta.squadName, label: squad.scenarioMeta.squadName }
+    : null;
+  const pickerOptions = scenarioOption ? [scenarioOption, ...SQUAD_NAMES] : SQUAD_NAMES;
+  const initialDesignation =
+    scenarioOption ?? SQUAD_NAMES[squadId] ?? SQUAD_NAME_FALLBACK;
+
+  // Click-to-edit designation: by default we render the big styled text
+  // (much nicer than the compact dropdown control); clicking it swaps to
+  // the Select for picking a new designation, then we swap back. State
+  // lives in the component since it's a UI affordance only — the chosen
+  // designation isn't persisted yet (no scenario writes back to squad).
+  const [designation, setDesignation] = useState(initialDesignation);
+  const [editingDesignation, setEditingDesignation] = useState(false);
 
   function handleSetTargetPosition(position: Position | readonly Position[]) {
     setManeuverRandNum(Math.floor(Math.random() * 6));
@@ -98,32 +126,13 @@ export function Squad({ squad, squadId }: Props) {
     setStressed((s) => !s);
   }
 
-  function handleSetAi(ai: AiEngine) {
-    setTargetPosition(PSN.R1FRONT);
-    setStressed(false);
-    setLocalAiEngine(ai);
-  }
-
-  const aiToggle = scenarioAiEngine ? null : (
-    <ToggleButtonGroup
-      type="radio"
-      name={`ai-engine-${String(squadId)}`}
-      value={aiEngine}
-      size="sm"
-      onChange={(value: AiEngine) => { handleSetAi(value); }}
-    >
-      {ship.ai.includes(AI.FGA) && <ToggleButton value={AI.FGA}>{AI.FGA}</ToggleButton>}
-      {ship.ai.includes(AI.ANDERSON) && <ToggleButton value={AI.ANDERSON}>{AI.ANDERSON}</ToggleButton>}
-    </ToggleButtonGroup>
-  );
-
   return (
     <TargetPositionContext.Provider
       value={{
         shipType,
         maneuverRandNum,
         aiEngine,
-        setAiEngine: handleSetAi,
+        setAiEngine: () => undefined, // AI engine is now globally controlled
         targetPosition,
         setTargetPosition: handleSetTargetPosition,
         stressed,
@@ -139,23 +148,35 @@ export function Squad({ squad, squadId }: Props) {
       >
         <CockpitFrame designation={designationFor(squadId)} />
         <div className="squad-mfd-content">
-          <div className="row align-items-center no-gutters squad-mfd-titlebar">
-            <div className="col-8 pr-2">
-              <h3 className="squadTitle" title={ship.name}>{ship.name}</h3>
-            </div>
-            <div className="col-4">
-              {squad.scenarioMeta ? (
-                <div className="scenarioSquadName">
-                  {squad.scenarioMeta.squadName}
-                  {squad.isElite ? <span className="badge badge-warning ml-2">Elite</span> : null}
-                </div>
-              ) : (
+          <div className="d-flex align-items-center squad-mfd-titlebar">
+            <h3 className="squadTitle flex-grow-1 mr-3" title={ship.name}>{ship.name}</h3>
+            <div className="squad-mfd-titlebar-picker">
+              {editingDesignation ? (
                 <Select
-                  options={SQUAD_NAMES}
-                  defaultValue={SQUAD_NAMES[squadId] ?? SQUAD_NAME_FALLBACK}
+                  autoFocus
+                  defaultMenuIsOpen
+                  options={pickerOptions}
+                  value={designation}
+                  onChange={(opt: DesignationOption | null) => {
+                    if (opt) setDesignation(opt);
+                    setEditingDesignation(false);
+                  }}
+                  onBlur={() => { setEditingDesignation(false); }}
                   classNamePrefix="squad-mfd-sq"
                 />
+              ) : (
+                <button
+                  type="button"
+                  className="squad-mfd-designation-trigger"
+                  aria-label={`Squadron designation ${designation.label} — click to change`}
+                  onClick={() => { setEditingDesignation(true); }}
+                >
+                  {designation.label}
+                </button>
               )}
+              {squad.scenarioMeta && squad.isElite ? (
+                <span className="badge badge-warning ml-2">Elite</span>
+              ) : null}
             </div>
           </div>
           {squad.scenarioMeta && (
@@ -176,7 +197,7 @@ export function Squad({ squad, squadId }: Props) {
               )}
             </div>
           )}
-          <SquadStats shipType={shipType} rollMeta={squad.rollMeta} headerExtra={aiToggle} />
+          <SquadStats shipType={shipType} rollMeta={squad.rollMeta} />
           <ShipsVariables squadId={squadId} />
           <div className="row no-gutters align-items-stretch">
             <div className="col-6 pr-1 d-flex flex-column">

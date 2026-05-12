@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import ToggleButton from 'react-bootstrap/ToggleButton';
-import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -71,8 +69,6 @@ import { applyOutcome, pickMission } from './data/campaigns/factory';
 if (import.meta.env.DEV) {
   runValidator();
 }
-
-const RANK_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
 
 function freshSquadron(shipType: ShipId, playersRank: number): Squadron {
   const { upgrades, rollMeta } = getUpgrades(shipType, playersRank, UPGRADES.FGA, false);
@@ -605,8 +601,12 @@ function App() {
           handleSetIsElite,
           handleSetUpgradesSource,
           handleSquadRemoval,
-          scenarioAiEngine: activeScenario ? scenarioAiEngine : undefined,
-          scenarioUpgradesSource: activeScenario ? scenarioUpgradesSource : undefined,
+          // Always exposed: the AI engine + upgrade source are now picked
+          // globally in the New / Load / Campaign-setup modals (no longer
+          // a per-squad toggle), so every squad on the board reads the
+          // same values regardless of free-play vs scenario vs campaign mode.
+          scenarioAiEngine,
+          scenarioUpgradesSource,
         }}
       >
         <ShipHandlingContext.Provider
@@ -617,6 +617,7 @@ function App() {
               <MainMenu
                 onNewClick={() => { setShowNewGamePicker(true); }}
                 onOpenClick={() => { setShowOpenBrowser(true); }}
+                onLoadScenarioClick={() => { setShowScenarioPicker(true); }}
                 onLogoutClick={() => {
                   // Stub: the app has no auth today. Will be wired to OAuth + Neon later.
                   alert('Logout will be available once accounts land. Close the tab to end your session.');
@@ -673,26 +674,9 @@ function App() {
               </>
             ) : (
               <>
-                <div className="col-auto">
-                  <button
-                    type="button"
-                    className="btn btn-light"
-                    onClick={() => { setShowScenarioPicker(true); }}
-                  >
-                    Load Scenario
-                  </button>
+                <div className="col-auto menu-text small menu-text-dim">
+                  {playerCount.toString()} player{playerCount === 1 ? '' : 's'} of rank {playersRank.toString()}
                 </div>
-                <div className="col-auto">Set players&apos; rank:</div>
-                <ToggleButtonGroup
-                  type="radio"
-                  name="rank"
-                  value={playersRank}
-                  onChange={(value: number) => { handleSetPlayersRank(value); }}
-                >
-                  {RANK_OPTIONS.map((n) => (
-                    <ToggleButton key={n} value={n}>{n}</ToggleButton>
-                  ))}
-                </ToggleButtonGroup>
                 <div className="col-auto d-flex align-items-center">
                   <span className="mr-2">Round:</span>
                   <button
@@ -726,6 +710,14 @@ function App() {
           <LoadScenarioModal
             show={showScenarioPicker}
             ownedModels={effectiveSettings.ownedModels}
+            playerCount={playerCount}
+            playersRank={playersRank}
+            aiEngine={scenarioAiEngine}
+            upgradesSource={scenarioUpgradesSource}
+            onPlayerCountChange={setPlayerCount}
+            onPlayersRankChange={handleSetPlayersRank}
+            onAiEngineChange={setScenarioAiEngine}
+            onUpgradesSourceChange={handleScenarioUpgradesSourceChange}
             onHide={() => { setShowScenarioPicker(false); }}
             onSelect={handlePickerSelect}
           />
@@ -780,6 +772,10 @@ function App() {
           />
           <CampaignSetupModal
             show={showCampaignSetup}
+            aiEngine={scenarioAiEngine}
+            upgradesSource={scenarioUpgradesSource}
+            onAiEngineChange={setScenarioAiEngine}
+            onUpgradesSourceChange={handleScenarioUpgradesSourceChange}
             onClose={() => { setShowCampaignSetup(false); }}
             onCreated={(campaignId) => {
               setSquadrons([]);

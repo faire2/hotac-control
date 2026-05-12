@@ -8,7 +8,7 @@ export function TargetPosition() {
   if (!ctx) return null;
 
   return (
-    <div className="d-flex flex-column">
+    <div className="targetPosition d-flex flex-column">
       <h3 className="squadSectionHeader">Maneuvers</h3>
       <label className="mb-1">
         <input type="checkbox" checked={ctx.stressed} onChange={() => { ctx.handleStress(); }} />

@@ -40,7 +40,6 @@ const SHIP_GLYPH: Record<ShipId, string> = {
 export const SquadStats = ({ shipType, rollMeta, headerExtra }: Props) => {
   const ship = Ships[shipType];
   const initiative = rollMeta?.initiative ?? ship.initiative;
-  const xp = rollMeta?.xp ?? 0;
   const glyphSlug = SHIP_GLYPH[shipType];
 
   return (
@@ -49,13 +48,13 @@ export const SquadStats = ({ shipType, rollMeta, headerExtra }: Props) => {
         <div className="statCell statCell--init">Init</div>
         <div className="statCell statCell--attack">Attack</div>
         <div className="statCell statCell--agility">Agility</div>
-        <div className="statCell statCell--xp">XP</div>
         {headerExtra && <div className="statCell statCellAi">{headerExtra}</div>}
       </div>
       <div className="statsValues">
-        {/* Watermark holo-glyph — child of the values row (the lower
-         * half of the stats bar) so it sits behind the numerals, not
-         * the header labels above. Decorative only. */}
+        {/* Watermark holo-glyph — child of the values row so it sits
+         * behind the numerals, not the header labels above. Spans the
+         * full width at low opacity so it never crowds a single cell.
+         * Decorative only. */}
         <i
           className={`squad-mfd-glyph xwing-miniatures-ship xwing-miniatures-ship-${glyphSlug}`}
           aria-hidden="true"
@@ -69,7 +68,6 @@ export const SquadStats = ({ shipType, rollMeta, headerExtra }: Props) => {
           ))}
         </div>
         <div className="statCell statCell--agility">{ship.agility}</div>
-        <div className="statCell statCell--xp">{xp}</div>
         {headerExtra && <div className="statCell statCellAi" />}
       </div>
     </div>

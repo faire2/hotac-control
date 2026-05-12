@@ -244,9 +244,70 @@
   margin: 0;
 }
 
-/* Title bar row containing ship name + squadron pill. */
+/* Title bar row containing ship name + squadron pill. The picker is
+ * a fixed-width sidecar on the right; the ship name takes whatever's
+ * left and ellipsises if necessary. The explicit `mr-3` on the title
+ * (in markup) plus this min-width on the picker keeps long ship names
+ * from kissing the dropdown. */
 .squad-mfd .squad-mfd-titlebar {
   margin-bottom: 4px;
+}
+
+.squad-mfd .squad-mfd-titlebar-picker {
+  /* Fixed-width sidecar so the ship name (.squadTitle, flex-grow-1)
+   * gets all the remaining horizontal space. Long names ellipsis less
+   * aggressively, short names just leave a clean gap. */
+  flex: 0 0 110px;
+  /* Inset from the chamfered top-right corner of the frame — without
+   * this the designation sits flush against the bevel and looks like
+   * it's about to fall off the card. */
+  padding-right: 10px;
+  text-align: right;
+}
+
+/* When the dropdown is open the control fills the (narrow) picker
+ * column; the menu beneath it is allowed a touch more breathing room
+ * so the longest Greek name ("Omicron") shows in full instead of
+ * clipping. The absolute-positioned menu naturally overflows the
+ * 100 px column to the left. */
+.squad-mfd .squad-mfd-titlebar-picker .squad-mfd-sq__control {
+  min-width: 90px;
+}
+
+.squad-mfd .squad-mfd-titlebar-picker .squad-mfd-sq__menu {
+  min-width: 120px;
+}
+
+/* Designation trigger — looks like the static .scenarioSquadName text
+ * but acts like a button. Clicking swaps to the react-select dropdown
+ * (handled in Squad.tsx). Keeps the prominent cyan readout vocabulary
+ * by default so the squad's name reads as a header, not a form control. */
+.squad-mfd .squad-mfd-designation-trigger {
+  background: transparent;
+  border: none;
+  padding: 2px 6px;
+  margin: 0;
+  cursor: pointer;
+  color: var(--accent-holo-bright);
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 1.05em;
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+  white-space: nowrap;
+  transition:
+    color 0.18s,
+    text-shadow 0.18s;
+}
+
+.squad-mfd .squad-mfd-designation-trigger:hover,
+.squad-mfd .squad-mfd-designation-trigger:focus-visible {
+  color: #fff;
+  text-shadow:
+    0 0 8px var(--accent-holo-bright),
+    0 0 18px var(--accent-holo-glow);
+  outline: none;
 }
 
 /* React-select dropdown — make compact + visually a pill. */
@@ -889,43 +950,39 @@
   gap: 0;
 }
 
-/* Maneuver readout: visually attached to the scope. Width matches the
- * dial (bullseye 20 + arcs 120 = ~140 px in default config) by using
- * fit-content + a min-width, then centered in the column.
- *
- * Visual vocabulary is deliberately distinct from upgrade-card panel
- * headers (.headline): this is a LIVE READOUT, with a small status
- * lamp, mono font, glowing cyan fill, and pulsing top stripe. Upgrade
- * headlines below get a panel-label look instead. */
+/* Maneuver readout: simplified to "just the number + glyph, glowing"
+ * — no surrounding box, no fill. The size + cyan glow do the readout
+ * work; the dial above and the labels below give it context. */
 .squad-mfd .xw-man {
-  position: relative;
   color: var(--accent-holo-bright);
   text-shadow:
-    0 0 6px var(--accent-holo-glow),
-    0 0 1px #fff;
+    0 0 8px var(--accent-holo-glow),
+    0 0 2px #fff;
   font-family: var(--mono);
   font-weight: 700;
-  font-size: 1.1em;
+  font-size: 2em;
   letter-spacing: 0.1em;
-  /* margin-bottom keeps the readout from kissing the upgrade-source
-   * toggle row below — they were sharing an edge before. */
-  margin: -1px auto 16px auto;
-  padding: 6px 14px;
-  border: 1px solid var(--accent-holo);
-  background: linear-gradient(
-    180deg,
-    rgba(90, 200, 255, 0.18) 0,
-    rgba(90, 200, 255, 0.06) 100%
-  );
+  line-height: 1;
+  margin: 4px auto 16px auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
   width: fit-content;
-  min-width: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  box-shadow:
-    0 -1px 8px var(--accent-holo-glow),
-    inset 0 0 16px rgba(90, 200, 255, 0.12);
+  gap: 10px;
+}
+
+/* Bump the maneuver glyph so it visually balances the speed digit
+ * (the digit comes from font-size; the glyph is sized in its own
+ * cascade and needs explicit matching). */
+.squad-mfd .xw-man .xwm,
+.squad-mfd .xw-man .xwmb,
+.squad-mfd .xw-man .xwmr {
+  font-size: 1.1em;
+  line-height: 1;
 }
 
 /* Re-tint maneuver glyphs to fit the cyan/red coding without editing
@@ -1119,12 +1176,14 @@
   min-height: 0;
 }
 
-/* Section header inside the carousel column. Titles are now short
- * enough ("Maneuver tgt", "Actions", "Attack tgt") to fit on one
- * line — the reserve only needs to cover 1 line of the display font
- * plus padding. Still pinning `min-height` so a future longer title
- * (or a translation) doesn't suddenly grow the carousel below. */
-.squad-mfd .actionsCarousel > .squadSectionHeader {
+/* Section header at the top of both halves of the maneuver row —
+ * the dial column ("Maneuvers") and the carousel column ("Maneuver
+ * tgt" / "Actions" / "Attack tgt"). Same min-height + bottom-aligned
+ * text in both so the cyan rules stripe across at exactly the same
+ * baseline. Future longer/translated titles still keep the column
+ * heights stable. */
+.squad-mfd .actionsCarousel > .squadSectionHeader,
+.squad-mfd .targetPosition > .squadSectionHeader {
   flex: 0 0 auto;
   min-height: 32px;
   display: flex;
@@ -1290,24 +1349,20 @@
   isolation: isolate;
 }
 
-/* Watermark holo ship glyph — child of .statsValues. The fixed inset
- * (top: 0; bottom: 0) means it perfectly fills the row's height
- * regardless of layout changes. Chained selector `i.squad-mfd-glyph`
- * out-specifies the icon-font's `i.xwing-miniatures-ship { font-size:
- * 1.5em }`. */
+/* Watermark holo ship glyph — child of .statsValues. Spans the full
+ * row at low opacity so it reads as a faint backdrop behind ALL
+ * stat values rather than crowding the right-most column. Chained
+ * selector `i.squad-mfd-glyph` out-specifies the icon-font's
+ * `i.xwing-miniatures-ship { font-size: 1.5em }`. */
 .squad-mfd .statsValues > i.squad-mfd-glyph,
 .squad-mfd i.squad-mfd-glyph,
 i.squad-mfd-glyph {
   position: absolute;
-  top: 0;
-  right: 4px;
-  bottom: 0;
-  width: 92px;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.55;
+  opacity: 0.18;
   color: var(--accent-holo-bright);
-  /* size to fit the values row height (~62 px) with a touch of room. */
   font-size: 56px;
   display: flex;
   align-items: center;
@@ -1317,7 +1372,7 @@ i.squad-mfd-glyph {
   overflow: hidden;
   filter:
     drop-shadow(0 0 4px var(--accent-holo))
-    drop-shadow(0 0 12px var(--accent-holo-glow));
+    drop-shadow(0 0 10px var(--accent-holo-glow));
   letter-spacing: 0;
 }
 

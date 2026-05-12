@@ -6,9 +6,17 @@ import { campaignStore } from '../../data/campaigns/storage.active';
 import { standardModels, ownsRequiredModels } from '../../data/campaigns/settings';
 import { findScenario } from '../../data/scenarios/registry';
 import { requiredModelsFor } from '../../data/scenarios/requiredModels';
+import type { AiEngine, UpgradeSource } from '../../data/Ships';
+import { EngineToggle } from '../shared/EngineToggle';
+import { UpgradeSourceToggle } from '../shared/UpgradeSourceToggle';
 
 interface Props {
   show: boolean;
+  /** Current global AI engine choice — same control lives in scenario / load-scenario modals. */
+  aiEngine: AiEngine;
+  upgradesSource: UpgradeSource;
+  onAiEngineChange: (engine: AiEngine) => void;
+  onUpgradesSourceChange: (source: UpgradeSource) => void;
   /** Called with the newly-created campaign's id. Caller transitions mode + closes. */
   onCreated: (campaignId: string) => void;
   onClose: () => void;
@@ -22,7 +30,15 @@ interface Props {
  * Arcs whose required models aren't all in `ownedModels` are auto-disabled
  * with a hint. The player can fix by checking the relevant model.
  */
-export function CampaignSetupModal({ show, onCreated, onClose }: Props) {
+export function CampaignSetupModal({
+  show,
+  aiEngine,
+  upgradesSource,
+  onAiEngineChange,
+  onUpgradesSourceChange,
+  onCreated,
+  onClose,
+}: Props) {
   const [name, setName] = useState('');
   const [includeIntro, setIncludeIntro] = useState(true);
   const [ownedModels, setOwnedModels] = useState<readonly string[]>(standardModels());
@@ -119,6 +135,25 @@ export function CampaignSetupModal({ show, onCreated, onClose }: Props) {
             onChange={(e) => { setName(e.target.value); }}
             placeholder="My Aturi Cluster Run"
           />
+        </div>
+
+        <div className="mb-3 d-flex flex-wrap align-items-center" style={{ gap: '0.75rem 1.25rem' }}>
+          <div className="d-flex align-items-center">
+            <span className="mr-2">Engine:</span>
+            <EngineToggle
+              name="campaign-setup-ai"
+              value={aiEngine}
+              onChange={onAiEngineChange}
+            />
+          </div>
+          <div className="d-flex align-items-center">
+            <span className="mr-2">Upgrades:</span>
+            <UpgradeSourceToggle
+              name="campaign-setup-upgrades"
+              value={upgradesSource}
+              onChange={onUpgradesSourceChange}
+            />
+          </div>
         </div>
 
         <div className="mb-3">

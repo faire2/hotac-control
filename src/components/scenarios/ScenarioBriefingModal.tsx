@@ -1,15 +1,14 @@
 import Modal from 'react-bootstrap/Modal';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
-import { AI, UPGRADES } from '../../data/Ships';
 import type { AiEngine, UpgradeSource } from '../../data/Ships';
 import type { PlayerCount, Scenario } from '../../data/scenarios/types';
+import { EngineToggle } from '../shared/EngineToggle';
+import { UpgradeSourceToggle } from '../shared/UpgradeSourceToggle';
 import { Rule } from '../Rule';
 
 const RANK_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
 const PLAYER_COUNT_OPTIONS: PlayerCount[] = [1, 2, 3, 4, 5, 6];
-const AI_OPTIONS: AiEngine[] = [AI.FGA, AI.ANDERSON];
-const UPGRADE_OPTIONS: UpgradeSource[] = [UPGRADES.COMMUNITY, UPGRADES.FGA, UPGRADES.ANDERSON];
 
 interface Props {
   show: boolean;
@@ -91,35 +90,21 @@ export function ScenarioBriefingModal({
             </div>
             <div className="d-flex align-items-center">
               <span className="control-label">Engine:</span>
-              <ToggleButtonGroup
-                type="radio"
+              <EngineToggle
                 name="briefing-ai"
-                size="sm"
                 value={aiEngine}
-                onChange={(value: AiEngine) => onAiEngineChange?.(value)}
-              >
-                {AI_OPTIONS.map((eng) => (
-                  <ToggleButton key={eng} value={eng} variant="outline-light">
-                    {eng}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
+                onChange={(value) => { onAiEngineChange?.(value); }}
+                variant="outline-light"
+              />
             </div>
             <div className="d-flex align-items-center">
               <span className="control-label">Upgrades:</span>
-              <ToggleButtonGroup
-                type="radio"
+              <UpgradeSourceToggle
                 name="briefing-upgrades"
-                size="sm"
                 value={upgradesSource}
-                onChange={(value: UpgradeSource) => onUpgradesSourceChange?.(value)}
-              >
-                {UPGRADE_OPTIONS.map((src) => (
-                  <ToggleButton key={src} value={src} variant="outline-light">
-                    {src}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
+                onChange={(value) => { onUpgradesSourceChange?.(value); }}
+                variant="outline-light"
+              />
             </div>
           </div>
         </div>

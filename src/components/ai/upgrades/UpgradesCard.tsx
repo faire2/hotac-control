@@ -1,8 +1,5 @@
 import { useContext, useState } from 'react';
-import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
-import ToggleButton from 'react-bootstrap/ToggleButton';
 import { GlobalSquadsValuesContext } from '../../../context/Contexts';
-import { UPGRADES } from '../../../data/Ships';
 import type { Upgrade } from '../../../data/shared/coreUpgrades';
 import { Rule } from '../../Rule';
 
@@ -10,6 +7,8 @@ interface Props {
   squadId: number;
 }
 
+// Upgrade source is set globally via the New / Load / Campaign-setup
+// modals — no per-squad toggle.
 export default function UpgradesCard({ squadId }: Props) {
   const globalValues = useContext(GlobalSquadsValuesContext);
   if (!globalValues) return null;
@@ -18,28 +17,8 @@ export default function UpgradesCard({ squadId }: Props) {
   const upgrades = squad.upgrades;
   const columns = upgrades.length < 2 ? '' : 'columns2';
 
-  // Source toggle is meaningful only for rolled squads. Mission-fixed and
-  // ally squads (no rollMeta) get no toggle, so the upgrades stay
-  // authoritative. The scenario-level source override also hides it.
-  const showSourceToggle =
-    squad.rollMeta !== undefined && globalValues.scenarioUpgradesSource === undefined;
-
   return (
     <div>
-      {showSourceToggle && (
-        <div className="d-flex justify-content-center">
-          <ToggleButtonGroup
-            type="radio"
-            name="radio"
-            value={squad.rollMeta?.source}
-            onChange={(e) => { globalValues.handleSetUpgradesSource(squadId, e as never); }}
-          >
-            <ToggleButton value={UPGRADES.COMMUNITY}>{UPGRADES.COMMUNITY}</ToggleButton>
-            <ToggleButton value={UPGRADES.FGA}>{UPGRADES.FGA}</ToggleButton>
-            <ToggleButton value={UPGRADES.ANDERSON}>{UPGRADES.ANDERSON}</ToggleButton>
-          </ToggleButtonGroup>
-        </div>
-      )}
       <label>
         <input
           type="checkbox"
