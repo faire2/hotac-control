@@ -1,5 +1,5 @@
 import Modal from 'react-bootstrap/Modal';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   type DynamicSpawnHandler,
   type DynamicSpawnPrompt,
@@ -43,13 +43,29 @@ function initialInputs(pending: readonly PendingHandler[]): Record<string, Recor
 }
 
 export function DynamicSpawnPromptModal({ show, pending, onSubmit, onCancel }: Props) {
+  // "Adjust state during render" pattern — see React docs at
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  //
+  // The previous shape (`useEffect` watching `pending` to reset `inputs`)
+  // had a one-frame desync: `useEffect` runs *after* the first render
+  // with new `pending`, so during that render `inputs` still mirrored
+  // the old list, and any lookup against a freshly-added squad name
+  // threw `inputs[p.squadName][prompt.id]` on undefined.
+  //
+  // The fix: store the `pending` we last initialised from as a sibling
+  // piece of state; if a render comes in with a different `pending`,
+  // call setInputs *during* that render. React notices the in-render
+  // state update, throws away the current render output, and re-runs
+  // the function before committing — so the modal commits exactly once
+  // per `pending` change with fully-synced inputs.
+  const [seenPending, setSeenPending] = useState(pending);
   const [inputs, setInputs] = useState<Record<string, Record<string, PromptValue>>>(() =>
     initialInputs(pending),
   );
-
-  useEffect(() => {
-    if (show) setInputs(initialInputs(pending));
-  }, [show, pending]);
+  if (seenPending !== pending) {
+    setSeenPending(pending);
+    setInputs(initialInputs(pending));
+  }
 
   function setField(squadName: string, fieldId: string, value: PromptValue) {
     setInputs((prev) => ({
