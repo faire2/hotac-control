@@ -30,6 +30,14 @@ export interface Upgrade {
   attack?: number;
   range?: WeaponRange;
   bullseye?: boolean;
+  /**
+   * Anderson Force-capacity contribution. Sith Infiltrator + TIE Advanced v1
+   * elite upgrades that print "[Adds N :force:]" on the card add to a
+   * squad-level force-token pool. The UI tracks the running pool as a
+   * violet "focus-like" counter with +/- controls — see
+   * `docs/anderson/TRANSCRIPTION_NOTES.md` for the deferred UI work.
+   */
+  addsForce?: number;
 }
 
 export const HULL_UPGRADE: Upgrade = Object.freeze({

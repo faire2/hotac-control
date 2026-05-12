@@ -2,9 +2,10 @@ import { useState } from 'react';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 
-import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 import './fonts/xwing-miniatures.css';
+import './App.cockpit.css';
 // The .ttf files are loaded via the @font-face declarations in
 // xwing-miniatures.css. Vite resolves those url() refs natively. CRA
 // required separate JS-side imports of the TTFs to copy them into the

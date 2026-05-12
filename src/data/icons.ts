@@ -85,6 +85,8 @@ export const ICON_CLASS = Object.freeze({
   'red-boost': 'xwir x-boost',
   'red-jam': 'xwir x-jam',
   'red-reload': 'xwir x-reload',
+  'red-focus': 'xwir x-focus',
+  'red-coordinate': 'xwir x-coordinate',
 } as const);
 
 export type IconKey = keyof typeof ICON_CLASS;

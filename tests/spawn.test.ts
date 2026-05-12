@@ -6,7 +6,7 @@ import {
   type SpawnContext,
 } from '../src/data/scenarios/spawn';
 import { localTrouble } from '../src/data/scenarios/localTrouble';
-Whimport { defaultSpawnSettings } from '../src/data/campaigns/settings';
+import { defaultSpawnSettings } from '../src/data/campaigns/settings';
 import { UPGRADES } from '../src/data/Ships';
 import type { Squadron } from '../src/context/Contexts';
 import type { SimpleVector } from '../src/data/scenarios/types';

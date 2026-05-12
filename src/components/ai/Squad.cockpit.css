@@ -1,0 +1,1394 @@
+/* ============================================================================
+ * Squad MFD theme — "Rebel pilot tactical display" re-skin of the squad card.
+ *
+ * Applied via the .squad-mfd class added to the squad card container.
+ * Scoped under .squad-mfd so the rest of the app (top bar, modals, ally
+ * border treatment) stays on the existing Bootstrap surface.
+ *
+ * Palette is exposed as CSS variables on .squad-mfd so a "terminal green"
+ * alt mode can swap them later by overriding the same names on a parent.
+ * ========================================================================== */
+
+.squad-mfd {
+  /* Cyan ("Holo") accent system, intended to be overridable for a green
+   * Terminal alt mode. */
+  --accent-holo: #5ac8ff;
+  --accent-holo-bright: #b5ecff;
+  --accent-holo-dim: rgba(90, 200, 255, 0.45);
+  --accent-holo-faint: rgba(90, 200, 255, 0.18);
+  --accent-holo-glow: rgba(90, 200, 255, 0.55);
+  /* Stat color vocabulary — semantic, not chrome:
+   *  attack   = red    (threat / damage)
+   *  agility  = green  (evade / friendly)
+   *  shields  = cyan   (defensive readout — matches chrome)
+   *  init     = amber  (priority / pilot quality)
+   *  xp       = white  (neutral accumulation)
+   *  charges  = amber  (energy / capacity) */
+  --stat-attack: #ff5a6b;
+  --stat-attack-glow: rgba(255, 90, 107, 0.55);
+  --stat-agility: #6cf08a;
+  --stat-agility-glow: rgba(108, 240, 138, 0.5);
+  /* Shields = saturated blue (deeper than chrome cyan so it reads as
+   * its own thing). Hull = amber-orange warning. */
+  --stat-shields: #4ea3ff;
+  --stat-shields-glow: rgba(78, 163, 255, 0.55);
+  --stat-hull: #ff9645;
+  --stat-hull-glow: rgba(255, 150, 69, 0.55);
+  --stat-init: #ffc04d;
+  --stat-init-glow: rgba(255, 192, 77, 0.45);
+  --stat-xp: #f0f5ff;
+  --stat-xp-glow: rgba(240, 245, 255, 0.45);
+  --accent-warn: #ffc04d;
+  --accent-danger: #ff5a6b;
+  --surface: #000;
+  --text-readout: rgba(220, 240, 255, 0.9);
+  --text-readout-dim: rgba(220, 240, 255, 0.65);
+  /* Display + readout faces. Inherited from :root via App.cockpit.css
+   * — re-declared here so this stylesheet still makes sense when read
+   * in isolation. */
+  --display: 'Orbitron', 'Eurostile', 'Bank Gothic', 'Arial Narrow', sans-serif;
+  --mono: 'Share Tech Mono', 'Consolas', 'Menlo', 'Roboto Mono', 'Courier New', monospace;
+
+  position: relative;
+  isolation: isolate;
+  padding: 28px 14px 14px 14px;
+  margin-bottom: 14px;
+  color: var(--text-readout);
+  background: transparent;
+  filter:
+    drop-shadow(0 0 4px var(--accent-holo-glow))
+    drop-shadow(0 0 14px rgba(90, 200, 255, 0.18));
+}
+
+/* Polygon background + 1px stroke frame, drawn as an SVG sibling. The
+ * top-right corner cut is the "parallelogram" shear — ~12° via 12% / 8%
+ * of the viewBox. preserveAspectRatio="none" stretches it; the stroke
+ * stays 1px courtesy of vector-effect="non-scaling-stroke". */
+.squad-mfd-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.squad-mfd-frame polygon {
+  fill: var(--surface);
+  stroke: var(--accent-holo);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Subtle horizontal scanlines on the card surface. Drawn above the
+ * frame fill but below all content via pointer-events: none. */
+.squad-mfd-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(90, 200, 255, 0.04) 2px,
+    rgba(90, 200, 255, 0.04) 3px
+  );
+  /* respect the same polygon cut as the frame */
+  clip-path: polygon(0 0, 88% 0, 100% 8%, 100% 100%, 0 100%);
+}
+
+/* Top tick-mark ruler: a baseline plus minor + major ticks, all done
+ * with stacked linear-gradients. Sits just inside the frame top edge. */
+.squad-mfd-ruler {
+  position: absolute;
+  top: 6px;
+  left: 14px;
+  right: 14%;
+  height: 14px;
+  pointer-events: none;
+  background:
+    /* baseline */
+    linear-gradient(var(--accent-holo-dim), var(--accent-holo-dim))
+      0 100% / 100% 1px no-repeat,
+    /* minor ticks every 8px, 4px tall */
+    repeating-linear-gradient(
+      to right,
+      var(--accent-holo-dim) 0,
+      var(--accent-holo-dim) 1px,
+      transparent 1px,
+      transparent 8px
+    )
+      0 100% / 100% 4px no-repeat,
+    /* major ticks every 40px, 10px tall */
+    repeating-linear-gradient(
+      to right,
+      var(--accent-holo) 0,
+      var(--accent-holo) 1px,
+      transparent 1px,
+      transparent 40px
+    )
+      0 100% / 100% 10px no-repeat;
+}
+
+.squad-mfd-ruler::after {
+  /* tiny callout box at the left end of the ruler */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 8px;
+  border: 1px solid var(--accent-holo-dim);
+}
+
+/* Low-poly wireframe ship watermark, sitting behind the stat block.
+ * Currently a stylized TIE-style silhouette — generic enough to read
+ * for any ship at this opacity. Will be swapped per ship in a later
+ * pass. */
+.squad-mfd-ship {
+  position: absolute;
+  top: 56px;
+  right: 12px;
+  width: 130px;
+  height: auto;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.32;
+  color: var(--accent-holo);
+  filter: drop-shadow(0 0 6px var(--accent-holo-glow));
+}
+
+.squad-mfd-ship g {
+  stroke: currentColor;
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.squad-mfd-ship text {
+  fill: currentColor;
+  stroke: none;
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+}
+
+/* Decorative Aurebesh-style strip, bottom-right. Not real Aurebesh
+ * glyphs — just geometric chrome so we never claim to convey info we
+ * don't. */
+.squad-mfd-aurebesh {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  height: 14px;
+  pointer-events: none;
+  opacity: 0.75;
+  color: var(--accent-holo-dim);
+}
+
+.squad-mfd-aurebesh svg {
+  height: 100%;
+  width: auto;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+/* Designation badge on the top-left ruler band — small "SQN-DEL"
+ * style callout so the chrome reads as instrument labeling. */
+.squad-mfd-designation {
+  position: absolute;
+  top: 5px;
+  left: 14px;
+  z-index: 1;
+  padding: 1px 6px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  color: var(--accent-holo);
+  background: var(--surface);
+  text-transform: uppercase;
+}
+
+/* Wrapper for the original content, lifted above all the decorative
+ * absolute layers. Keeps the existing Squad.tsx innards untouched. */
+.squad-mfd-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ----------------------------------------------------------------------
+ * Re-skin of the existing inner classes when nested inside .squad-mfd.
+ * Existing structure (Squad.tsx, SquadStats.tsx, ShipsVariables.tsx,
+ * UpgradesCard.tsx) is left intact — we only override the look.
+ * -------------------------------------------------------------------- */
+
+.squad-mfd .squadTitle {
+  color: var(--accent-holo);
+  font-family: var(--display);
+  font-size: 0.95em !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 8px var(--accent-holo-glow),
+    0 0 1px #fff;
+  /* allow the full ship name room now that the squadron dropdown is
+   * narrower — but still ellipsis if the longest names overflow. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+/* Title bar row containing ship name + squadron pill. */
+.squad-mfd .squad-mfd-titlebar {
+  margin-bottom: 4px;
+}
+
+/* React-select dropdown — make compact + visually a pill. */
+.squad-mfd .squad-mfd-sq__control {
+  background: rgba(90, 200, 255, 0.06) !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  min-height: 24px !important;
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+.squad-mfd .squad-mfd-sq__control--is-focused {
+  border-color: var(--accent-holo) !important;
+}
+
+.squad-mfd .squad-mfd-sq__single-value,
+.squad-mfd .squad-mfd-sq__input-container,
+.squad-mfd .squad-mfd-sq__placeholder {
+  color: var(--accent-holo-bright) !important;
+}
+
+.squad-mfd .squad-mfd-sq__indicator {
+  padding: 2px 4px !important;
+  color: var(--accent-holo) !important;
+}
+
+.squad-mfd .squad-mfd-sq__indicator svg {
+  width: 14px;
+  height: 14px;
+}
+
+.squad-mfd .squad-mfd-sq__indicator-separator {
+  background: var(--accent-holo-faint) !important;
+  margin: 4px 0 !important;
+}
+
+.squad-mfd .squad-mfd-sq__menu {
+  background: var(--surface) !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  border-radius: 0 !important;
+  z-index: 5;
+}
+
+.squad-mfd .squad-mfd-sq__option {
+  background: transparent !important;
+  color: var(--accent-holo-bright) !important;
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+.squad-mfd .squad-mfd-sq__option--is-focused,
+.squad-mfd .squad-mfd-sq__option--is-selected {
+  background: rgba(90, 200, 255, 0.15) !important;
+  color: var(--accent-holo) !important;
+}
+
+/* Section headers (MANEUVERS, TARGET FOR MANEUVER, SELECT AND PERFORM
+ * ACTION, TARGET FOR ATTACK). Same panel-header vocabulary as upgrade
+ * headlines: left-tab marker + bottom rule + bottom-right corner notch.
+ * Consistency across all "this is the start of a panel" markers. */
+.squad-mfd .squadSectionHeader {
+  position: relative;
+  color: var(--accent-holo);
+  font-family: var(--display);
+  font-size: 0.82em !important;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 4px 0 6px 14px !important;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--accent-holo-dim);
+  text-align: left;
+}
+
+.squad-mfd .squadSectionHeader::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 6px;
+  width: 4px;
+  background: var(--accent-holo);
+  box-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+.squad-mfd .squadSectionHeader::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  width: 12px;
+  height: 6px;
+  border-right: 1px solid var(--accent-holo-dim);
+  border-bottom: 1px solid var(--accent-holo-dim);
+}
+
+.squad-mfd .scenarioSquadName {
+  color: var(--accent-holo-bright);
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+.squad-mfd .scenarioSquadMeta {
+  color: var(--text-readout-dim);
+  border-bottom: 1px solid var(--accent-holo-faint);
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  font-size: 0.85em;
+}
+
+.squad-mfd .behaviorFooter {
+  border-top: 1px solid var(--accent-holo-faint);
+}
+
+/* Stat strip: outlined boxes, glowing mono numerals. */
+.squad-mfd .squadStats {
+  gap: 4px;
+}
+
+.squad-mfd .statsHeader,
+.squad-mfd .statsValues {
+  border-radius: 0;
+  padding: 4px 6px;
+  font-family: var(--mono);
+}
+
+.squad-mfd .statsHeader {
+  background: transparent;
+  color: var(--accent-holo);
+  border: 1px solid var(--accent-holo-dim);
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.7em;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.squad-mfd .statsValues {
+  color: var(--accent-holo-bright);
+  font-size: 1.55em;
+  font-weight: 700;
+  text-shadow:
+    0 0 6px var(--accent-holo-glow),
+    0 0 1px #fff;
+  border: 1px solid var(--accent-holo-faint);
+  background: rgba(90, 200, 255, 0.04);
+}
+
+/* Hull / Shields counter row. */
+.squad-mfd .shipsBlock {
+  margin-top: 10px;
+}
+
+.squad-mfd .shipRowHeader {
+  background: transparent;
+  color: var(--accent-holo);
+  border: 1px solid var(--accent-holo-dim);
+  border-radius: 0;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.7em;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.squad-mfd .shipRow:not(.shipRowHeader) {
+  padding: 2px 0;
+  border-bottom: 1px dashed var(--accent-holo-faint);
+}
+
+.squad-mfd .counterValue {
+  color: var(--accent-holo-bright);
+  font-family: var(--mono);
+  font-size: 1.1em;
+  font-weight: 700;
+  text-shadow: 0 0 5px var(--accent-holo-glow);
+}
+
+/* Headers inside the upgrade card. */
+/* Upgrade panel label — DIFFERENT vocabulary from the live readout
+ * (.xw-man). No surrounding box, no fill, no glow strip. Reads as a
+ * static panel header: a bracketed/underlined label sitting on top
+ * of its content block. */
+.squad-mfd .headline {
+  background: transparent;
+  color: var(--accent-holo);
+  border: none;
+  border-bottom: 1px solid var(--accent-holo-dim);
+  border-radius: 0;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.85em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 2px 0 4px 14px;
+  margin-top: 10px;
+  position: relative;
+}
+
+/* Left-edge "tab" mark — small bracket so the label reads as a panel
+ * header, distinct from the readout's fully-bordered pill. */
+.squad-mfd .headline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 4px;
+  width: 4px;
+  background: var(--accent-holo);
+  box-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+/* Right-edge corner tick — completes the "panel header" frame. */
+.squad-mfd .headline::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  width: 12px;
+  height: 6px;
+  border-right: 1px solid var(--accent-holo-dim);
+  border-bottom: 1px solid var(--accent-holo-dim);
+}
+
+/* Upgrade grid — replace CSS columns (which stagger content
+ * vertically) with a 2-column grid so each upgrade card lines up at
+ * the top of its column. `minmax(0, 1fr)` instead of `1fr` is
+ * essential: the default min-content of a grid track is `auto`, which
+ * lets wide unbreakable content (long words, nowrap rows, icons +
+ * range subscripts) push the column past its fair share and overflow
+ * the card. minmax(0, …) caps each column hard at 1fr. */
+.squad-mfd .columns2 {
+  column-count: unset;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+/* Single-upgrade case — no grid, full width. */
+.squad-mfd .skillContainer:only-child {
+  width: 100%;
+}
+
+.squad-mfd .skillContainer {
+  display: flex;
+  flex-direction: column;
+  break-inside: avoid;
+  /* same reason as above: a flex item also defaults to min-width:auto
+   * (= min-content of its children). For long inline text + icons we
+   * need 0 so the content respects the column's fixed width and wraps. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Upgrade body text inside the panel */
+.squad-mfd .skillContainer .content {
+  padding: 6px 2px 0 2px;
+  font-size: 0.85em;
+  line-height: 1.35;
+}
+
+/* Charge / attack readouts inside the upgrade's .variables row. The
+ * default markup is `<button>- <icon> 4 <button>+`, but .charge had
+ * no flex styling so the items stacked unpredictably. Force a single
+ * horizontal row with a compact button size. */
+.squad-mfd .skillContainer .variables {
+  /* App.css sets .variables { font-size: 28px } which is way too big
+   * in our compact 2-column upgrade grid. Bring it down to something
+   * proportional to the description body (~0.85em). */
+  font-size: 1.1em;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 0 0 4px 0;
+  align-items: center;
+  /* charge + attack readouts wrap to a second line if a narrow column
+   * can't fit them both. nowrap on .charge/.attack keeps each readout
+   * intact, but the row itself may wrap. */
+  flex-wrap: wrap;
+}
+
+.squad-mfd .skillContainer .charge,
+.squad-mfd .skillContainer .attack {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 1em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.squad-mfd .skillContainer .charge {
+  color: var(--accent-warn);
+  text-shadow: 0 0 4px var(--stat-init-glow);
+}
+
+.squad-mfd .skillContainer .attack {
+  color: var(--stat-attack);
+  text-shadow: 0 0 4px var(--stat-attack-glow);
+}
+
+/* X-Wing icon-font defaults `.xwi` to font-size: 1.2em — fine inline
+ * with body text but in the readout it makes the icons tower over
+ * the numbers they label. Override here so icon ≈ number height. */
+.squad-mfd .skillContainer .charge .xwi,
+.squad-mfd .skillContainer .attack .xwi {
+  font-size: 1em;
+  line-height: 1;
+}
+
+/* Increment / decrement buttons inside the charges readout. The
+ * built-in `.btn-outline-warning` was rendering large boxy buttons
+ * that pushed the layout into multiple lines. Shrink to neat ±. */
+.squad-mfd .skillContainer .btn-increment,
+.squad-mfd .skillContainer .btn-outline-warning {
+  min-width: 22px !important;
+  padding: 0 4px !important;
+  line-height: 1.2 !important;
+  font-size: 0.85em !important;
+  height: 22px;
+}
+
+/* range bonus indicator (the small subscript "2-3") */
+.squad-mfd .skillContainer .range {
+  font-size: 0.55em;
+  margin-left: 1px;
+  color: rgba(220, 240, 255, 0.7);
+  text-shadow: none;
+}
+
+.squad-mfd .content,
+.squad-mfd .variables,
+.squad-mfd label,
+.squad-mfd .skillContainer {
+  color: var(--text-readout);
+}
+
+.squad-mfd .skillContainer + .skillContainer {
+  margin-top: 10px;
+}
+
+/* Inside the 2-column grid, kill the sibling margin — grid gap handles
+ * spacing, and the stray margin-top breaks horizontal alignment. */
+.squad-mfd .columns2 .skillContainer + .skillContainer {
+  margin-top: 0;
+}
+
+.squad-mfd .blackFontColor {
+  color: var(--text-readout) !important;
+}
+
+/* Badges */
+.squad-mfd .badge.badge-warning {
+  background: transparent;
+  border: 1px solid var(--accent-warn);
+  color: var(--accent-warn);
+  border-radius: 0;
+  font-family: var(--mono);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Buttons — flatten Bootstrap fills into outlined panels. !important
+ * is unfortunately required to beat Bootstrap's own specificity, which
+ * doubles up via :not() selectors. */
+.squad-mfd .btn,
+.squad-mfd .btn-primary,
+.squad-mfd .btn-primary:not(:disabled):not(.disabled),
+.squad-mfd .btn-outline-warning,
+.squad-mfd .btn-outline-warning:not(:disabled):not(.disabled) {
+  background: transparent !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  color: var(--accent-holo) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+}
+
+.squad-mfd .btn:hover,
+.squad-mfd .btn:focus,
+.squad-mfd .btn:active,
+.squad-mfd .btn-primary:hover {
+  background: rgba(90, 200, 255, 0.12) !important;
+  border-color: var(--accent-holo) !important;
+  color: var(--accent-holo-bright) !important;
+  text-shadow: 0 0 4px var(--accent-holo-glow);
+}
+
+.squad-mfd .btn-danger,
+.squad-mfd .btn-danger:not(:disabled):not(.disabled) {
+  background: transparent !important;
+  border: 1px solid rgba(255, 90, 107, 0.55) !important;
+  color: var(--accent-danger) !important;
+}
+
+.squad-mfd .btn-danger:hover {
+  background: rgba(255, 90, 107, 0.14) !important;
+  border-color: var(--accent-danger) !important;
+  color: #fff !important;
+}
+
+/* Toggle button groups (AI engine, upgrade source). */
+.squad-mfd .btn-group .btn,
+.squad-mfd .btn-group-toggle .btn {
+  border-radius: 0 !important;
+}
+
+.squad-mfd .btn-group .btn + .btn,
+.squad-mfd .btn-group-toggle .btn + .btn {
+  margin-left: -1px;
+}
+
+/* When react-bootstrap marks a toggle button "active" it adds .active
+ * + the class on a covering element; we colour it as the accent. */
+.squad-mfd .btn.active,
+.squad-mfd .btn-primary.active,
+.squad-mfd input:checked + .btn,
+.squad-mfd input:checked + .btn-primary {
+  background: rgba(90, 200, 255, 0.22) !important;
+  color: var(--accent-holo-bright) !important;
+  border-color: var(--accent-holo) !important;
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+/* react-select control inside the card. The lib applies emotion class
+ * hashes (`-control`, `-singleValue`, etc.), which we match by suffix. */
+.squad-mfd [class$='-control'] {
+  background: rgba(90, 200, 255, 0.05) !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  min-height: 30px !important;
+  color: var(--accent-holo) !important;
+}
+
+.squad-mfd [class$='-control']:hover {
+  border-color: var(--accent-holo) !important;
+}
+
+.squad-mfd [class$='-singleValue'],
+.squad-mfd [class$='-input'] input,
+.squad-mfd [class$='-placeholder'] {
+  color: var(--accent-holo) !important;
+  font-family: var(--mono);
+}
+
+.squad-mfd [class$='-indicatorSeparator'] {
+  background: var(--accent-holo-dim) !important;
+}
+
+.squad-mfd [class$='-indicatorContainer'] svg {
+  color: var(--accent-holo);
+}
+
+/* Custom checkbox — native OS checkboxes look out of place against the
+ * cockpit chrome. Use `appearance: none` to replace with a cyan-outlined
+ * square that glows on `:checked`, with a CSS-only checkmark drawn from
+ * a rotated, bottom-right-bordered pseudo element. */
+.squad-mfd input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin: 0 6px 0 0;
+  padding: 0;
+  border: 1px solid var(--accent-holo-dim);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  vertical-align: middle;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+}
+
+.squad-mfd input[type='checkbox']:hover {
+  border-color: var(--accent-holo);
+}
+
+.squad-mfd input[type='checkbox']:focus-visible {
+  outline: 1px solid var(--accent-holo);
+  outline-offset: 1px;
+}
+
+.squad-mfd input[type='checkbox']:checked {
+  background: rgba(90, 200, 255, 0.18);
+  border-color: var(--accent-holo);
+  box-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+.squad-mfd input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -1px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--accent-holo-bright);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  filter: drop-shadow(0 0 3px var(--accent-holo-glow));
+}
+
+.squad-mfd label {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Ally squad treatment — when a card carries both .squadContainerAlly
+ * and .squad-mfd, swap the left ribbon for a brighter cyan slab. */
+.squad-mfd.squadContainerAlly {
+  background: transparent !important;
+  border-left: none !important;
+  padding-left: 18px !important;
+}
+
+.squad-mfd.squadContainerAlly::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 28px;
+  bottom: 28px;
+  width: 3px;
+  background: var(--accent-holo);
+  box-shadow: 0 0 8px var(--accent-holo-glow);
+}
+
+/* ----------------------------------------------------------------------
+ * Maneuver scope (the dial). Translucent cyan rings with crisp 1px
+ * borders, decorative tick ring + range labels overlaid via ScopeChrome.
+ * Layout container .squad-mfd-scope (#svg_container) flexes the bullseye
+ * column and the right hemisphere side by side.
+ * -------------------------------------------------------------------- */
+
+.squad-mfd .squad-mfd-scope {
+  /* per-card scope palette; can be overridden per ship later if needed */
+  --scope-r1: rgba(90, 200, 255, 0.36);
+  --scope-r3: rgba(90, 200, 255, 0.18);
+  --scope-r4: rgba(90, 200, 255, 0.08);
+  --scope-stroke: rgba(90, 200, 255, 0.7);
+  --scope-chrome: rgba(90, 200, 255, 0.55);
+  --scope-label: rgba(181, 236, 255, 0.85);
+  background: radial-gradient(
+    circle at left center,
+    rgba(90, 200, 255, 0.04),
+    transparent 70%
+  );
+  padding: 6px 0;
+}
+
+.squad-mfd .squad-mfd-scope-arcs {
+  filter: drop-shadow(0 0 6px rgba(90, 200, 255, 0.25));
+}
+
+.squad-mfd .squad-mfd-scope path.segmentOpacity,
+.squad-mfd .squad-mfd-scope path.active-segment,
+.squad-mfd .squad-mfd-scope rect.segmentOpacity,
+.squad-mfd .squad-mfd-scope rect.active-segment {
+  cursor: pointer;
+  transition:
+    filter 0.18s ease-out,
+    opacity 0.18s ease-out,
+    stroke 0.18s ease-out,
+    stroke-width 0.12s ease-out;
+}
+
+/* Hover: white-hot lock-on. Stronger than just "brighter" — adds a
+ * second-stroke ring via stroke-width, hue-rotates toward white, and
+ * radiates a cyan halo. */
+.squad-mfd .squad-mfd-scope path.segmentOpacity:hover,
+.squad-mfd .squad-mfd-scope rect.segmentOpacity:hover {
+  opacity: 1;
+  stroke: #ffffff;
+  stroke-width: 2.2;
+  filter:
+    brightness(2.2) saturate(1.4)
+    drop-shadow(0 0 4px var(--accent-holo))
+    drop-shadow(0 0 12px var(--accent-holo-glow))
+    drop-shadow(0 0 28px rgba(90, 200, 255, 0.35));
+}
+
+/* Active (selected) segment — sustained lock, pulses gently. */
+.squad-mfd .squad-mfd-scope .active-segment {
+  opacity: 1;
+  stroke: #ffffff;
+  stroke-width: 1.8;
+  filter:
+    brightness(1.9) saturate(1.3)
+    drop-shadow(0 0 6px var(--accent-holo))
+    drop-shadow(0 0 18px var(--accent-holo-glow))
+    drop-shadow(0 0 36px rgba(90, 200, 255, 0.25));
+  animation: squad-mfd-lock 1.8s ease-in-out infinite;
+}
+
+@keyframes squad-mfd-lock {
+  0%, 100% {
+    filter:
+      brightness(1.7) saturate(1.2)
+      drop-shadow(0 0 5px var(--accent-holo))
+      drop-shadow(0 0 14px var(--accent-holo-glow))
+      drop-shadow(0 0 30px rgba(90, 200, 255, 0.2));
+  }
+  50% {
+    filter:
+      brightness(2.1) saturate(1.4)
+      drop-shadow(0 0 8px var(--accent-holo))
+      drop-shadow(0 0 22px var(--accent-holo-glow))
+      drop-shadow(0 0 44px rgba(90, 200, 255, 0.32));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .squad-mfd .squad-mfd-scope .active-segment {
+    animation: none;
+  }
+}
+
+/* Hide the legacy bullseye column's gap line — keeps the column flush
+ * with the right hemisphere. */
+.squad-mfd .squad-mfd-scope-bullseye {
+  margin-right: 0;
+}
+
+/* Scope container — center the bullseye + arcs as a group inside the
+ * column so the maneuver readout below lines up under the dial. */
+.squad-mfd .squad-mfd-scope {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;
+}
+
+/* Maneuver readout: visually attached to the scope. Width matches the
+ * dial (bullseye 20 + arcs 120 = ~140 px in default config) by using
+ * fit-content + a min-width, then centered in the column.
+ *
+ * Visual vocabulary is deliberately distinct from upgrade-card panel
+ * headers (.headline): this is a LIVE READOUT, with a small status
+ * lamp, mono font, glowing cyan fill, and pulsing top stripe. Upgrade
+ * headlines below get a panel-label look instead. */
+.squad-mfd .xw-man {
+  position: relative;
+  color: var(--accent-holo-bright);
+  text-shadow:
+    0 0 6px var(--accent-holo-glow),
+    0 0 1px #fff;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1.1em;
+  letter-spacing: 0.1em;
+  /* margin-bottom keeps the readout from kissing the upgrade-source
+   * toggle row below — they were sharing an edge before. */
+  margin: -1px auto 16px auto;
+  padding: 6px 14px;
+  border: 1px solid var(--accent-holo);
+  background: linear-gradient(
+    180deg,
+    rgba(90, 200, 255, 0.18) 0,
+    rgba(90, 200, 255, 0.06) 100%
+  );
+  width: fit-content;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow:
+    0 -1px 8px var(--accent-holo-glow),
+    inset 0 0 16px rgba(90, 200, 255, 0.12);
+}
+
+/* Re-tint maneuver glyphs to fit the cyan/red coding without editing
+ * the icon font CSS (which is off-limits per AGENTS.md). */
+.squad-mfd .xw-man .xwm {
+  color: var(--accent-holo-bright);
+  text-shadow: 0 0 5px var(--accent-holo-glow);
+}
+
+.squad-mfd .xw-man .xwmb {
+  color: var(--accent-holo);
+  text-shadow: 0 0 5px var(--accent-holo-glow);
+}
+
+.squad-mfd .xw-man .xwmr {
+  color: var(--accent-danger);
+  text-shadow: 0 0 5px var(--stat-attack-glow);
+}
+
+/* ----------------------------------------------------------------------
+ * Stat color coding: per-cell modifier classes added in SquadStats.tsx.
+ * Default cells stay cyan (chrome). Modifiers override.
+ * -------------------------------------------------------------------- */
+
+.squad-mfd .statCell--init {
+  color: var(--stat-init);
+  text-shadow: 0 0 6px var(--stat-init-glow);
+}
+
+.squad-mfd .statCell--attack {
+  color: var(--stat-attack);
+  text-shadow: 0 0 6px var(--stat-attack-glow);
+}
+
+.squad-mfd .statCell--attack .x-frontarc,
+.squad-mfd .statCell--attack .x-reararc,
+.squad-mfd .statCell--attack .x-singleturretarc,
+.squad-mfd .statCell--attack .x-doubleturretarc,
+.squad-mfd .statCell--attack i {
+  color: var(--stat-attack);
+}
+
+.squad-mfd .statCell--agility {
+  color: var(--stat-agility);
+  text-shadow: 0 0 6px var(--stat-agility-glow);
+}
+
+.squad-mfd .statCell--xp {
+  color: var(--stat-xp);
+  text-shadow: 0 0 6px var(--stat-xp-glow);
+}
+
+.squad-mfd .statsHeader .statCell--init,
+.squad-mfd .statsHeader .statCell--attack,
+.squad-mfd .statsHeader .statCell--agility,
+.squad-mfd .statsHeader .statCell--xp {
+  /* labels stay cyan; only the readout values get the semantic colour */
+  color: var(--accent-holo);
+  text-shadow: none;
+}
+
+/* Hull / Shields are the LIVE combat values — the readouts you change
+ * during play. They should be the most prominent values on the card,
+ * not the quietest. Bigger numerals, brighter glow, with the +/-
+ * buttons shrunk down to subscript-style controls beside them. */
+.squad-mfd .shipCellCounter .counterValue {
+  font-family: var(--mono);
+  font-size: 1.7em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  padding: 0 6px;
+  min-width: 32px;
+}
+
+.squad-mfd .shipCellCounter--hull .counterValue {
+  color: var(--stat-hull);
+  text-shadow:
+    0 0 6px var(--stat-hull-glow),
+    0 0 14px var(--stat-hull-glow),
+    0 0 1px #fff;
+}
+
+.squad-mfd .shipCellCounter--shields .counterValue {
+  color: var(--stat-shields);
+  text-shadow:
+    0 0 6px var(--stat-shields-glow),
+    0 0 14px var(--stat-shields-glow),
+    0 0 1px #fff;
+}
+
+/* Compact +/- buttons so they don't dwarf the values they flank. */
+.squad-mfd .shipCellCounter .btn-counter {
+  min-width: 20px !important;
+  padding: 0 4px !important;
+  font-size: 0.78em !important;
+  line-height: 1.1 !important;
+  height: 22px;
+}
+
+/* Slight breathing room around the row so the larger numerals don't
+ * jam against the row above/below. */
+.squad-mfd .shipsBlock .shipRow:not(.shipRowHeader) {
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--accent-holo-faint);
+  align-items: center;
+}
+
+/* ----------------------------------------------------------------------
+ * Ship glyph using the existing X-Wing miniatures ships font, replacing
+ * the inline TIE SVG watermark. Wrapper class .squad-mfd-glyph applies
+ * the same opacity / glow / position the SVG had.
+ * -------------------------------------------------------------------- */
+
+/* Watermark holo glyph — sized + positioned to fit inside the stats
+ * bar (the INIT/ATTACK/AGILITY/XP block). Selector must out-specify
+ * `i.xwing-miniatures-ship` (font-size: 1.5em in the icon-font CSS),
+ * which we get by chaining `i.squad-mfd-glyph`. */
+
+/* ----------------------------------------------------------------------
+ * Actions carousel (target / actions / attack panes) — slide indicator
+ * dots and chevron arrows.
+ * -------------------------------------------------------------------- */
+
+/* Indicator dots — also act as direct-jump buttons. */
+.squad-mfd .indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 5px;
+  background: transparent;
+  border: 1px solid var(--accent-holo-dim);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+.squad-mfd .indicator:hover {
+  border-color: var(--accent-holo);
+  background: rgba(90, 200, 255, 0.18);
+}
+
+.squad-mfd .indicator.active {
+  background: var(--accent-holo);
+  border-color: var(--accent-holo-bright);
+  /* tighter glow — was 10 px which bled past the indicator strip into
+   * the slide text below. */
+  box-shadow:
+    0 0 3px var(--accent-holo),
+    0 0 6px var(--accent-holo-glow);
+  transform: scale(1.15);
+}
+
+/* Indicator strip — sits at the BOTTOM of the carousel column so the
+ * eye reads slide content first, dots second (like media-player
+ * pagination). The slide content is rendered into `.carousel-slide`
+ * which grows to fill the fixed-height carousel; indicators are a
+ * fixed-height tail. */
+.squad-mfd #carousel-indicators-container {
+  height: auto;
+  padding: 8px 0 4px 0;
+  margin: 6px 0 0 0;
+  flex: 0 0 auto;
+  border-top: 1px solid var(--accent-holo-faint);
+  border-bottom: none;
+}
+
+.squad-mfd #carousel-indicators-container ul {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+/* Carousel layout — should fill the full available column height
+ * (matching the dial column next to it via `align-items: stretch` on
+ * the parent row) WITHOUT contributing to that height itself. The
+ * trick: every flex item from `.actionsCarousel` down uses
+ * `flex-basis: 0` + `min-height: 0`. That makes the chain's intrinsic
+ * height zero, so the dial column's natural height drives the row,
+ * and the stretched column then dictates the carousel's height. Long
+ * slides scroll inside .carousel-slide instead of growing the panel. */
+.squad-mfd .actionsCarousel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* Section header inside the carousel column. Titles are now short
+ * enough ("Maneuver tgt", "Actions", "Attack tgt") to fit on one
+ * line — the reserve only needs to cover 1 line of the display font
+ * plus padding. Still pinning `min-height` so a future longer title
+ * (or a translation) doesn't suddenly grow the carousel below. */
+.squad-mfd .actionsCarousel > .squadSectionHeader {
+  flex: 0 0 auto;
+  min-height: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 6px;
+}
+
+/* Keyboard focus state on the swipeable carousel. The default
+ * browser outline is white + 2 px and looks like a Bootstrap form
+ * field — replace with a cyan inset rim that fits the chrome. */
+.squad-mfd .carousel {
+  outline: none;
+  cursor: grab;
+  /* mouse-drag swipes navigate slides; prevent the native drag image
+   * + text-selection flashing during the gesture. */
+  -webkit-user-drag: none;
+  touch-action: pan-y;       /* allow vertical native scroll on touch */
+}
+
+.squad-mfd .carousel:active {
+  cursor: grabbing;
+}
+
+.squad-mfd .carousel:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--accent-holo);
+}
+
+.squad-mfd .carousel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  overflow: hidden;
+}
+
+/* Scroll-affordance fade band along the bottom edge of the slide.
+ * Sits as a non-interactive overlay (.carousel has position: relative
+ * + the slide grows above this) so when content overflows the last
+ * line softens into the surface instead of hard-clipping against the
+ * indicator strip. The top edge gets a matching fade so scrolling
+ * up/down both feel continuous. */
+.squad-mfd .carousel::before,
+.squad-mfd .carousel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 18px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.squad-mfd .carousel::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--surface, #000) 0%, transparent 100%);
+}
+
+.squad-mfd .carousel::after {
+  /* sits just above the indicator strip (border-top + 8 px padding) */
+  bottom: 30px;
+  background: linear-gradient(to top, var(--surface, #000) 0%, transparent 100%);
+}
+
+.squad-mfd .carousel-slide {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  /* dampen the scrollbar so it doesn't break the chrome. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-holo-dim) transparent;
+  padding: 4px 4px 4px 2px;
+}
+
+.squad-mfd .carousel-slide::-webkit-scrollbar {
+  width: 6px;
+}
+
+.squad-mfd .carousel-slide::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.squad-mfd .carousel-slide::-webkit-scrollbar-thumb {
+  background: var(--accent-holo-dim);
+  border-radius: 0;
+}
+
+.squad-mfd .carousel-slide::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-holo);
+}
+
+/* Carousel chevron arrows. Now inline with the indicator dots
+ * instead of overlaying the slide — they used to be 45 %-wide hover
+ * targets that fought the scrollbar and any selectable content
+ * underneath. Sitting next to the dots they get their own click
+ * zone and don't interfere with the slide. */
+.squad-mfd .slide-arrow {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--accent-holo-dim);
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color 0.18s,
+    text-shadow 0.18s,
+    transform 0.18s;
+}
+
+.squad-mfd .slide-arrow:hover,
+.squad-mfd .slide-arrow:focus {
+  color: var(--accent-holo-bright);
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+  background: transparent;
+  font-size: 18px;
+  opacity: 1;
+  transform: translateX(0);
+  outline: none;
+}
+
+.squad-mfd .slide-arrow.left:hover { transform: translateX(-2px); }
+.squad-mfd .slide-arrow.right:hover { transform: translateX(2px); }
+
+.squad-mfd .slide-arrow:focus-visible {
+  outline: 1px solid var(--accent-holo);
+  outline-offset: 1px;
+}
+
+/* Indicator strip becomes a 3-column flex row: [‹] [• • •] [›]. */
+.squad-mfd #carousel-indicators-container {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px 4px 4px;
+}
+
+.squad-mfd #carousel-indicators-container ul {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Values row hosts the watermark holo-glyph (moved here from the
+ * full stats bar — the glyph used to span the header AND values rows,
+ * which made its wings overlap the FGA/ANDERSON toggle cell and the
+ * INIT/ATTACK/AGILITY labels). Confining to the values row gives the
+ * glyph a clean band of its own. */
+.squad-mfd .statsValues {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Watermark holo ship glyph — child of .statsValues. The fixed inset
+ * (top: 0; bottom: 0) means it perfectly fills the row's height
+ * regardless of layout changes. Chained selector `i.squad-mfd-glyph`
+ * out-specifies the icon-font's `i.xwing-miniatures-ship { font-size:
+ * 1.5em }`. */
+.squad-mfd .statsValues > i.squad-mfd-glyph,
+.squad-mfd i.squad-mfd-glyph,
+i.squad-mfd-glyph {
+  position: absolute;
+  top: 0;
+  right: 4px;
+  bottom: 0;
+  width: 92px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.55;
+  color: var(--accent-holo-bright);
+  /* size to fit the values row height (~62 px) with a touch of room. */
+  font-size: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-style: normal;
+  overflow: hidden;
+  filter:
+    drop-shadow(0 0 4px var(--accent-holo))
+    drop-shadow(0 0 12px var(--accent-holo-glow));
+  letter-spacing: 0;
+}
+
+/* ----------------------------------------------------------------------
+ * Semantic colours for inline icons embedded in upgrade-card text.
+ * The icon-font CSS leaves `.xwi` with no explicit colour, so without
+ * this our `.squad-mfd .content` rule washes every icon into uniform
+ * cyan-white. Restore the X-Wing colour vocabulary.
+ * -------------------------------------------------------------------- */
+
+/* attack-flavored: arcs + dice results + damage */
+.squad-mfd i.xwi.x-frontarc,
+.squad-mfd i.xwi.x-reararc,
+.squad-mfd i.xwi.x-fullfrontarc,
+.squad-mfd i.xwi.x-fullreararc,
+.squad-mfd i.xwi.x-bullseyearc,
+.squad-mfd i.xwi.x-singleturretarc,
+.squad-mfd i.xwi.x-doubleturretarc,
+.squad-mfd i.xwi.x-rotatearc,
+.squad-mfd i.xwi.x-hit,
+.squad-mfd i.xwi.x-crit {
+  color: var(--stat-attack);
+}
+
+/* defense-flavored */
+.squad-mfd i.xwi.x-evade {
+  color: var(--stat-agility);
+}
+
+.squad-mfd i.xwi.x-shield {
+  color: var(--stat-shields);
+  text-shadow: 0 0 4px var(--stat-shields-glow);
+}
+
+/* charge / token / focus / lock — amber tokens */
+.squad-mfd i.xwi.x-focus,
+.squad-mfd i.xwi.x-lock,
+.squad-mfd i.xwi.x-charge,
+.squad-mfd i.xwi.x-force,
+.squad-mfd i.xwi.x-recurring,
+.squad-mfd i.xwi.x-doublerecurring,
+.squad-mfd i.xwi.x-rangebonusindicator {
+  color: var(--accent-warn);
+}
+
+/* strain = stress-like, red-warn */
+.squad-mfd i.xwi.x-strain,
+.squad-mfd i.xwi.x-jam {
+  color: var(--accent-danger);
+}
+
+/* maneuver previews used inline in rules — keep chrome cyan */
+.squad-mfd i.xwi.x-straight,
+.squad-mfd i.xwi.x-turnleft,
+.squad-mfd i.xwi.x-turnright,
+.squad-mfd i.xwi.x-bankleft,
+.squad-mfd i.xwi.x-bankright,
+.squad-mfd i.xwi.x-kturn,
+.squad-mfd i.xwi.x-sloopleft,
+.squad-mfd i.xwi.x-sloopright,
+.squad-mfd i.xwi.x-trollleft,
+.squad-mfd i.xwi.x-trollright,
+.squad-mfd i.xwi.x-stop,
+.squad-mfd i.xwi.x-reversestraight,
+.squad-mfd i.xwi.x-reversebankleft,
+.squad-mfd i.xwi.x-reversebankright,
+.squad-mfd i.xwi.x-barrelroll,
+.squad-mfd i.xwi.x-boost,
+.squad-mfd i.xwi.x-cloak,
+.squad-mfd i.xwi.x-reinforce,
+.squad-mfd i.xwi.x-reload,
+.squad-mfd i.xwi.x-coordinate {
+  color: var(--accent-holo-bright);
+}

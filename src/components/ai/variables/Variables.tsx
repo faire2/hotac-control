@@ -81,7 +81,7 @@ function Counter({
   onChange: (v: number) => void;
 }) {
   return (
-    <div className="shipCellCounter d-flex flex-nowrap align-items-center justify-content-center">
+    <div className={`shipCellCounter shipCellCounter--${label} d-flex flex-nowrap align-items-center justify-content-center`}>
       <button
         type="button"
         className="btn btn-primary btn-counter"

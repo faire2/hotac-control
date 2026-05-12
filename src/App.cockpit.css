@@ -1,0 +1,721 @@
+/* ============================================================================
+ * App-level cockpit pass — top bar + page background.
+ *
+ * First-pass restyle to match the Squad card MFD aesthetic. Variables are
+ * inherited from squad-card scope (Squad.cockpit.css) where present, but
+ * also declared here so this file can stand on its own once the card is
+ * componentised out of the global cascade.
+ * ========================================================================== */
+
+:root {
+  --accent-holo: #5ac8ff;
+  --accent-holo-bright: #b5ecff;
+  --accent-holo-dim: rgba(90, 200, 255, 0.45);
+  --accent-holo-faint: rgba(90, 200, 255, 0.18);
+  --accent-holo-glow: rgba(90, 200, 255, 0.55);
+  --accent-warn: #ffc04d;
+  --accent-danger: #ff5a6b;
+  --space-bg: #040810;
+  --space-bg-deep: #02050b;
+  /* Display face — Orbitron is a free Eurostile-derivative that reads
+   * like the labels in TFA-era SW film MFDs. Used for ship names,
+   * section headers, top-bar labels. */
+  --display: 'Orbitron', 'Eurostile', 'Bank Gothic', 'Arial Narrow', sans-serif;
+  /* Readout face — Share Tech Mono looks like a CRT terminal readout
+   * and is more legible at small sizes than Orbitron. Used for stat
+   * numerals, tick labels, counter values. */
+  --mono: 'Share Tech Mono', 'Consolas', 'Menlo', 'Roboto Mono', 'Courier New', monospace;
+}
+
+/* ----- Page background -----
+ *
+ * Very dark navy ("deep space"), with a faint 60px star-grid + slow radial
+ * vignette toward the centre. Background is fixed so scrolling content
+ * doesn't drag the grid along.
+ * --------------------------------- */
+body {
+  background-color: var(--space-bg);
+  color: var(--accent-holo-bright);
+  background-image:
+    radial-gradient(
+      ellipse at 50% 30%,
+      rgba(90, 200, 255, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 12% 88%,
+      rgba(255, 192, 77, 0.05),
+      transparent 50%
+    ),
+    /* faint star grid */
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(90, 200, 255, 0.18) 0.5px,
+      transparent 1px
+    );
+  background-size: auto, auto, 64px 64px;
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-attachment: fixed;
+}
+
+#root,
+.App {
+  background: transparent;
+  min-height: 100vh;
+}
+
+/* ----- Top bar -----
+ *
+ * Overrides .menu (defined in App.css) and the inner button colours.
+ * Black surface, cyan border-bottom, tick-mark detail, mono labels.
+ * --------------------------------- */
+
+.menu {
+  background-color: var(--space-bg-deep) !important;
+  color: var(--accent-holo);
+  border-bottom: 1px solid var(--accent-holo-dim);
+  /* a thin glowing line under the bar */
+  box-shadow:
+    0 1px 0 0 var(--accent-holo) inset,
+    0 -1px 0 0 transparent inset,
+    0 0 10px rgba(90, 200, 255, 0.15);
+  padding: 8px 14px !important;
+  position: relative;
+}
+
+/* Top-edge tick-mark strip — same vocabulary as the squad card ruler */
+.menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--accent-holo) 0,
+      var(--accent-holo) 1px,
+      transparent 1px,
+      transparent 80px
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--accent-holo-dim) 0,
+      var(--accent-holo-dim) 1px,
+      transparent 1px,
+      transparent 16px
+    );
+  background-size: 100% 6px, 100% 3px;
+  background-position: 0 0, 0 0;
+  background-repeat: no-repeat;
+}
+
+.menu .menu-text,
+.menu .menu-text-dim {
+  color: var(--accent-holo-bright);
+  font-family: var(--display);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.menu .menu-text-dim {
+  color: rgba(181, 236, 255, 0.65);
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+}
+
+.menu .menu-text .font-weight-bold {
+  color: var(--accent-holo);
+  font-family: var(--display);
+  font-weight: 700;
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.menu .counterValue {
+  color: var(--accent-holo-bright);
+  font-family: var(--mono);
+  text-shadow: 0 0 4px var(--accent-holo-glow);
+}
+
+/* Buttons in the top bar — flatten any Bootstrap fill into a cyan
+ * outlined panel. .btn-scenario-action already had outline styles; we
+ * just retune to the cyan palette. */
+.menu .btn,
+.menu .btn-light,
+.menu .btn-primary,
+.menu .btn-primary:not(:disabled):not(.disabled) {
+  background: transparent !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  color: var(--accent-holo) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.78em;
+}
+
+.menu .btn:hover,
+.menu .btn:focus,
+.menu .btn:active {
+  background: rgba(90, 200, 255, 0.12) !important;
+  border-color: var(--accent-holo) !important;
+  color: var(--accent-holo-bright) !important;
+  text-shadow: 0 0 4px var(--accent-holo-glow);
+}
+
+/* Btn-scenario-action already overrides via App.css with white-on-blue
+ * styles — kill those in favour of our palette. */
+.menu .btn.btn-scenario-action,
+.menu .btn.btn-scenario-action:not(:disabled):not(.disabled),
+.menu .btn.btn-scenario-action:hover,
+.menu .btn.btn-scenario-action:focus,
+.menu .btn.btn-scenario-action:active {
+  background: transparent !important;
+  border-color: var(--accent-holo-dim) !important;
+  color: var(--accent-holo) !important;
+}
+
+.menu .btn.btn-scenario-action:hover {
+  background: rgba(90, 200, 255, 0.12) !important;
+  border-color: var(--accent-holo) !important;
+  color: var(--accent-holo-bright) !important;
+}
+
+.menu .btn.btn-scenario-action:disabled,
+.menu .btn.btn-scenario-action.disabled {
+  background: transparent !important;
+  border-color: var(--accent-holo-faint) !important;
+  color: rgba(181, 236, 255, 0.35) !important;
+}
+
+/* Rank toggle (radio group). Active radio gets a brighter glowing fill. */
+.menu .btn-group .btn,
+.menu .btn-group-toggle .btn {
+  border-radius: 0 !important;
+}
+
+.menu .btn-group .btn.active,
+.menu .btn-group .btn-primary.active,
+.menu input:checked + .btn,
+.menu input:checked + .btn-primary {
+  background: rgba(90, 200, 255, 0.25) !important;
+  color: var(--accent-holo-bright) !important;
+  border-color: var(--accent-holo) !important;
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+/* The hand-set inline backgroundColor on the +/- round counter buttons
+ * in App.tsx wins on specificity. We can't override it from here without
+ * !important on background-color, since style attributes outrank class
+ * styles. Use a strong selector + !important. */
+.menu .btn-counter[style] {
+  background-color: transparent !important;
+  border-color: var(--accent-holo-dim) !important;
+  color: var(--accent-holo) !important;
+}
+
+.menu .btn-counter[style]:hover {
+  background-color: rgba(90, 200, 255, 0.12) !important;
+  border-color: var(--accent-holo) !important;
+  color: var(--accent-holo-bright) !important;
+}
+
+/* AddSquadronCard — make the dashed placeholder match the cockpit
+ * vocabulary too, since it sits next to live squad cards. */
+.addSquadronCard {
+  background-color: transparent !important;
+  border: 1px dashed var(--accent-holo-dim) !important;
+  color: var(--accent-holo) !important;
+  text-shadow: 0 0 12px var(--accent-holo-glow);
+  border-radius: 0 !important;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.addSquadronCard:hover {
+  background-color: rgba(90, 200, 255, 0.06) !important;
+  border-color: var(--accent-holo) !important;
+  color: var(--accent-holo-bright) !important;
+}
+
+/* Body text outside of cards — should not be black-on-dark. */
+.App,
+.App .text-muted {
+  color: rgba(181, 236, 255, 0.7);
+}
+
+/* ============================================================================
+ * Modals — MFD-style dialogs.
+ *
+ * react-bootstrap Modal renders the standard Bootstrap 4 markup (.modal,
+ * .modal-dialog, .modal-content, .modal-header, .modal-body, .modal-footer,
+ * .modal-title, .modal-backdrop, .close). We restyle by class globally so
+ * every modal in the app picks up the same look without per-component edits.
+ * ========================================================================== */
+
+/* Backdrop — dark navy with a faint cyan vignette, not Bootstrap's
+ * default 50%-opaque black. */
+.modal-backdrop.show {
+  background: var(--space-bg-deep);
+  opacity: 0.88;
+}
+
+.modal-backdrop.show::after {
+  /* very subtle cyan glow rising from the bottom — implies a console
+   * down there casting light on the user */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    rgba(90, 200, 255, 0.18),
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+/* Modal frame */
+.modal-content {
+  background: var(--surface, #000) !important;
+  border: 1px solid var(--accent-holo) !important;
+  border-radius: 0 !important;
+  color: rgba(220, 240, 255, 0.92);
+  /* parallelogram top-right cut matches the squad card */
+  clip-path: polygon(
+    0 0,
+    calc(100% - 70px) 0,
+    100% 12px,
+    100% 100%,
+    0 calc(100% - 0px)
+  );
+  box-shadow:
+    0 0 0 1px var(--accent-holo) inset,
+    0 0 24px rgba(90, 200, 255, 0.25),
+    0 0 60px rgba(90, 200, 255, 0.1);
+  position: relative;
+  isolation: isolate;
+}
+
+/* Top tick-mark band on every modal — matches squad-card ruler. */
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  right: 90px;
+  height: 8px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--accent-holo-dim), var(--accent-holo-dim))
+      0 100% / 100% 1px no-repeat,
+    repeating-linear-gradient(
+      to right,
+      var(--accent-holo-dim) 0,
+      var(--accent-holo-dim) 1px,
+      transparent 1px,
+      transparent 8px
+    )
+      0 100% / 100% 4px no-repeat,
+    repeating-linear-gradient(
+      to right,
+      var(--accent-holo) 0,
+      var(--accent-holo) 1px,
+      transparent 1px,
+      transparent 40px
+    )
+      0 100% / 100% 8px no-repeat;
+  z-index: 1;
+}
+
+/* Header */
+.modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--accent-holo-dim) !important;
+  border-radius: 0 !important;
+  padding: 22px 20px 12px 20px !important;
+  position: relative;
+}
+
+.modal-title {
+  color: var(--accent-holo) !important;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: 1em;
+  text-shadow:
+    0 0 8px var(--accent-holo-glow),
+    0 0 1px #fff;
+}
+
+/* Existing scenarioModalHeader override (App.css sets bright Bootstrap blue
+ * here). Flatten it. */
+.modal-header.scenarioModalHeader {
+  background: transparent !important;
+  color: var(--accent-holo) !important;
+}
+
+.modal-header.scenarioModalHeader .modal-title {
+  color: var(--accent-holo) !important;
+}
+
+/* Close button */
+.modal-header .close {
+  color: var(--accent-holo) !important;
+  opacity: 1 !important;
+  text-shadow: 0 0 6px var(--accent-holo-glow) !important;
+  font-weight: 400;
+  font-size: 1.6em;
+  font-family: var(--mono);
+  transition: color 0.15s, transform 0.15s;
+}
+
+.modal-header .close:hover,
+.modal-header .close:focus {
+  color: var(--accent-danger) !important;
+  text-shadow: 0 0 6px rgba(255, 90, 107, 0.55) !important;
+  transform: scale(1.1);
+}
+
+.modal-header.scenarioModalHeader .close {
+  color: var(--accent-holo) !important;
+}
+
+.modal-header.scenarioModalHeader .close:hover {
+  color: var(--accent-danger) !important;
+}
+
+/* Body + footer */
+.modal-body {
+  background: transparent !important;
+  color: rgba(220, 240, 255, 0.92);
+  padding: 16px 20px !important;
+}
+
+.modal-footer {
+  background: transparent !important;
+  border-top: 1px solid var(--accent-holo-faint) !important;
+  border-radius: 0 !important;
+  padding: 12px 20px !important;
+  gap: 8px;
+}
+
+/* Form controls inside modals — neutralize Bootstrap form styles. */
+.modal-content .form-control,
+.modal-content input[type='text'],
+.modal-content input[type='number'],
+.modal-content textarea,
+.modal-content select {
+  background: rgba(90, 200, 255, 0.05) !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  border-radius: 0 !important;
+  color: var(--accent-holo-bright) !important;
+  font-family: var(--mono);
+  box-shadow: none !important;
+}
+
+.modal-content .form-control:focus,
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+  border-color: var(--accent-holo) !important;
+  box-shadow: 0 0 0 1px var(--accent-holo-glow) !important;
+}
+
+.modal-content .form-control::placeholder {
+  color: rgba(181, 236, 255, 0.4) !important;
+}
+
+.modal-content label,
+.modal-content .form-label {
+  color: var(--accent-holo);
+  font-family: var(--display);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.8em;
+}
+
+/* Custom checkbox inside modals — same vocabulary as squad-card. */
+.modal-content input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin: 0 6px 0 0;
+  border: 1px solid var(--accent-holo-dim);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  vertical-align: middle;
+}
+
+.modal-content input[type='checkbox']:hover {
+  border-color: var(--accent-holo);
+}
+
+.modal-content input[type='checkbox']:checked {
+  background: rgba(90, 200, 255, 0.18);
+  border-color: var(--accent-holo);
+  box-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+.modal-content input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -1px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--accent-holo-bright);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Section headings inside modal body */
+.modal-body h1,
+.modal-body h2,
+.modal-body h3,
+.modal-body h4,
+.modal-body h5,
+.modal-body h6 {
+  color: var(--accent-holo);
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+.modal-body .small,
+.modal-body small,
+.modal-body .text-muted {
+  color: rgba(181, 236, 255, 0.55) !important;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+
+.modal-body .text-danger {
+  color: var(--accent-danger) !important;
+}
+
+.modal-body .font-weight-bold,
+.modal-body strong {
+  color: var(--accent-holo-bright);
+  letter-spacing: 0.04em;
+}
+
+/* Buttons in modals (Load scenario list, end-scenario actions, etc.) */
+.modal-content .btn,
+.modal-content .btn-primary,
+.modal-content .btn-secondary,
+.modal-content .btn-outline-primary,
+.modal-content .btn-outline-secondary,
+.modal-content .btn-outline-success,
+.modal-content .btn-outline-danger,
+.modal-content .btn-outline-warning,
+.modal-content .btn-light,
+.modal-content .btn-dark {
+  background: transparent !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  color: var(--accent-holo) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: var(--display);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.85em;
+}
+
+.modal-content .btn:hover,
+.modal-content .btn:focus,
+.modal-content .btn:active,
+.modal-content .btn-primary:hover {
+  background: rgba(90, 200, 255, 0.12) !important;
+  border-color: var(--accent-holo) !important;
+  color: var(--accent-holo-bright) !important;
+  text-shadow: 0 0 4px var(--accent-holo-glow);
+}
+
+/* Semantic button variants — keep meaning via colour. */
+.modal-content .btn-primary,
+.modal-content .btn-success,
+.modal-content .btn-outline-success {
+  border-color: rgba(108, 240, 138, 0.6) !important;
+  color: #6cf08a !important;
+}
+
+.modal-content .btn-primary:hover,
+.modal-content .btn-success:hover,
+.modal-content .btn-outline-success:hover {
+  background: rgba(108, 240, 138, 0.12) !important;
+  border-color: #6cf08a !important;
+  color: #b8f5c9 !important;
+}
+
+.modal-content .btn-danger,
+.modal-content .btn-outline-danger {
+  border-color: rgba(255, 90, 107, 0.55) !important;
+  color: var(--accent-danger) !important;
+}
+
+.modal-content .btn-danger:hover,
+.modal-content .btn-outline-danger:hover {
+  background: rgba(255, 90, 107, 0.12) !important;
+  border-color: var(--accent-danger) !important;
+  color: #fff !important;
+}
+
+/* Disabled */
+.modal-content .btn:disabled,
+.modal-content .btn.disabled {
+  background: transparent !important;
+  border-color: var(--accent-holo-faint) !important;
+  color: rgba(181, 236, 255, 0.3) !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+/* Wide "text-left" list-style buttons used in LoadScenarioModal and
+ * ShipPickerModal — make them feel like clickable list rows. */
+.modal-content .btn.text-left {
+  text-align: left !important;
+  padding: 10px 14px !important;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-family: var(--display);
+}
+
+.modal-content .btn.text-left .font-weight-bold {
+  color: var(--accent-holo);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modal-content .btn.text-left:hover .font-weight-bold {
+  color: var(--accent-holo-bright);
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+/* Toggle button groups inside modals (ScenarioBriefingModal player count,
+ * upgrade source, etc.) */
+.modal-content .btn-group .btn,
+.modal-content .btn-group-toggle .btn {
+  border-radius: 0 !important;
+}
+
+.modal-content .btn.active,
+.modal-content .btn-primary.active,
+.modal-content input:checked + .btn,
+.modal-content input:checked + .btn-primary {
+  background: rgba(90, 200, 255, 0.22) !important;
+  color: var(--accent-holo-bright) !important;
+  border-color: var(--accent-holo) !important;
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+}
+
+/* Badges in modal body */
+.modal-content .badge {
+  background: transparent !important;
+  border: 1px solid currentColor;
+  border-radius: 0 !important;
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.modal-content .badge-warning {
+  color: var(--accent-warn);
+}
+
+.modal-content .badge-primary {
+  color: var(--accent-holo);
+}
+
+.modal-content .badge-success {
+  color: #6cf08a;
+}
+
+.modal-content .badge-danger {
+  color: var(--accent-danger);
+}
+
+/* Pre / scenarioMap (ASCII map blocks) */
+.modal-content pre,
+.modal-content .scenarioMap pre {
+  background: rgba(90, 200, 255, 0.04);
+  border: 1px solid var(--accent-holo-faint);
+  color: var(--accent-holo-bright);
+  font-family: var(--mono);
+  padding: 8px 10px;
+  font-size: 0.85em;
+  line-height: 1.3;
+}
+
+/* react-select inside modals — same treatment as in squad card. */
+.modal-content [class$='-control'] {
+  background: rgba(90, 200, 255, 0.05) !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  border-radius: 0 !important;
+  min-height: 30px !important;
+}
+
+.modal-content [class$='-singleValue'],
+.modal-content [class$='-input'] input,
+.modal-content [class$='-placeholder'] {
+  color: var(--accent-holo-bright) !important;
+  font-family: var(--mono);
+}
+
+.modal-content [class$='-menu'] {
+  background: var(--surface) !important;
+  border: 1px solid var(--accent-holo-dim) !important;
+  border-radius: 0 !important;
+}
+
+.modal-content [class$='-option'] {
+  background: transparent !important;
+  color: var(--accent-holo-bright) !important;
+  font-family: var(--mono);
+}
+
+.modal-content [class$='-option']:hover,
+.modal-content [class$='-option--is-focused'] {
+  background: rgba(90, 200, 255, 0.15) !important;
+}
+
+/* MainMenu uses a Bootstrap Dropdown which renders .dropdown-menu /
+ * .dropdown-item. Same vocabulary — outlined, mono, glow on hover. */
+.dropdown-menu {
+  background: var(--space-bg-deep);
+  border: 1px solid var(--accent-holo-dim);
+  border-radius: 0;
+  box-shadow: 0 0 12px rgba(90, 200, 255, 0.15);
+}
+
+.dropdown-item {
+  color: var(--accent-holo-bright);
+  font-family: var(--display);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.85em;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: rgba(90, 200, 255, 0.12);
+  color: var(--accent-holo);
+  text-shadow: 0 0 4px var(--accent-holo-glow);
+}
+
+.dropdown-divider {
+  border-top-color: var(--accent-holo-faint);
+}

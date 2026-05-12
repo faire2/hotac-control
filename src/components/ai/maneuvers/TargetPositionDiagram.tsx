@@ -59,10 +59,13 @@ export default function TargetPositionDiagram() {
   }
 
   const totalRadius = arc1Width + arc23Width + arc4Width;
-  const arc1Color = '#22A3FF';
-  const arc23Color = '#2777ff';
-  const arc4Color = '#0f53ff';
-  const stroke = '#00C1FF';
+  // Range fills use CSS variables so a parent .squad-mfd-scope can swap
+  // them per theme. Translucent so the underlying black + tick overlay
+  // read through — this is a radar scope, not a coloured pie chart.
+  const arc1Color = 'var(--scope-r1, rgba(90,200,255,0.32))';
+  const arc23Color = 'var(--scope-r3, rgba(90,200,255,0.18))';
+  const arc4Color = 'var(--scope-r4, rgba(90,200,255,0.08))';
+  const stroke = 'var(--scope-stroke, #5ac8ff)';
 
   function buildArcs() {
     const arcs = [];
@@ -120,9 +123,15 @@ export default function TargetPositionDiagram() {
     return arcs;
   }
 
+  const scopeHeight = (totalRadius + strokeWidth) * 2;
+
   return (
-    <div id="svg_container">
-      <svg width={bullseyeWidth} height={totalRadius + strokeWidth} className="align-top">
+    <div id="svg_container" className="squad-mfd-scope">
+      <svg
+        width={bullseyeWidth}
+        height={totalRadius + strokeWidth}
+        className="align-top squad-mfd-scope-bullseye"
+      >
         <rect
           x="0"
           y={arc23Width + arc4Width}
@@ -160,10 +169,106 @@ export default function TargetPositionDiagram() {
           onClick={() => { handleSetPosition(4, 'B', 'B4'); }}
         />
       </svg>
-      <svg width={totalRadius} height={(totalRadius + strokeWidth) * 2}>
+      <svg
+        width={totalRadius}
+        height={scopeHeight}
+        className="squad-mfd-scope-arcs"
+      >
         {buildArcs()}
+        <ScopeChrome
+          radius={totalRadius}
+          scopeHeight={scopeHeight}
+          arc1Width={arc1Width}
+          arc23Width={arc23Width}
+          arc4Width={arc4Width}
+        />
       </svg>
     </div>
+  );
+}
+
+/**
+ * Decorative scope chrome — tick-mark ring, crosshair, and range labels.
+ * Sits on top of the clickable arcs (pointer-events: none) so it never
+ * intercepts clicks. Hidden when the scope is collapsed (totalRadius=0).
+ */
+function ScopeChrome({
+  radius,
+  scopeHeight,
+  arc1Width,
+  arc23Width,
+  arc4Width,
+}: {
+  radius: number;
+  scopeHeight: number;
+  arc1Width: number;
+  arc23Width: number;
+  arc4Width: number;
+}) {
+  if (radius <= 0) return null;
+  const cx = 0;
+  const cy = scopeHeight / 2;
+  const tickInner = radius - 2;
+  const tickOuter = radius + 4;
+  const tickMajorOuter = radius + 8;
+
+  // Ticks every 11.25° across the right hemisphere (-90°..+90° == ship
+  // forward to ship aft via the right side). Every 4th is a major tick.
+  const ticks: Array<{ angle: number; major: boolean }> = [];
+  for (let i = -8; i <= 8; i++) {
+    ticks.push({ angle: (i * 90) / 8, major: i % 2 === 0 });
+  }
+
+  return (
+    <g
+      className="squad-mfd-scope-chrome"
+      pointerEvents="none"
+      fill="none"
+      stroke="var(--scope-chrome, rgba(90,200,255,0.55))"
+    >
+      {/* tick ring */}
+      {ticks.map(({ angle, major }) => {
+        const rad = (angle * Math.PI) / 180;
+        const x1 = cx + Math.cos(rad) * tickInner;
+        const y1 = cy + Math.sin(rad) * tickInner;
+        const x2 = cx + Math.cos(rad) * (major ? tickMajorOuter : tickOuter);
+        const y2 = cy + Math.sin(rad) * (major ? tickMajorOuter : tickOuter);
+        return (
+          <line
+            key={`t${angle.toString()}`}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            strokeWidth={major ? 1.2 : 0.7}
+          />
+        );
+      })}
+      {/* centerline (ship axis) */}
+      <line x1={cx} y1={cy - radius - 6} x2={cx} y2={cy + radius + 6} strokeWidth="0.8" strokeDasharray="2 3" />
+      {/* horizontal axis through the ship */}
+      <line x1={cx - 6} y1={cy} x2={cx + radius + 6} y2={cy} strokeWidth="0.8" strokeDasharray="2 3" />
+      {/* range labels positioned at the radial mid of each visible ring,
+       *  along the front-side bisector (~ -22.5°) so they don't sit on
+       *  the cardinal axis lines. */}
+      <g
+        fill="var(--scope-label, rgba(90,200,255,0.85))"
+        stroke="none"
+        fontFamily="Consolas, Menlo, monospace"
+        fontSize="9"
+        letterSpacing="0.1em"
+      >
+        {arc1Width > 0 && (
+          <text x={Math.cos((-22.5 * Math.PI) / 180) * (arc1Width / 2) - 12} y={cy + Math.sin((-22.5 * Math.PI) / 180) * (arc1Width / 2) - 2}>R1-R2</text>
+        )}
+        {arc23Width > 0 && (
+          <text x={Math.cos((-22.5 * Math.PI) / 180) * (arc1Width + arc23Width / 2) - 12} y={cy + Math.sin((-22.5 * Math.PI) / 180) * (arc1Width + arc23Width / 2) - 2}>R2-R3</text>
+        )}
+        {arc4Width > 0 && (
+          <text x={Math.cos((-22.5 * Math.PI) / 180) * (arc1Width + arc23Width + arc4Width / 2) - 8} y={cy + Math.sin((-22.5 * Math.PI) / 180) * (arc1Width + arc23Width + arc4Width / 2) - 2}>R3+</text>
+        )}
+      </g>
+    </g>
   );
 }
 
