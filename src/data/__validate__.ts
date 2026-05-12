@@ -15,6 +15,7 @@ import { checkManeuvers, checkAiCoverage } from './validate/maneuvers';
 import {
   checkUpgradeSourceCoverage,
   checkFgaContentShortcodes,
+  checkAndersonContentShortcodes,
 } from './validate/upgrades';
 import { checkScenarios } from './validate/scenarios';
 import type { ValidationFailure } from './validate/types';
@@ -26,6 +27,7 @@ export function runValidator(): void {
   checkAiCoverage(failures);
   checkUpgradeSourceCoverage(failures);
   checkFgaContentShortcodes(failures);
+  checkAndersonContentShortcodes(failures);
   checkScenarios(failures);
 
   if (failures.length > 0) {

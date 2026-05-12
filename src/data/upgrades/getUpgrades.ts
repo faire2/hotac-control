@@ -7,13 +7,17 @@
  * XP/tier for the XP-column display.
  *
  * Internally we still iterate `UpgradeRow` values (the typed tree shape from
- * `FgaUpgrades` / `CommunityUpgradeTree`) since the per-row tier/xp data
- * drives the filtering. We collapse the rows into `Upgrade[]` + meta at the
- * end so the runtime squadron state doesn't carry roll-time bookkeeping
- * on every row.
+ * `FgaUpgrades` / `CommunityUpgradeTree` / `AndersonUpgrades`) since the
+ * per-row tier/xp/initiative data drives the filtering. We collapse the
+ * rows into `Upgrade[]` + meta at the end so the runtime squadron state
+ * doesn't carry roll-time bookkeeping on every row.
  *
- * Anderson is currently a no-op (Phase 5b transcribes the upgrade trees);
- * returns empty upgrades with `xp: '—'` rather than throwing.
+ * Anderson initiative-gating: see `getAnderson` below. The deck's init
+ * thresholds (1–7) map 1:1 to `playersRank` (1–7), so we use playersRank
+ * directly as the imperial pilot initiative. This satisfies AGENTS.md's
+ * "Anderson does not scale loadouts by playersRank" rule — the ladder
+ * filter is the rows' own initiative thresholds, not a separate xpLevel
+ * mapping like FGA.
  */
 
 import { Ships, UPGRADES } from '../Ships';
@@ -24,6 +28,8 @@ import { CommunityUpgradeTree } from '../fga/CommunityUpgradeTree';
 import { FgaUpgradePool } from '../fga/FgaUpgradePool';
 import { fgaRow } from '../UpgradeRow';
 import type { Upgrade } from '../shared/coreUpgrades';
+import { AndersonUpgrades, getAndersonUpgrades } from '../anderson/AndersonUpgrades';
+import type { AndersonVariant } from '../anderson/AndersonUpgrades';
 import type { UpgradeRollMeta } from '../../context/Contexts';
 
 export interface UpgradeRollResult {
@@ -43,8 +49,7 @@ export default function getUpgrades(
     case UPGRADES.COMMUNITY:
       return collapse(getCommunity(shipType, playersRank, isElite), UPGRADES.COMMUNITY);
     case UPGRADES.ANDERSON:
-      // Phase 5b will populate Anderson trees.
-      return { upgrades: [], rollMeta: { source: UPGRADES.ANDERSON, xp: '—' } };
+      return collapse(getAnderson(shipType, playersRank), UPGRADES.ANDERSON);
   }
 }
 
@@ -118,6 +123,24 @@ function filterFgaByRank(
     xpLevel = isElite ? 3 : 2;
   }
   return rows.filter((r) => r.source !== 'FGA' || r.tier <= xpLevel);
+}
+
+function pickAndersonVariant(variants: readonly AndersonVariant[]): AndersonVariant | null {
+  if (variants.length === 0) return null;
+  const idx = Math.min(
+    Math.max(Math.round((Math.random() * 10) / 10 * variants.length) - 1, 0),
+    variants.length - 1,
+  );
+  return variants[idx] ?? null;
+}
+
+function getAnderson(shipType: ShipId, playersRank: number): readonly UpgradeRow[] {
+  const variants = AndersonUpgrades[shipType] ?? [];
+  const variant = pickAndersonVariant(variants);
+  if (!variant) return [];
+  // playersRank doubles as the imperial pilot initiative threshold; see the
+  // module docblock for the rationale.
+  return getAndersonUpgrades(variant, playersRank);
 }
 
 function getCommunity(

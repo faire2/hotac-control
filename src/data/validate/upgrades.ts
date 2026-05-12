@@ -4,6 +4,7 @@ import { CommunityUpgrades } from '../fga/CommunityUpgrades';
 import { fgaTargetSelectionByShip } from '../fga/FgaTargetSelection';
 import { fgaShipActionsByShip } from '../fga/FgaShipActions';
 import { fgaAttackByShip } from '../fga/FgaAttack';
+import { AndersonUpgradePool } from '../anderson/AndersonUpgradePool';
 import {
   checkUpgradeShortcodes,
   checkPriorityShortcodes,
@@ -30,4 +31,8 @@ export function checkFgaContentShortcodes(failures: ValidationFailure[]): void {
   checkPriorityShortcodes('fga.target', fgaTargetSelectionByShip, failures);
   checkPriorityShortcodes('fga.action', fgaShipActionsByShip, failures);
   checkPriorityShortcodes('fga.attack', fgaAttackByShip, failures);
+}
+
+export function checkAndersonContentShortcodes(failures: ValidationFailure[]): void {
+  checkUpgradeShortcodes('AndersonUpgradePool', AndersonUpgradePool, failures);
 }
