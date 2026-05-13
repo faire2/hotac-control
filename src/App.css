@@ -73,7 +73,14 @@ h3 {
 .squadStats {
   margin-top: 4px;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  /* 4 equal columns: Ship-glyph / Init / Attack / Agility. The
+   * stats-bar only carries STATIC per-ship-class values — anything
+   * mutable during play (Hull / Shields / Energy for huge ships)
+   * lives in the per-instance `.shipsBlock` row below, alongside its
+   * +/- controls. The ship glyph is a real cell now (was an absolute-
+   * positioned watermark), so it aligns with the data columns by
+   * construction. */
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   row-gap: 2px;
 }
 

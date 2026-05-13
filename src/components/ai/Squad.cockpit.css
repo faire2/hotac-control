@@ -1339,41 +1339,32 @@
   list-style: none;
 }
 
-/* Values row hosts the watermark holo-glyph (moved here from the
- * full stats bar — the glyph used to span the header AND values rows,
- * which made its wings overlap the FGA/ANDERSON toggle cell and the
- * INIT/ATTACK/AGILITY labels). Confining to the values row gives the
- * glyph a clean band of its own. */
-.squad-mfd .statsValues {
-  position: relative;
-  isolation: isolate;
-}
-
-/* Watermark holo ship glyph — child of .statsValues. Spans the full
- * row at low opacity so it reads as a faint backdrop behind ALL
- * stat values rather than crowding the right-most column. Chained
- * selector `i.squad-mfd-glyph` out-specifies the icon-font's
- * `i.xwing-miniatures-ship { font-size: 1.5em }`. */
-.squad-mfd .statsValues > i.squad-mfd-glyph,
-.squad-mfd i.squad-mfd-glyph,
-i.squad-mfd-glyph {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.18;
-  color: var(--accent-holo-bright);
-  font-size: 56px;
+/* Ship-glyph cell — now a proper grid cell at the right end of the
+ * stats row, not an absolute-positioned watermark. The icon-font's
+ * `i.xwing-miniatures-ship { font-size: 1.5em }` rule gets out-
+ * specified by the chained `i.squad-mfd-glyph` selector. */
+.squad-mfd .statCell--ship {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 0;
+}
+
+.squad-mfd .statCell--ship i.squad-mfd-glyph,
+.squad-mfd i.squad-mfd-glyph,
+i.squad-mfd-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-holo-bright);
+  font-size: 1.8em;
   line-height: 1;
   font-style: normal;
-  overflow: hidden;
+  letter-spacing: 0;
+  pointer-events: none;
   filter:
     drop-shadow(0 0 4px var(--accent-holo))
-    drop-shadow(0 0 10px var(--accent-holo-glow));
-  letter-spacing: 0;
+    drop-shadow(0 0 8px var(--accent-holo-glow));
 }
 
 /* ----------------------------------------------------------------------
