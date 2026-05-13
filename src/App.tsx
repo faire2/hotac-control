@@ -99,8 +99,12 @@ function survivingEnemyDamage(squadrons: readonly Squadron[]): number {
   return total;
 }
 
-function freshSquadron(shipType: ShipId, playersRank: number): Squadron {
-  const { upgrades, rollMeta } = getUpgrades(shipType, playersRank, UPGRADES.FGA, false);
+function freshSquadron(
+  shipType: ShipId,
+  playersRank: number,
+  upgradesSource: UpgradeSource,
+): Squadron {
+  const { upgrades, rollMeta } = getUpgrades(shipType, playersRank, upgradesSource, false);
   const extras = countExtraHullAndShield(upgrades);
   const baseStats = Ships[shipType];
   return {
@@ -208,7 +212,10 @@ function App() {
     : defaultSpawnSettings();
 
   function handleNewShipSelection(value: ShipId) {
-    setSquadrons((prev) => [...prev, freshSquadron(value, playersRank)]);
+    setSquadrons((prev) => [
+      ...prev,
+      freshSquadron(value, playersRank, scenarioUpgradesSource),
+    ]);
   }
 
   function handlePickerSelect(scenarioId: string) {

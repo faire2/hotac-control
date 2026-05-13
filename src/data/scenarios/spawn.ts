@@ -81,13 +81,16 @@ export function spawnFromScenarioSquad(
   const splitPerShip = wantUniqueApproach || wantHuntsPlayer;
   const maneuverOverride = hasTag(squad, 'maneuverOverride')?.maneuvers;
 
-  function upgradesFor(shipType: ShipId): {
+  function upgradesFor(
+    shipType: ShipId,
+    isElite: boolean,
+  ): {
     upgrades: readonly Upgrade[];
     rollMeta?: UpgradeRollMeta;
   } {
     if (skipUpgrades) return { upgrades: [] };
     if (squad.fixedUpgrades) return { upgrades: squad.fixedUpgrades };
-    return getUpgrades(shipType, ctx.playersRank, ctx.upgradesSource, false);
+    return getUpgrades(shipType, ctx.playersRank, ctx.upgradesSource, isElite);
   }
   function shipInstance(
     shipType: ShipId,
@@ -118,11 +121,12 @@ export function spawnFromScenarioSquad(
         ? rollUniqueVector(squad, ctx.priorVectors, usedVectors)
         : resolveSquadVector(squad.vector, ctx.priorVectors);
       usedVectors.add(fromVector);
-      const { upgrades, rollMeta } = upgradesFor(shipType);
+      const isElite = eliteSet.has(i);
+      const { upgrades, rollMeta } = upgradesFor(shipType, isElite);
       const squadron: Squadron = {
         id: crypto.randomUUID(),
         shipType,
-        isElite: eliteSet.has(i),
+        isElite,
         upgrades,
         ...(rollMeta ? { rollMeta } : {}),
         scenarioMeta: {
@@ -166,7 +170,7 @@ export function spawnFromScenarioSquad(
     }
   }
   return Array.from(groups.values()).map(({ shipType, isElite, count, bonusShield }) => {
-    const { upgrades, rollMeta } = upgradesFor(shipType);
+    const { upgrades, rollMeta } = upgradesFor(shipType, isElite);
     return {
       id: crypto.randomUUID(),
       shipType,

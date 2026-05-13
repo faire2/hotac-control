@@ -1,15 +1,13 @@
-import type { ReactNode } from 'react';
 import { Ships } from '../../data/Ships';
 import type { ShipId } from '../../data/Ships';
 import type { UpgradeRollMeta } from '../../context/Contexts';
 
 interface Props {
   shipType: ShipId;
-  /** Upgrade-roll bookkeeping. Absent for mission-fixed / ally / `noUpgrades`
-   * squads — the Init column falls back to `ship.initiative` and the XP
-   * column shows `0`. */
+  /** Upgrade-roll bookkeeping. Absent for mission-fixed / ally /
+   * `noUpgrades` squads — the Init column then falls back to
+   * `ship.initiative`. */
   rollMeta?: UpgradeRollMeta;
-  headerExtra?: ReactNode;
 }
 
 /* Maps internal ShipId to the slug used by the xwing-miniatures-ships
@@ -37,7 +35,7 @@ const SHIP_GLYPH: Record<ShipId, string> = {
   OUTER_RIM_SMUGGLER: 'yt2400lightfreighter',
 };
 
-export const SquadStats = ({ shipType, rollMeta, headerExtra }: Props) => {
+export const SquadStats = ({ shipType, rollMeta }: Props) => {
   const ship = Ships[shipType];
   const initiative = rollMeta?.initiative ?? ship.initiative;
   const glyphSlug = SHIP_GLYPH[shipType];
@@ -45,20 +43,23 @@ export const SquadStats = ({ shipType, rollMeta, headerExtra }: Props) => {
   return (
     <div className="squadStats">
       <div className="statsHeader">
+        {/* Empty cell aligned over the ship-glyph column — no label
+         * needed; the glyph itself is self-explanatory. */}
+        <div className="statCell statCell--ship" aria-hidden="true" />
         <div className="statCell statCell--init">Init</div>
         <div className="statCell statCell--attack">Attack</div>
         <div className="statCell statCell--agility">Agility</div>
-        {headerExtra && <div className="statCell statCellAi">{headerExtra}</div>}
       </div>
       <div className="statsValues">
-        {/* Watermark holo-glyph — child of the values row so it sits
-         * behind the numerals, not the header labels above. Spans the
-         * full width at low opacity so it never crowds a single cell.
-         * Decorative only. */}
-        <i
-          className={`squad-mfd-glyph xwing-miniatures-ship xwing-miniatures-ship-${glyphSlug}`}
-          aria-hidden="true"
-        />
+        <div className="statCell statCell--ship">
+          {/* Ship-class glyph from the X-Wing miniatures icon font.
+           * Real grid cell (was an absolute-positioned watermark) so
+           * it aligns with the rest of the stat row by construction. */}
+          <i
+            className={`squad-mfd-glyph xwing-miniatures-ship xwing-miniatures-ship-${glyphSlug}`}
+            aria-hidden="true"
+          />
+        </div>
         <div className="statCell statCell--init">{initiative}</div>
         <div className="statCell statCell--attack">
           {ship.attack.map((a, index) => (
@@ -68,7 +69,6 @@ export const SquadStats = ({ shipType, rollMeta, headerExtra }: Props) => {
           ))}
         </div>
         <div className="statCell statCell--agility">{ship.agility}</div>
-        {headerExtra && <div className="statCell statCellAi" />}
       </div>
     </div>
   );
