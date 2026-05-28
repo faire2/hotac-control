@@ -930,7 +930,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .squad-mfd .squad-mfd-scope .active-segment {
+  .squad-mfd .squad-mfd-scope .active-segment,
+  .squad-mfd .ally-dial-cell--selected {
     animation: none;
   }
 }
@@ -1000,6 +1001,158 @@
 .squad-mfd .xw-man .xwmr {
   color: var(--accent-danger);
   text-shadow: 0 0 5px var(--stat-attack-glow);
+}
+
+/* ----------------------------------------------------------------------
+ * Ally maneuver dial. Stands in for the scope on ally cards — allies
+ * aren't AI-driven, so the player plans the dial each round and the
+ * card just shows what the dial physically allows. Same cyan/red
+ * coding as the AI maneuver readout above.
+ * -------------------------------------------------------------------- */
+
+.squad-mfd .ally-dial {
+  padding: 0 4px 6px 4px;
+  background: radial-gradient(
+    circle at center,
+    rgba(90, 200, 255, 0.05),
+    transparent 70%
+  );
+}
+
+.squad-mfd .ally-dial-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 4px 0;
+  filter: drop-shadow(0 0 6px rgba(90, 200, 255, 0.18));
+}
+
+.squad-mfd .ally-dial-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 6px;
+  border-bottom: 1px dashed var(--accent-holo-faint);
+}
+
+.squad-mfd .ally-dial-row:last-child {
+  border-bottom: none;
+}
+
+.squad-mfd .ally-dial-speed {
+  flex: 0 0 auto;
+  width: 18px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 0.95em;
+  font-weight: 700;
+  color: var(--accent-holo-bright);
+  text-shadow: 0 0 5px var(--accent-holo-glow);
+}
+
+.squad-mfd .ally-dial-cells {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+}
+
+.squad-mfd .ally-dial-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8em;
+  height: 1.8em;
+  font-size: 1em;
+  line-height: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  padding: 0;
+  color: inherit;
+}
+
+.squad-mfd .ally-dial-cell--button {
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease-out,
+    border-color 0.18s ease-out,
+    filter 0.18s ease-out;
+}
+
+/* Hover: same white-hot lock-on glow the radar applies to its arcs —
+ * brightness + cyan drop-shadow halo on the icon — plus a faint cyan
+ * background wash so the cell reads as a hit target. No pulse. */
+.squad-mfd .ally-dial-cell--button:hover {
+  background: rgba(90, 200, 255, 0.08);
+  filter:
+    brightness(2.2) saturate(1.4)
+    drop-shadow(0 0 4px var(--accent-holo))
+    drop-shadow(0 0 12px var(--accent-holo-glow))
+    drop-shadow(0 0 28px rgba(90, 200, 255, 0.35));
+}
+
+.squad-mfd .ally-dial-cell--button:focus-visible {
+  outline: 1px solid var(--accent-holo);
+  outline-offset: 1px;
+}
+
+/* Selected (locked-on) maneuver — same glow as hover, slightly stronger
+ * tint, plus the pulsing animation shared with the radar's
+ * .active-segment. Re-uses @keyframes squad-mfd-lock. */
+.squad-mfd .ally-dial-cell--selected,
+.squad-mfd .ally-dial-cell--selected:hover {
+  background: rgba(90, 200, 255, 0.16);
+  border-color: rgba(235, 245, 255, 0.75);
+  box-shadow:
+    0 0 6px 1px rgba(220, 240, 255, 0.55),
+    inset 0 0 6px rgba(220, 240, 255, 0.25);
+  filter:
+    brightness(1.9) saturate(1.3)
+    drop-shadow(0 0 6px var(--accent-holo))
+    drop-shadow(0 0 18px var(--accent-holo-glow))
+    drop-shadow(0 0 36px rgba(90, 200, 255, 0.25));
+  animation: squad-mfd-lock 1.8s ease-in-out infinite;
+}
+
+.squad-mfd .ally-dial-icon {
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+/* White maneuvers: pure white core with a soft white halo. Reads
+ * distinctly against the cyan-heavy cockpit chrome. */
+.squad-mfd .ally-dial-icon.xwm {
+  color: #ffffff;
+  text-shadow:
+    0 0 2px #ffffff,
+    0 0 6px rgba(255, 255, 255, 0.55);
+}
+
+/* Blue maneuvers: saturated cyan core with a stronger holo halo —
+ * obviously bluer than the white above and unmistakable next to red. */
+.squad-mfd .ally-dial-icon.xwmb {
+  color: var(--accent-holo);
+  text-shadow:
+    0 0 3px var(--accent-holo),
+    0 0 8px var(--accent-holo-glow);
+}
+
+.squad-mfd .ally-dial-icon.xwmr {
+  color: var(--accent-danger);
+  text-shadow: 0 0 4px var(--stat-attack-glow);
+}
+
+.squad-mfd .ally-dial-mirror-note {
+  margin: 6px 0 0 0;
+  font-family: var(--mono);
+  font-size: 0.7em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-readout-dim);
+  text-align: right;
 }
 
 /* ----------------------------------------------------------------------

@@ -8,6 +8,7 @@ import { ShipsVariables } from './variables/ShipsVariables';
 import { SquadStats } from './SquadStats';
 import SquadActionsCarousel from './actionsCarousel/SquadActionsCarousel';
 import { TargetPosition } from './maneuvers/TargetPosition';
+import { AllyManeuverDial } from './maneuvers/AllyManeuverDial';
 import UpgradesCard from './upgrades/UpgradesCard';
 import { GlobalSquadsValuesContext, TargetPositionContext, approachDisplay } from '../../context/Contexts';
 import type { Squadron } from '../../context/Contexts';
@@ -202,7 +203,7 @@ export function Squad({ squad, squadId }: Props) {
           <ShipsVariables squadId={squadId} />
           <div className="row no-gutters align-items-stretch">
             <div className="col-6 pr-1 d-flex flex-column">
-              <TargetPosition />
+              {isAlly ? <AllyManeuverDial shipType={shipType} /> : <TargetPosition />}
             </div>
             <div className="col-6 pl-1 d-flex flex-column">
               <SquadActionsCarousel
