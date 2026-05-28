@@ -46,25 +46,19 @@ export function DynamicSpawnPromptModal({ show, pending, onSubmit, onCancel }: P
   // "Adjust state during render" pattern — see React docs at
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   //
-  // The previous shape (`useEffect` watching `pending` to reset `inputs`)
-  // had a one-frame desync: `useEffect` runs *after* the first render
-  // with new `pending`, so during that render `inputs` still mirrored
-  // the old list, and any lookup against a freshly-added squad name
-  // threw `inputs[p.squadName][prompt.id]` on undefined.
-  //
-  // The fix: store the `pending` we last initialised from as a sibling
-  // piece of state; if a render comes in with a different `pending`,
-  // call setInputs *during* that render. React notices the in-render
-  // state update, throws away the current render output, and re-runs
-  // the function before committing — so the modal commits exactly once
-  // per `pending` change with fully-synced inputs.
+  // The setState calls below schedule a re-render with fresh inputs, but
+  // the *current* render still uses the stale `inputs` value. We compute
+  // `effectiveInputs` locally so this render doesn't crash dereferencing
+  // a freshly-added squad name that the old `inputs` map doesn't have.
   const [seenPending, setSeenPending] = useState(pending);
   const [inputs, setInputs] = useState<Record<string, Record<string, PromptValue>>>(() =>
     initialInputs(pending),
   );
+  let effectiveInputs = inputs;
   if (seenPending !== pending) {
+    effectiveInputs = initialInputs(pending);
     setSeenPending(pending);
-    setInputs(initialInputs(pending));
+    setInputs(effectiveInputs);
   }
 
   function setField(squadName: string, fieldId: string, value: PromptValue) {
@@ -78,7 +72,7 @@ export function DynamicSpawnPromptModal({ show, pending, onSubmit, onCancel }: P
     const outcomes: HandlerOutcome[] = pending.map((p) => ({
       squadName: p.squadName,
       handlerKey: p.handler.key,
-      decision: p.handler.decide(inputs[p.squadName] ?? {}),
+      decision: p.handler.decide(effectiveInputs[p.squadName] ?? {}),
     }));
     onSubmit(outcomes);
   }
@@ -101,7 +95,7 @@ export function DynamicSpawnPromptModal({ show, pending, onSubmit, onCancel }: P
             <h5 className="mb-1">{p.handler.title}</h5>
             <div className="text-muted small mb-2">Squad: {p.squadName}</div>
             {p.handler.prompts.map((prompt) => {
-              const value = inputs[p.squadName][prompt.id];
+              const value = effectiveInputs[p.squadName]?.[prompt.id];
               if (prompt.kind === 'confirm') {
                 return (
                   <label key={prompt.id} className="d-block">

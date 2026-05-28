@@ -139,6 +139,10 @@ function arrivalsFromSquadrons(squadrons: readonly Squadron[]): readonly Arrival
 }
 
 function squadShouldSpawnAt(squad: ScenarioSquad, round: number): boolean {
+  // Dynamic-spawn squads never auto-arrive: their spawn is driven entirely
+  // by the end-of-round handler popup (e.g. Inspection in Secure the
+  // Holonet only arrives once the spy's channel has been identified).
+  if (hasTag(squad, 'dynamicSpawn')) return false;
   switch (squad.arrival.kind) {
     case 'setup':
       return round === 1;
