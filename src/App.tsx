@@ -248,7 +248,7 @@ function App() {
     const setupSquadrons = briefingScenario.squads
       .filter((sq) => squadShouldSpawnAt(sq, 1))
       .flatMap((sq) => spawnFromScenarioSquad(sq, ctx));
-    const allySquadrons = spawnAlliesFromScenario(briefingScenario);
+    const allySquadrons = spawnAlliesFromScenario(briefingScenario, playerCount);
     setSquadrons([...allySquadrons, ...setupSquadrons]);
     // Arrival notification covers only Imperial squad arrivals — allies are
     // placed during setup, not arriving from an edge.

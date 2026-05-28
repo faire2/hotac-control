@@ -131,6 +131,9 @@ export interface Squadron {
   /** Present iff `upgrades` came from `getUpgrades`. Absent for mission-fixed,
    * ally, and `noUpgrades`-tagged squads. */
   rollMeta?: UpgradeRollMeta;
+  /** Mission-fixed pilot initiative for allies. Takes precedence over
+   * `rollMeta.initiative` and `Ships[shipType].initiative` when set. */
+  initiativeOverride?: number;
   ships: ShipInstance[];
   /** Set iff spawned by a scenario. Free play leaves this undefined. */
   scenarioMeta?: ScenarioSpawnMeta;

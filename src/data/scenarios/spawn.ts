@@ -238,15 +238,22 @@ export function rollUniqueVector(
  * to the ship's name). No approach vector — allies are part of scenario setup,
  * not arriving from an edge.
  */
-export function spawnAlliesFromScenario(scenario: Scenario): Squadron[] {
+export function spawnAlliesFromScenario(
+  scenario: Scenario,
+  playerCount: PlayerCount,
+): Squadron[] {
   if (!scenario.allies?.length) return [];
   return scenario.allies.map((ally) => {
     const ship = Ships[ally.ship];
     const squadName = ally.displayName ?? ship.name;
+    const baseShields = ally.startingShields ?? ship.shields;
+    const bonusShields = ally.bonusShieldsPerPlayers
+      ? Math.floor(playerCount / ally.bonusShieldsPerPlayers)
+      : 0;
     const shipInstance: ShipInstance = {
       tokenId: 0,
       hull: ally.startingHull ?? ship.hull,
-      shields: ally.startingShields ?? ship.shields,
+      shields: baseShields + bonusShields,
     };
     if (ship.hasEnergy) {
       shipInstance.energy = ally.startingEnergy ?? 0;
@@ -255,7 +262,8 @@ export function spawnAlliesFromScenario(scenario: Scenario): Squadron[] {
       id: crypto.randomUUID(),
       shipType: ally.ship,
       isElite: false,
-      upgrades: [],
+      upgrades: ally.upgrades ?? [],
+      ...(ally.initiative !== undefined ? { initiativeOverride: ally.initiative } : {}),
       ships: [shipInstance],
       scenarioMeta: {
         squadName,

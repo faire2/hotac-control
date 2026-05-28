@@ -199,7 +199,11 @@ export function Squad({ squad, squadId }: Props) {
               )}
             </div>
           )}
-          <SquadStats shipType={shipType} rollMeta={squad.rollMeta} />
+          <SquadStats
+            shipType={shipType}
+            rollMeta={squad.rollMeta}
+            initiativeOverride={squad.initiativeOverride}
+          />
           <ShipsVariables squadId={squadId} />
           <div className="row no-gutters align-items-stretch">
             <div className="col-6 pr-1 d-flex flex-column">

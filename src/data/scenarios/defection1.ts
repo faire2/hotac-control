@@ -1,4 +1,5 @@
 import type { Scenario } from './types';
+import { AndersonUpgradePool } from '../anderson/AndersonUpgradePool';
 
 const briefing = `"Several weeks ago, a Rebel spy was assigned to a new squadron of Imperial fighters, and has been sending us intelligence on their performance.
 
@@ -112,7 +113,13 @@ export const defection1: Scenario = {
     next: { kind: 'reshuffle' },
   },
   allies: [
-    { ship: 'HWK290', displayName: 'Slicer Techs' },
+    {
+      ship: 'HWK290',
+      displayName: 'Slicer Techs',
+      initiative: 2,
+      upgrades: [AndersonUpgradePool.ionCannonTurret],
+      bonusShieldsPerPlayers: 2,
+    },
   ],
   squads: [
     {

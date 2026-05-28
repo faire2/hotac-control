@@ -11,6 +11,8 @@
  * `AllySetup` shape.
  */
 
+import type { Upgrade } from './shared/coreUpgrades';
+
 /**
  * Subset of `ShipId` covering rebel-ally ship types. Distinct alias so
  * scenario data can't accidentally put an Imperial ship in `allies[]`.
@@ -24,11 +26,10 @@ export type AllyShipId = 'HWK290' | 'GR75' | 'OUTER_RIM_SMUGGLER';
  * `displayName` overrides the default ship name (e.g. "Quantum Storm" for
  * the Care Package GR-75). `startingHull` / `startingShields` /
  * `startingEnergy` override base stats when a mission starts the ally
- * damaged or boosted.
- *
- * Per-mission upgrade lists, AI rules (e.g. "team-controlled dial"), and
- * energy systems beyond the count itself are out of scope — they're
- * documented in the mission's `specialRules` and tracked by players.
+ * damaged or boosted. `initiative` and `upgrades` override the ship's
+ * printed loadout when a mission equips the ally with a specific pilot
+ * skill and/or upgrade cards (e.g. Slicer Techs HWK-290 in
+ * "Secure the Holonet": Init 2 + Ion Cannon Turret).
  */
 export interface AllySetup {
   ship: AllyShipId;
@@ -37,4 +38,15 @@ export interface AllySetup {
   startingShields?: number;
   /** GR-75 only — initial energy when the scenario starts. */
   startingEnergy?: number;
+  /** Mission-fixed pilot initiative. Overrides `Ships[ship].initiative`. */
+  initiative?: number;
+  /** Mission-issued upgrade cards equipped by this ally. */
+  upgrades?: readonly Upgrade[];
+  /**
+   * Bonus shields scaled by player count: "+1 shield per N players".
+   * Computed as `floor(playerCount / N)` and added on top of the base
+   * (or `startingShields` if set). E.g. `bonusShieldsPerPlayers: 2` →
+   * +1 at 2-3 players, +2 at 4 players.
+   */
+  bonusShieldsPerPlayers?: number;
 }
