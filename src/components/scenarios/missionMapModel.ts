@@ -9,6 +9,7 @@
  *   - asteroid placement (seeded, min-distance rejection sampling).
  */
 
+import type { ShipId } from '../../data/Ships';
 import type {
   MapHue,
   MapPoint,
@@ -37,6 +38,15 @@ export type ResolvedToken =
       label?: string;
       playerCount?: number;
       tip?: string;
+    }
+  | {
+      kind: 'ship';
+      at: readonly [number, number];
+      ship: ShipId;
+      hue?: MapHue;
+      label?: string;
+      playerCount?: number;
+      tip?: string;
     };
 
 export interface DrawableVector {
@@ -48,6 +58,8 @@ export interface DrawableVector {
 
 export interface DrawableAsteroids {
   rocks: readonly (readonly [number, number])[];
+  /** Red "debris" rocks, sampled in the same pass so they stay spaced from `rocks`. */
+  debris: readonly (readonly [number, number])[];
   seed: number;
   tip?: string;
 }
@@ -94,7 +106,7 @@ function simpleVectorReaches12(v: SimpleVector): boolean {
 function vectorReaches12(v: Vector): boolean {
   if (Array.isArray(v)) return v.some(simpleVectorReaches12);
   if (typeof v === 'object') return true; // oppositeOf pairs resolve into 7..12
-  return simpleVectorReaches12(v as SimpleVector);
+  return simpleVectorReaches12(v);
 }
 
 /** 6- or 12-vector ring, inferred from whether any squad can arrive on 7..12. */
@@ -188,7 +200,14 @@ function insetRect(r: MapRect, by: number): MapRect {
   return [r[0] + by, r[1] + by, r[2] - by, r[3] - by];
 }
 
-export function resolveMissionMap(scenario: Scenario): DrawableMap {
+/**
+ * Resolve a scenario's map for a given player count. Tokens carrying a
+ * `playerCount` threshold are kept only when `playerCount >= threshold` (the
+ * board grows with the table size, the way the printed maps add shuttles,
+ * cargo, and turbolasers at higher counts). Omit `playerCount` to show every
+ * token regardless of threshold.
+ */
+export function resolveMissionMap(scenario: Scenario, playerCount?: number): DrawableMap {
   const spec: MissionMap = scenario.map ?? {};
   const grid = spec.grid ?? DEFAULT_GRID;
   const seed = spec.seed ?? 1;
@@ -229,26 +248,35 @@ export function resolveMissionMap(scenario: Scenario): DrawableMap {
   for (const f of spec.features ?? []) {
     if (f.kind === 'asteroids') {
       const zone = f.in ? byId.get(f.in) : undefined;
-      const region: MapRect = f.region
-        ? f.region
-        : zone
-          ? insetRect(zoneRect(zone, grid), ASTEROID_INSET)
-          : insetRect([0, 0, grid, grid], 2);
+      const region: MapRect =
+        f.region ??
+        (zone ? insetRect(zoneRect(zone, grid), ASTEROID_INSET) : insetRect([0, 0, grid, grid], 2));
       const fSeed = f.seed ?? seed;
+      const debrisCount = f.debris ?? 0;
+      const all = sampleAsteroids(region, f.count + debrisCount, fSeed, f.minDist ?? DEFAULT_MIN_DIST);
       asteroids.push({
-        rocks: sampleAsteroids(region, f.count, fSeed, f.minDist ?? DEFAULT_MIN_DIST),
+        rocks: all.slice(0, f.count),
+        debris: all.slice(f.count),
         seed: fSeed,
-        tip: 'Asteroid field — placement is randomized at setup',
+        tip:
+          debrisCount > 0
+            ? 'Asteroid & debris field — placement is randomized at setup'
+            : 'Asteroid field — placement is randomized at setup',
       });
     } else {
       stations.push({ preset: f.preset, at: resolvePoint(f.at, grid), label: f.label, tip: f.tip });
     }
   }
 
-  const tokens: ResolvedToken[] = (spec.tokens ?? []).map((tk) => ({
-    ...tk,
-    at: resolvePoint(tk.at, grid),
-  }));
+  const tokens: ResolvedToken[] = (spec.tokens ?? [])
+    .filter((tk) => {
+      const threshold = 'playerCount' in tk ? tk.playerCount : undefined;
+      return playerCount === undefined || threshold === undefined || playerCount >= threshold;
+    })
+    .map((tk) => ({
+      ...tk,
+      at: resolvePoint(tk.at, grid),
+    }));
 
   return {
     grid,

@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-11 (Phase 11 ally rendering: allies folded into `Ships`, ally Squadrons spawn at scenario start, GR-75 energy tracker, blue-accent ally card)
+Last updated: 2026-05-31 (Phase 12 — holo mission maps: hand-authored SVG `MissionMap` spec, ship-silhouette tokens, asteroid+debris fields, player-count-aware token gating + quarter-circle setup zones, Local Trouble + Capture the Officer I/II/III maps)
 
 ## Project summary
 
@@ -284,6 +284,43 @@ default landing.
 - [ ] OAuth + Neon DB backend. The persistence interface is designed for this swap — drop in a `storage.neon.ts`, change one import. User explicitly deferred ("come back to it later").
 - [ ] Per-mission upgrade lists for ally ships (Quantum Storm, Damage Control Team, etc.) — still in `specialRules` text.
 - [x] Render ally squadrons in the UI (2026-05-11). Allies folded into `Ships` registry (`ai: []`, `upgrades: []`) so squad cards look them up uniformly; `Squadron.shipType` widened implicitly to include ally IDs. `Squadron.energy?: number` + `Ship.hasEnergy?: boolean` track the GR-75 huge-ship energy resource. `AllySetup.startingEnergy?: number` overrides per-mission. New `spawnAlliesFromScenario` in `spawn.ts` spawns one Squadron per `scenario.allies` entry at scenario start (placed alongside Imperial squads, no arrival modal). `ScenarioSpawnMeta.fromVector` now optional — allies have no approach edge. `Squad.tsx` branches presentation on `ship.ai.length === 0`: AI machinery (engine toggle, upgrades) renders empty/inert; new `.squadContainerAlly` CSS gives ally cards a blue accent. `ShipsVariables` renders an Energy +/- row when `squadron.energy !== undefined`. `ShipPickerModal` filters to AI-only ships. Per-mission ally upgrade lists stay in `specialRules` text (briefing modal).
+
+### Phase 12 — Holo mission maps (2026-05-31, in progress)
+
+Replace the ASCII `<pre>{mapDiagram}</pre>` in the briefing modal with stylized
+"pseudo-holo vector" SVG maps. Readability in-app outweighs board fidelity; maps
+show the static initial setup with tooltips only. **Each mission's map is
+hand-authored — layouts are not derived from squad data.**
+
+- [x] `MissionMap` spec on `Scenario.map?` — zones (band/rect/disc/corner/point),
+  features (seeded asteroid fields, space stations), tokens (playerStart /
+  objective / structure / **ship**), authored `MapVector[]` ring, optional
+  setup edge. Types in `src/data/scenarios/types.ts`.
+- [x] `src/components/scenarios/missionMapModel.ts` — pure `resolveMissionMap(scenario)`
+  → `DrawableMap`. Computes only the swept vector ring (when `'auto'`) and the
+  seeded min-distance asteroid placement; everything else is pass-through.
+- [x] `src/components/scenarios/MissionMap.tsx` + `MissionMap.css` — holo SVG
+  renderer. **Ship tokens reuse the squad-view iconography** (real X-Wing
+  silhouette from the vendored `XWingShip` font as SVG `<text>`, keyed by a
+  `ShipId → glyph char` map), not abstract glyphs.
+- [x] `ScenarioBriefingModal` renders `<MissionMap>` when `scenario.map` is set,
+  else falls back to the ASCII `mapDiagram`.
+- [x] Asteroid fields support a second obstacle class — red **debris** rocks
+  (`MapFeature.debris?`), sampled jointly with the asteroids in one pass so all
+  obstacles keep the printed `minDist` spacing. Drawn via the `--accent-danger`
+  hue stroke.
+- [x] **Player-count-aware rendering.** `resolveMissionMap(scenario, playerCount?)`
+  filters tokens carrying a `playerCount` threshold (kept when current count >=
+  threshold), and `ScenarioBriefingModal` passes its live player-count toggle
+  through. The map renders the *actual* board for the selected count — gated
+  shuttles / turbolasers / cargo appear as the table grows. No count badges.
+- [x] **Quarter-circle corner setup zones** (`zone.corner`) render as an SVG arc
+  wedge, matching the printed quarter-circle deployment areas.
+- [x] Authored maps: Local Trouble, Capture the Officer Part I, Capture the
+  Officer Part II ("Nobody Home"), Capture the Officer Part III ("Miners
+  Strike" — quarter-circle setup zone, landing-pad stations, player-count-gated
+  cargo blocks / turbolasers / second shuttle).
+- [ ] Author the remaining 13 missions' maps (incremental, one per session).
 
 ### Backlog (Needs Planning)
 - Backfill `Scenario.behaviorDescriptions` for all 17 missions. Field landed 2026-05-11; schema + render slot are wired (squad card carousel target panel, under the priority list). Each mission needs ~3 entries keyed by `aiTag` value (`Attack`/`Escort`/`Strike`/`Special`/`Flee*`), text copied/condensed from the existing `specialRules` sidebars. Same tag means different things across missions (`Special` = Lambda Shuttle in CapOfficer-1 vs. VT-49 in Minefields-2), so authoring is per-mission. `:icon:` shortcodes supported and validated.

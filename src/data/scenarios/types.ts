@@ -301,6 +301,12 @@ export type MapFeature =
   | {
       kind: 'asteroids';
       count: number;
+      /**
+       * Optional second obstacle class — red "debris" rocks (meteorites). Sampled
+       * together with the asteroids from the same region so all obstacles keep the
+       * `minDist` spacing the printed maps require (">1 apart").
+       */
+      debris?: number;
       /** Zone id whose rect bounds the scatter region. */
       in?: string;
       /** Explicit scatter region (used when `in` is absent). */
@@ -315,7 +321,22 @@ export type MapFeature =
 export type MapToken =
   | { kind: 'playerStart'; at: MapPoint; playerCount?: number; tip?: string }
   | { kind: 'objective'; at: MapPoint; label?: string; tip?: string }
-  | { kind: 'structure'; at: MapPoint; label?: string; playerCount?: number; tip?: string };
+  | { kind: 'structure'; at: MapPoint; label?: string; playerCount?: number; tip?: string }
+  /**
+   * A real ship silhouette drawn from the vendored `XWingShip` icon font (the
+   * same glyphs the squad cards use). `ship` is an internal `ShipId`; an
+   * optional `label` adds a badge (e.g. the objective letter `C`).
+   */
+  | {
+      kind: 'ship';
+      at: MapPoint;
+      ship: ShipId;
+      hue?: MapHue;
+      label?: string;
+      /** The ship is only rendered when the current player count is >= this threshold. */
+      playerCount?: number;
+      tip?: string;
+    };
 
 export interface MissionMap {
   /** Board size in cells (square). Default 9. */

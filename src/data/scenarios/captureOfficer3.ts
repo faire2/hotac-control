@@ -32,6 +32,75 @@ export const captureOfficer3: Scenario = {
     'Turbolasers [T] begin facing corner A',
     'G: Cargo emplacements (5 hull, 0 agility, count as 2 damage)',
   ],
+  map: {
+    grid: 9,
+    seed: 16,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'C',
+        hue: 'holo',
+        band: { side: 'left', depth: 1 },
+        tip: 'C — Cargo Shuttle Escape Edge: landed shuttles take off Turn 3 and flee off this edge',
+      },
+      {
+        label: 'A',
+        hue: 'danger',
+        corner: { corner: 'br', radius: 3 },
+        tip: 'A — Player setup area: deploy in this quarter. Turbolasers begin facing this corner.',
+      },
+    ],
+    // Two landing pads (always present); the shuttle parked on the right pad,
+    // plus its turbolaser, only appear at 4+ players.
+    features: [
+      { kind: 'station', preset: 'bar', at: [4.9, 1.5], tip: 'Landing pad' },
+      { kind: 'station', preset: 'bar', at: [6.8, 2.5], tip: 'Landing pad' },
+    ],
+    tokens: [
+      { kind: 'ship', ship: 'LAMBDA', at: [4.9, 1.5], label: 'B', tip: 'B — Landed cargo shuttle' },
+      {
+        kind: 'ship',
+        ship: 'LAMBDA',
+        at: [6.8, 2.5],
+        label: 'B',
+        playerCount: 4,
+        tip: 'B — Second cargo shuttle (4+ players)',
+      },
+      // Turbolaser towers — the top and central ones are always present; the
+      // right tower comes with the second shuttle (4p), the rest scale up.
+      { kind: 'structure', label: 'T', at: [3.7, 1.5], tip: 'Turbolaser tower — begins facing corner A' },
+      { kind: 'structure', label: 'T', at: [4.6, 5.4], tip: 'Turbolaser tower — begins facing corner A' },
+      { kind: 'structure', label: 'T', at: [6.7, 3.6], playerCount: 4, tip: 'Turbolaser tower (4+ players) — begins facing corner A' },
+      { kind: 'structure', label: 'T', at: [3.4, 3.1], playerCount: 5, tip: 'Turbolaser tower (5+ players) — begins facing corner A' },
+      { kind: 'structure', label: 'T', at: [1.3, 6.5], playerCount: 3, tip: 'Turbolaser tower (3+ players) — begins facing corner A' },
+      { kind: 'structure', label: 'T', at: [3.7, 7.6], playerCount: 6, tip: 'Turbolaser tower (6 players) — begins facing corner A' },
+      // Cargo emplacements — three 2×2 blocks. The lower-left block is always
+      // present; the other two fill in a row at a time as the table grows.
+      // Block 1 (left): top row 6p, bottom row 4p.
+      { kind: 'structure', label: 'G', at: [1.8, 2.9], playerCount: 6, tip: 'Cargo emplacement (6 players) — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [2.3, 2.9], playerCount: 6, tip: 'Cargo emplacement (6 players) — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [1.8, 3.4], playerCount: 4, tip: 'Cargo emplacement (4+ players) — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [2.3, 3.4], playerCount: 4, tip: 'Cargo emplacement (4+ players) — 5 hull, 0 agility' },
+      // Block 2 (centre): top row 5p, bottom row 3p.
+      { kind: 'structure', label: 'G', at: [5.1, 4.3], playerCount: 5, tip: 'Cargo emplacement (5+ players) — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [5.6, 4.3], playerCount: 5, tip: 'Cargo emplacement (5+ players) — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [5.1, 4.8], playerCount: 3, tip: 'Cargo emplacement (3+ players) — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [5.6, 4.8], playerCount: 3, tip: 'Cargo emplacement (3+ players) — 5 hull, 0 agility' },
+      // Block 3 (lower-left): always present.
+      { kind: 'structure', label: 'G', at: [2.8, 6.5], tip: 'Cargo emplacement — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [3.3, 6.5], tip: 'Cargo emplacement — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [2.8, 7.0], tip: 'Cargo emplacement — 5 hull, 0 agility' },
+      { kind: 'structure', label: 'G', at: [3.3, 7.0], tip: 'Cargo emplacement — 5 hull, 0 agility' },
+    ],
+    vectors: [
+      { n: 1, side: 'bottom', t: 0.33 },
+      { n: 2, side: 'left', t: 0.66 },
+      { n: 3, side: 'left', t: 0.33 },
+      { n: 4, side: 'top', t: 0.33 },
+      { n: 5, side: 'top', t: 0.66 },
+      { n: 6, side: 'right', t: 0.33 },
+    ],
+  },
   turnLimit: 12,
   territory: 'friendly',
   objectives: [

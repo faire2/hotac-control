@@ -43,6 +43,68 @@ export const captureOfficer1: Scenario = {
     'B: Imperial escape edge',
     'E: Asteroids ×6, Debris ×6, random layout (Range >1 apart / from edge)',
   ],
+  map: {
+    grid: 9,
+    seed: 12,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'B',
+        hue: 'holo',
+        band: { side: 'top', depth: 1 },
+        tip: 'B — Imperial escape edge: the shuttle flees this way once damaged',
+      },
+      {
+        label: 'A',
+        hue: 'danger',
+        band: { side: 'left', depth: 1, span: [1, 8] },
+        tip: 'A — Player setup edge: deploy your ships along the left and right edges',
+      },
+      {
+        label: 'A',
+        hue: 'danger',
+        band: { side: 'right', depth: 1, span: [1, 8] },
+        tip: 'A — Player setup edge: deploy your ships along the left and right edges',
+      },
+      {
+        id: 'E',
+        label: 'E',
+        hue: 'holo',
+        rect: [1, 1, 8, 8],
+        tip: 'E — Asteroid & debris field: 7×7 central zone, place 6 asteroids + 6 debris (Range >1 apart / from edge)',
+      },
+    ],
+    features: [{ kind: 'asteroids', count: 6, debris: 6, in: 'E', seed: 12, minDist: 1.4 }],
+    tokens: [
+      {
+        kind: 'ship',
+        ship: 'TIELN',
+        at: [3.4, 4.5],
+        tip: 'Alpha escort — TIE/LN protecting the shuttle at setup',
+      },
+      {
+        kind: 'ship',
+        ship: 'LAMBDA',
+        at: [4.5, 4.5],
+        label: 'C',
+        tip: "C — Moff Lankin's Lambda shuttle (the objective)",
+      },
+      {
+        kind: 'ship',
+        ship: 'TIELN',
+        at: [5.6, 4.5],
+        tip: 'Alpha escort — TIE/LN protecting the shuttle at setup',
+      },
+    ],
+    vectors: [
+      { n: 1, side: 'bottom', t: 2 / 3 },
+      { n: 2, side: 'bottom', t: 1 / 3 },
+      { n: 3, side: 'left', t: 1 / 3 },
+      { n: 4, side: 'top', t: 1 / 3 },
+      { n: 5, side: 'top', t: 2 / 3 },
+      { n: 6, side: 'right', t: 1 / 3 },
+    ],
+  },
   turnLimit: 12,
   territory: 'friendly',
   objectives: [

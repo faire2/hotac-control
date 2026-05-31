@@ -1,6 +1,6 @@
 # Scenarios & Campaigns
 
-Last updated: 2026-05-06 (Phase 11 — campaign mode landed)
+Last updated: 2026-05-31 (Phase 12 — holo mission maps landed)
 
 Scenarios encode HotAC missions (briefing, map, objectives, squad composition, arrival timing, mission-specific rules) as typed data. The app loads a scenario, advances rounds, prompts for runtime events, and spawns AI squadrons accordingly.
 
@@ -46,7 +46,7 @@ arrives via Menu → New → Campaign (creates a new save) or Menu → Open
 ## Modal flow
 
 1. **`LoadScenarioModal`** — picker. Disables scenarios whose `requiredModels` aren't all in `settings.ownedModels`, with a "Requires: X" hint.
-2. **`ScenarioBriefingModal` (`mode='start'`)** — header has rank/players/AI/upgrades toggles. Body has briefing text, ASCII map + notes, objectives. Footer: Back or Start.
+2. **`ScenarioBriefingModal` (`mode='start'`)** — header has rank/players/AI/upgrades toggles. Body has briefing text, the holo map (`<MissionMap>` when `scenario.map` is set, else the ASCII `mapDiagram`) + notes, objectives. Footer: Back or Start.
 3. On Start: clears squadrons, resets round to 1, spawns Setup squads + any `arrival.turn === 1` squads, opens `ArrivalNotificationModal` if anything spawned.
 4. **`ScenarioBriefingModal` (`mode='view'`)** — re-opened during play. Same layout, no Start button.
 5. **`DynamicSpawnPromptModal`** — fires before round advance when the scenario has unresolved dynamic-spawn handlers. Renders typed prompts (confirm checkbox, count input).
@@ -63,8 +63,9 @@ interface Scenario {
   title: string;
   subtitle?: string;
   briefing: string;
-  mapDiagram: string;
+  mapDiagram: string;                            // ASCII fallback (still required)
   mapNotes: readonly string[];
+  map?: MissionMap;                              // hand-authored holo SVG map (preferred)
   turnLimit: number;
   territory: 'friendly' | 'hostile' | 'enemy';
   objectives: readonly ScenarioObjective[];
@@ -127,6 +128,83 @@ type ArrivalTrigger =
   | { kind: 'turn'; turn: number }
   | { kind: 'rolledTurn'; turn: number; roll: '1d6' };
 ```
+
+## Mission map (`MissionMap`)
+
+Each mission's map is a **hand-authored** declarative spec on `Scenario.map`. There is
+no data-derived auto-layout: zones, tokens, and the vector ring are authored per
+mission because real HotAC boards diverge too much to generalize. The ASCII
+`mapDiagram` stays as a fallback for missions without a `map`.
+
+The pure resolver `resolveMissionMap(scenario)` (in `missionMapModel.ts`) flattens
+the spec into a `DrawableMap`; the `<MissionMap>` SVG component renders it. The only
+genuinely-computed pieces are the seeded asteroid placement (min-distance rejection
+sampling) and, when `vectors` is left to `'auto'`, the swept vector ring. An
+asteroid feature may also carry `debris?` — a second class of red obstacle rocks
+sampled jointly with the asteroids in the same pass, so the whole field keeps the
+printed ">1 apart" spacing regardless of which obstacle class a rock belongs to.
+
+```ts
+interface MissionMap {
+  grid?: number;                 // cells per side (default 9)
+  seed?: number;                 // global RNG seed (default 1)
+  setupEdge?: { side; depth?; label? } | false;  // synthesised warn-hued band; false = none
+  zones?: readonly MapZone[];    // labelled regions (bands, rects, discs, corners, points)
+  features?: readonly MapFeature[];  // asteroids field(s) + space stations
+  tokens?: readonly MapToken[];      // playerStart / objective / structure / ship
+  vectors?: readonly MapVector[] | 'auto' | 6 | 12 | false;  // approach ring
+}
+
+type MapHue = 'holo' | 'warn' | 'danger';   // → --accent-holo / --accent-warn / --accent-danger
+type MapPoint = readonly [number, number] | 'center';   // cell units, origin top-left
+
+interface MapZone {                          // exactly one shape key
+  label?; hue?; tip?; id?;                    // id lets a feature target this zone (`in`)
+  band?: { side: MapSide; depth: number; span?: readonly [number, number] };
+  rect?: MapRect; disc?: { at; r }; corner?: { corner; radius }; point?: MapPoint;
+}
+
+type MapFeature =
+  | { kind: 'asteroids'; count; debris?; in?; region?; seed?; minDist? }
+  | { kind: 'station'; preset: 'triHub' | 'bar'; at; label?; tip? };
+
+type MapToken =
+  | { kind: 'playerStart'; at; playerCount?; tip? }
+  | { kind: 'objective'; at; label?; tip? }
+  | { kind: 'structure'; at; label?; playerCount?; tip? }
+  | { kind: 'ship'; at; ship: ShipId; hue?; label?; playerCount?; tip? };
+
+interface MapVector { n: number; side: MapSide; t: number; }  // t = 0..1 along the edge
+```
+
+**Ship tokens reuse the squad-view iconography** — `<MissionMap>` renders the real
+X-Wing ship silhouette from the vendored `XWingShip` font as SVG `<text>`, keyed by a
+`ShipId → glyph char` map (`TIELN:'F'`, `LAMBDA:'l'`, `TIEIN:'I'`, …). Don't re-author
+ship art; add the glyph char to the map if a new ship type appears on a board.
+
+**Band `span`** clips a left/right band along the Y axis (`[a, b]` in cell units; default
+`[0, grid]` = full edge). Capture the Officer's red setup bands use `span: [1, 8]` so they
+stop one cell short top and bottom while the blue escape band spans the full width.
+
+**Vectors are authored per map.** The approach-vector ring differs wildly mission to
+mission, so prefer an explicit `MapVector[]`. `'auto'` / `6` / `12` fall back to the swept
+ring derived from the setup edge + whether any squad can roll 7..12; `false` hides it.
+
+**Player-count-aware rendering.** `structure` and `ship` tokens may carry a
+`playerCount` threshold. `resolveMissionMap(scenario, playerCount?)` keeps a token only
+when the current count is `>=` its threshold (omit `playerCount` to show every token).
+`ScenarioBriefingModal` threads its live player-count toggle through, so the map renders
+the *actual* board for the selected count — gated turbolasers / cargo / shuttles fade in
+as the table grows. Tokens with no threshold are always present. No count badges are drawn.
+
+**Quarter-circle setup zones.** `corner: { corner: 'tl'|'tr'|'bl'|'br', radius }` renders
+as an SVG arc wedge anchored at the chosen board corner (matches the printed quarter-circle
+deployment areas), with the zone label centred on the wedge.
+
+Authored examples: `localTrouble.ts` (bottom setup edge + central rect zone),
+`captureOfficer1.ts` (no setup edge, top escape band + flanking setup bands + ship tokens),
+and `captureOfficer3.ts` ("Miners Strike" — quarter-circle setup zone, `bar` landing-pad
+stations, player-count-gated cargo blocks / turbolasers / second shuttle).
 
 ## Setup-op semantics
 
@@ -239,7 +317,7 @@ Squads tagged `{ kind: 'dynamicSpawn', handler: '<key>' }` defer their arrival t
 
 ```
 src/data/scenarios/
-├── types.ts                      # Scenario, ScenarioSquad, SetupOp, SquadTag, Vector, Outcome
+├── types.ts                      # Scenario, ScenarioSquad, SetupOp, SquadTag, Vector, Outcome, MissionMap
 ├── resolve.ts                    # resolveSquad, resolveVector, resolveSquadVector, OPPOSITE_VECTOR
 ├── spawn.ts                      # spawnFromScenarioSquad, SpawnContext, priorVectorsFromSquadrons, opsForShipsOverride
 ├── randomShipPool.ts             # DEFAULT_RANDOM_SHIP_POOL, rollD20RandomShip, pickFromD20Table
@@ -274,7 +352,10 @@ src/components/scenarios/
 ├── ScenarioBriefingModal.tsx     # briefing + setup / view-during-play
 ├── EndScenarioModal.tsx          # outcome picker (Rebel/Imperial victory)
 ├── DynamicSpawnPromptModal.tsx   # generic per-handler prompt renderer
-└── ArrivalNotificationModal.tsx  # post-spawn arrivals listing
+├── ArrivalNotificationModal.tsx  # post-spawn arrivals listing
+├── MissionMap.tsx                # holo SVG map renderer (zones, asteroids, ship tokens, vectors)
+├── MissionMap.css                # .missionMap container styling
+└── missionMapModel.ts            # pure resolveMissionMap(scenario) → DrawableMap (no React)
 
 src/components/menu/
 ├── MainMenu.tsx                  # top-bar dropdown: New / Open / Logout

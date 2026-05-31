@@ -1,6 +1,6 @@
 # Documentation catalog
 
-Last updated: 2026-05-06
+Last updated: 2026-05-31
 
 Central index of all project documentation. Update this file whenever you add, rename, or materially change a doc.
 
@@ -23,7 +23,7 @@ Central index of all project documentation. Update this file whenever you add, r
 
 | Doc | Purpose |
 |---|---|
-| [`SCENARIOS.md`](./SCENARIOS.md) | Scenario loader: data shape, resolution rules, free-play vs scenario-play UI regimes, validator coverage, authoring guide. |
+| [`SCENARIOS.md`](./SCENARIOS.md) | Scenario loader: data shape, resolution rules, free-play vs scenario-play UI regimes, holo mission-map spec (`MissionMap`), validator coverage, authoring guide. |
 
 ## Internal reference (not deployed, not versioned)
 

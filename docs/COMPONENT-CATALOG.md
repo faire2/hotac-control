@@ -1,6 +1,6 @@
 # Component catalog
 
-Last updated: 2026-05-06
+Last updated: 2026-05-31
 
 Reusable UI components in `src/`. Update this file when you add, rename, or materially change a component.
 
@@ -46,7 +46,8 @@ The pure-logic `getUpgrades(shipType, playersRank, source, isElite)` picker — 
 See [`SCENARIOS.md`](./SCENARIOS.md) for the full feature description.
 
 - **`LoadScenarioModal.tsx`** — picker (step 1 of the scenario flow). Lists `SCENARIOS`. Disables scenarios whose `requiredModels` aren't all in the active settings' `ownedModels` (campaign mode reads from the campaign record, free-play uses `DEFAULT_SPAWN_SETTINGS`). Greyed entries use `btn-outline-secondary`.
-- **`ScenarioBriefingModal.tsx`** — briefing + setup (step 2) and view-during-play. Custom blue header (`.scenarioModalHeader`) hosts four toggle groups: rank, number, AI engine, upgrades source. Body renders briefing text, centered ASCII map + notes, objectives. Footer differs per `mode`: `start` shows Back + Start scenario; `view` shows Close. XP rewards use `.badge-xp` (blue).
+- **`ScenarioBriefingModal.tsx`** — briefing + setup (step 2) and view-during-play. Custom blue header (`.scenarioModalHeader`) hosts four toggle groups: rank, number, AI engine, upgrades source. Body renders briefing text, the map (`<MissionMap>` when `scenario.map` is set, else the centered ASCII `mapDiagram`) + notes, objectives. Footer differs per `mode`: `start` shows Back + Start scenario; `view` shows Close. XP rewards use `.badge-xp` (blue).
+- **`MissionMap.tsx`** — holo-styled SVG mission map. Renders a `DrawableMap` (from `missionMapModel.ts`'s pure `resolveMissionMap(scenario)`) as a 9×9 grid with labelled zones (bands/rects/discs/corners/points), seeded asteroid fields, space stations, approach-vector badges, and **ship tokens drawn with the real X-Wing silhouette** from the vendored `XWingShip` font (SVG `<text>`, keyed by a `ShipId → glyph char` map). Hues map to `--accent-holo/warn/danger`. Pure presentational, no state. Styling in `MissionMap.css` (`.missionMap`). See [`SCENARIOS.md`](./SCENARIOS.md#mission-map-missionmap) for the authored `MissionMap` spec.
 - **`EndScenarioModal.tsx`** — outcome picker shown when End scenario is clicked. Renders objectives + both Outcome panels (Rebel and Imperial), each with its `text`, the `Outcome.next` description, VP badges, and a resolve button. Picking one calls `onResolve(kind)`; the App applies points + ship-introduction unlocks and routes via `Outcome.next` (next mission staged in `ScenarioBriefingModal`, replay, reshuffle, etc.). Cancel returns to free play.
 - **`menu/MainMenu.tsx`** — top-bar dropdown: New / Open / Logout. Wired in `App.tsx`'s top bar and visible in every mode.
 - **`menu/NewGamePickerModal.tsx`** — three-option picker (Campaign / Scenario / Free Play) shown after Menu → New.

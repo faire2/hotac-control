@@ -30,6 +30,44 @@ export const captureOfficer2: Scenario = {
     'B: Crippled shuttle (obstacle only)',
     'C: Asteroids ×6, Debris ×6, random layout (Range >1 apart, Range >1 from edge)',
   ],
+  map: {
+    grid: 9,
+    seed: 14,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'A',
+        hue: 'holo',
+        band: { side: 'top', depth: 1 },
+        tip: 'A — Imperial escape edge: fleeing enemies fly off this edge',
+      },
+      {
+        id: 'C',
+        label: 'C',
+        hue: 'holo',
+        rect: [1, 1, 8, 8],
+        tip: 'C — Asteroid & debris field: 7×7 zone, place 6 asteroids + 6 debris (Range >1 apart, >1 from edge)',
+      },
+    ],
+    features: [{ kind: 'asteroids', count: 6, debris: 6, in: 'C', seed: 14, minDist: 1.4 }],
+    tokens: [
+      {
+        kind: 'ship',
+        ship: 'LAMBDA',
+        at: [4.5, 6],
+        label: 'B',
+        tip: 'B — Crippled shuttle (obstacle only): the bait, salvaged from Part I',
+      },
+    ],
+    // All five Imperial squads arrive from the top escape edge (vectors 1–5).
+    vectors: [
+      { n: 1, side: 'top', t: 0.18 },
+      { n: 2, side: 'top', t: 0.32 },
+      { n: 3, side: 'top', t: 0.6 },
+      { n: 4, side: 'top', t: 0.74 },
+      { n: 5, side: 'top', t: 0.88 },
+    ],
+  },
   turnLimit: 10,
   territory: 'friendly',
   objectives: [

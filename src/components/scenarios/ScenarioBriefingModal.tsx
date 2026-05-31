@@ -118,7 +118,7 @@ export function ScenarioBriefingModal({
 
         <div className="scenarioMap mt-4">
           {scenario.map ? (
-            <MissionMap scenario={scenario} />
+            <MissionMap scenario={scenario} playerCount={playerCount} />
           ) : (
             <pre style={{ fontSize: '0.85em', lineHeight: 1.1 }}>{scenario.mapDiagram}</pre>
           )}

@@ -6,6 +6,7 @@
  */
 
 import type { ReactElement } from 'react';
+import type { ShipId } from '../../data/Ships';
 import type { MapHue, MapSide, Scenario } from '../../data/scenarios/types';
 import {
   resolveMissionMap,
@@ -25,6 +26,21 @@ const HUE: Record<MapHue, string> = {
   holo: 'var(--accent-holo)',
   warn: 'var(--accent-warn)',
   danger: 'var(--accent-danger)',
+};
+
+/**
+ * Internal `ShipId` → glyph character in the vendored `XWingShip` icon font
+ * (see `src/fonts/xwing-miniatures.css`). Only the ships that actually appear
+ * on mission maps need an entry; extend as new maps are authored.
+ */
+const SHIP_GLYPH_CHAR: Partial<Record<ShipId, string>> = {
+  TIELN: 'F',
+  TIEIN: 'I',
+  LAMBDA: 'l',
+  TIESA: 'B',
+  TIEADVX: 'A',
+  TIEDEF: 'D',
+  TIEPH: 'P',
 };
 
 interface Geo {
@@ -132,8 +148,8 @@ function Grid({ geo }: { geo: Geo }) {
           strokeDasharray: '7 9',
           strokeOpacity: 0.5,
         };
-    lines.push(<line key={`v${i}`} x1={X(i)} y1={Y(0)} x2={X(i)} y2={Y(grid)} {...common} />);
-    lines.push(<line key={`h${i}`} x1={X(0)} y1={Y(i)} x2={X(grid)} y2={Y(i)} {...common} />);
+    lines.push(<line key={`v${i.toString()}`} x1={X(i)} y1={Y(0)} x2={X(i)} y2={Y(grid)} {...common} />);
+    lines.push(<line key={`h${i.toString()}`} x1={X(0)} y1={Y(i)} x2={X(grid)} y2={Y(i)} {...common} />);
   }
   return (
     <g>
@@ -237,8 +253,8 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
         />
       </>
     );
-    bx = X(rx1);
-    by = (Y(ry0) + Y(ry1)) / 2;
+    bx = X(rx0) + 20;
+    by = Y(ry0) + 20;
   } else if (zone.disc) {
     const [x0, y0, x1, y1] = zoneRect(zone, grid);
     const cx = (X(x0) + X(x1)) / 2;
@@ -264,15 +280,22 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
   } else if (zone.corner) {
     const { corner, radius } = zone.corner;
     const R = radius * CELL;
+    const dirX = corner.includes('l') ? 1 : -1;
+    const dirY = corner.includes('t') ? 1 : -1;
     const cx = corner.includes('l') ? X(0) : X(grid);
     const cy = corner.includes('t') ? Y(0) : Y(grid);
+    // Quarter-disc tucked into the corner: from the corner, out along one edge,
+    // a 90° arc, back in along the other edge. `sweep` is chosen so the arc
+    // bulges into the board.
+    const ex = cx + dirX * R;
+    const ey = cy + dirY * R;
+    const sweep = dirX * dirY > 0 ? 1 : 0;
+    const d = `M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${ex.toFixed(1)} ${cy.toFixed(1)} A ${R.toFixed(1)} ${R.toFixed(1)} 0 0 ${sweep.toString()} ${cx.toFixed(1)} ${ey.toFixed(1)} Z`;
     body = (
       <>
-        <circle cx={cx} cy={cy} r={R} fill={col} fillOpacity={0.1} />
-        <circle
-          cx={cx}
-          cy={cy}
-          r={R}
+        <path d={d} fill={col} fillOpacity={0.1} />
+        <path
+          d={d}
           fill="none"
           stroke={col}
           strokeWidth={1.4}
@@ -281,8 +304,8 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
         />
       </>
     );
-    bx = cx + (corner.includes('l') ? R * 0.55 : -R * 0.55);
-    by = cy + (corner.includes('t') ? R * 0.55 : -R * 0.55);
+    bx = cx + dirX * R * 0.5;
+    by = cy + dirY * R * 0.5;
   } else {
     const p = zone.point ?? [grid / 2, grid / 2];
     bx = X(p[0]);
@@ -303,11 +326,13 @@ function AsteroidPolygon({
   cy,
   base,
   rng,
+  stroke,
 }: {
   cx: number;
   cy: number;
   base: number;
   rng: () => number;
+  stroke: string;
 }) {
   const n = 8 + Math.floor(rng() * 3);
   const pts: string[] = [];
@@ -323,7 +348,7 @@ function AsteroidPolygon({
       points={pts.join(' ')}
       fill="#7f93a6"
       fillOpacity={0.12}
-      stroke="var(--accent-warn)"
+      stroke={stroke}
       strokeWidth={1.8}
       strokeOpacity={0.7}
       strokeLinejoin="round"
@@ -338,11 +363,22 @@ function AsteroidField({ geo, field }: { geo: Geo; field: DrawableAsteroids }) {
       {field.tip ? <title>{field.tip}</title> : null}
       {field.rocks.map(([gx, gy], i) => (
         <AsteroidPolygon
-          key={i}
+          key={`a${i.toString()}`}
           cx={geo.X(gx)}
           cy={geo.Y(gy)}
           base={12 + rng() * 8}
           rng={rng}
+          stroke="var(--accent-warn)"
+        />
+      ))}
+      {field.debris.map(([gx, gy], i) => (
+        <AsteroidPolygon
+          key={`d${i.toString()}`}
+          cx={geo.X(gx)}
+          cy={geo.Y(gy)}
+          base={10 + rng() * 6}
+          rng={rng}
+          stroke="var(--accent-danger)"
         />
       ))}
     </g>
@@ -446,9 +482,10 @@ function Station({ geo, station }: { geo: Geo; station: DrawableStation }) {
 }
 
 function FighterChevron({ cx, cy, s, color }: { cx: number; cy: number; s: number; color: string }) {
+  const f = (n: number) => n.toFixed(1);
   return (
     <path
-      d={`M ${cx} ${cy - 8 * s} L ${cx + 7 * s} ${cy + 6 * s} L ${cx} ${cy + 2 * s} L ${cx - 7 * s} ${cy + 6 * s} Z`}
+      d={`M ${f(cx)} ${f(cy - 8 * s)} L ${f(cx + 7 * s)} ${f(cy + 6 * s)} L ${f(cx)} ${f(cy + 2 * s)} L ${f(cx - 7 * s)} ${f(cy + 6 * s)} Z`}
       fill={color}
       stroke="#04121b"
       strokeWidth={0.6}
@@ -473,11 +510,6 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
           filter="url(#mm-glow)"
         />
         <FighterChevron cx={cx} cy={cy + 1} s={1.1} color="#f2f6f8" />
-        {token.playerCount ? (
-          <text x={cx - 19} y={cy - 16} fill="var(--accent-warn)" fontSize={14} fontWeight={800}>
-            {token.playerCount}p
-          </text>
-        ) : null}
       </>
     );
   } else if (token.kind === 'objective') {
@@ -488,7 +520,7 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
           y={cy - 11}
           width={22}
           height={22}
-          transform={`rotate(45 ${cx} ${cy})`}
+          transform={`rotate(45 ${cx.toFixed(1)} ${cy.toFixed(1)})`}
           fill="var(--accent-holo)"
           fillOpacity={0.1}
           stroke="var(--accent-holo)"
@@ -496,6 +528,26 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
         />
         <circle cx={cx} cy={cy} r={3} fill="var(--accent-holo)" />
       </g>
+    );
+  } else if (token.kind === 'ship') {
+    const col = HUE[token.hue ?? 'holo'];
+    const glyph = SHIP_GLYPH_CHAR[token.ship];
+    body = (
+      <>
+        <text
+          x={cx}
+          y={cy}
+          fill={col}
+          fontFamily="XWingShip"
+          fontSize={40}
+          textAnchor="middle"
+          dominantBaseline="central"
+          filter="url(#mm-glow)"
+        >
+          {glyph}
+        </text>
+        {token.label ? <LabelBadge cx={cx + 22} cy={cy - 20} text={token.label} hue={token.hue ?? 'holo'} /> : null}
+      </>
     );
   } else {
     body = (
@@ -522,11 +574,6 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
             dominantBaseline="central"
           >
             {token.label}
-          </text>
-        ) : null}
-        {token.playerCount ? (
-          <text x={cx + 16} y={cy - 10} fill="var(--accent-warn)" fontSize={13} fontWeight={800}>
-            {token.playerCount}p
           </text>
         ) : null}
       </g>
@@ -598,13 +645,13 @@ function VectorBadge({ geo, vector }: { geo: Geo; vector: DrawableVector }) {
   );
 }
 
-export function MissionMap({ scenario }: { scenario: Scenario }) {
-  const map = resolveMissionMap(scenario);
+export function MissionMap({ scenario, playerCount }: { scenario: Scenario; playerCount?: number }) {
+  const map = resolveMissionMap(scenario, playerCount);
   const geo = makeGeo(map.grid);
   return (
     <svg
       className="missionMap"
-      viewBox={`0 0 ${geo.vb} ${geo.vb}`}
+      viewBox={`0 0 ${geo.vb.toString()} ${geo.vb.toString()}`}
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label={`${scenario.title} mission map`}
@@ -612,20 +659,20 @@ export function MissionMap({ scenario }: { scenario: Scenario }) {
       <Defs />
       <Starfield geo={geo} seed={map.seed} />
       {map.zones.map((z, i) => (
-        <Zone key={`z${i}`} geo={geo} zone={z} />
+        <Zone key={`z${i.toString()}`} geo={geo} zone={z} />
       ))}
       <Grid geo={geo} />
       {map.asteroids.map((f, i) => (
-        <AsteroidField key={`a${i}`} geo={geo} field={f} />
+        <AsteroidField key={`a${i.toString()}`} geo={geo} field={f} />
       ))}
       {map.stations.map((s, i) => (
-        <Station key={`s${i}`} geo={geo} station={s} />
+        <Station key={`s${i.toString()}`} geo={geo} station={s} />
       ))}
       {map.tokens.map((t, i) => (
-        <Token key={`t${i}`} geo={geo} token={t} />
+        <Token key={`t${i.toString()}`} geo={geo} token={t} />
       ))}
       {map.vectors.map((v) => (
-        <VectorBadge key={`vec${v.n}`} geo={geo} vector={v} />
+        <VectorBadge key={`vec${v.n.toString()}`} geo={geo} vector={v} />
       ))}
     </svg>
   );
