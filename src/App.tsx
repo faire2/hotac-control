@@ -51,6 +51,7 @@ import type { Arrival } from './components/scenarios/ArrivalNotificationModal';
 import {
   FREE_PLAY,
   bumpRound,
+  getActiveMission,
   getActiveRound,
   getActiveScenarioId,
   getBriefingMode,
@@ -68,6 +69,33 @@ import { applyOutcome, pickMission } from './data/campaigns/factory';
 
 if (import.meta.env.DEV) {
   runValidator();
+}
+
+/** Enemy (Imperial AI) squads have ≥1 AI engine; rebel-ally NPCs have none. */
+function isEnemySquad(squad: Squadron): boolean {
+  return Ships[squad.shipType].ai.length > 0;
+}
+
+/** Per-ship max hull+shields for a squad, including upgrade extras. Every ship
+ * token in the squad shares this cap. */
+function squadShipMaxHp(squad: Squadron): number {
+  const base = Ships[squad.shipType];
+  const extras = countExtraHullAndShield(squad.upgrades);
+  return base.hull + extras.extraHull + base.shields + extras.extraShield;
+}
+
+/** Hull+shields still missing from enemy ships left on the board — the damage
+ * dealt to survivors. Destroyed ships are tallied separately as they're removed. */
+function survivingEnemyDamage(squadrons: readonly Squadron[]): number {
+  let total = 0;
+  for (const squad of squadrons) {
+    if (!isEnemySquad(squad)) continue;
+    const maxHp = squadShipMaxHp(squad);
+    for (const ship of squad.ships) {
+      total += Math.max(0, maxHp - ship.hull - ship.shields);
+    }
+  }
+  return total;
 }
 
 function freshSquadron(shipType: ShipId, playersRank: number): Squadron {
@@ -123,6 +151,11 @@ function App() {
   const [squadrons, setSquadrons] = useState<Squadron[]>([]);
   const [playersRank, setPlayersRank] = useState(2);
   const [mode, setMode] = useState<AppMode>(FREE_PLAY);
+  // Hull+shield points of enemy ships that have been *removed* (destroyed) this
+  // mission. Total damage dealt = this + the missing HP of enemies still on the
+  // board, computed at mission end. XP is pooled across pilots in HotAC, so the
+  // squad-wide sum is all we need. Reset on mission start.
+  const [destroyedEnemyHp, setDestroyedEnemyHp] = useState(0);
   const [briefingOverlayOpen, setBriefingOverlayOpen] = useState(false);
   const [freePlayRound, setFreePlayRound] = useState(1);
   const [showScenarioPicker, setShowScenarioPicker] = useState(false);
@@ -179,6 +212,7 @@ function App() {
   function handleStartScenario() {
     if (!briefingScenario) return;
     setResolvedDynamicSquads(new Set<string>());
+    setDestroyedEnemyHp(0);
     const ctx: SpawnContext = {
       scenario: briefingScenario,
       playerCount,
@@ -479,7 +513,20 @@ function App() {
   }
 
   function handleSquadRemoval(index: number) {
+    tallyDestroyedEnemy(squadrons[index]?.ships.length ?? 0, index);
     setSquadrons((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  /** Add the destroyed enemy ships' full HP to the mission damage tally.
+   * Removing an enemy mid-mission means the players blew it up, so its whole
+   * hull+shield pool counts as damage dealt. No-op for allies or outside an
+   * active mission. */
+  function tallyDestroyedEnemy(shipCount: number, squadId: number) {
+    if (shipCount <= 0) return;
+    if (getActiveMission(mode)?.phase.kind !== 'active') return;
+    const squad = squadrons[squadId];
+    if (!isEnemySquad(squad)) return;
+    setDestroyedEnemyHp((d) => d + squadShipMaxHp(squad) * shipCount);
   }
 
   function handleSetUpgradesSource(index: number, upgradesSource: UpgradeSource) {
@@ -573,6 +620,7 @@ function App() {
   }
 
   function handleRemoveShip(shipIndex: number, squadId: number) {
+    tallyDestroyedEnemy(1, squadId);
     setSquadrons((prev) => {
       const next = [...prev];
       const squad = next[squadId];
@@ -749,6 +797,7 @@ function App() {
             <EndScenarioModal
               show={true}
               scenario={activeScenario}
+              damageDealt={destroyedEnemyHp + survivingEnemyDamage(squadrons)}
               onResolve={handleEndScenarioResolve}
               onClose={handleEndScenarioCancel}
             />

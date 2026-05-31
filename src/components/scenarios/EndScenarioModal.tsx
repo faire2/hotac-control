@@ -7,6 +7,9 @@ export type EndOutcomeKind = 'victory' | 'defeat';
 interface Props {
   show: boolean;
   scenario: Scenario;
+  /** Total hull+shield points the players knocked off enemy ships this mission.
+   * Each point is worth 1 XP into the shared pool. */
+  damageDealt: number;
   /** Called when the player picks Rebel victory or Imperial victory. */
   onResolve: (kind: EndOutcomeKind) => void;
   /** Cancel without recording an outcome (returns to free play). */
@@ -74,7 +77,7 @@ function OutcomePanel({
   );
 }
 
-export function EndScenarioModal({ show, scenario, onResolve, onClose }: Props) {
+export function EndScenarioModal({ show, scenario, damageDealt, onResolve, onClose }: Props) {
   return (
     <Modal show={show} onHide={onClose} centered scrollable size="lg">
       <Modal.Header closeButton className="scenarioModalHeader">
@@ -83,6 +86,11 @@ export function EndScenarioModal({ show, scenario, onResolve, onClose }: Props) 
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        <p className="mb-3">
+          Players dealt <strong>{damageDealt}</strong> damage to enemy ships together —{' '}
+          <span className="badge badge-xp">+{damageDealt} XP</span> into the shared pool.
+        </p>
+
         <h5>Mission Objectives</h5>
         <ul>
           {scenario.objectives.map((obj, i) => (
