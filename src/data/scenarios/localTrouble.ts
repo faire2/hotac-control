@@ -29,6 +29,29 @@ export const localTrouble: Scenario = {
     'A: Player setup edge',
     'B: Asteroids ×6, random layout (Range >1 apart, Range >2 from edge)',
   ],
+  map: {
+    grid: 9,
+    seed: 7,
+    setupEdge: { side: 'bottom', label: 'A', depth: 1.1 },
+    zones: [
+      {
+        id: 'B',
+        label: 'B',
+        hue: 'holo',
+        rect: [2, 2, 7, 7],
+        tip: 'B — Asteroid field: 5×5 central zone, place 6 asteroids (Range >1 apart, >2 from any edge)',
+      },
+    ],
+    features: [{ kind: 'asteroids', count: 6, in: 'B', seed: 33, minDist: 1.6 }],
+    vectors: [
+      { n: 2, side: 'left', t: 1 / 3 },
+      { n: 1, side: 'left', t: 2 / 3 },
+      { n: 3, side: 'top', t: 1 / 3 },
+      { n: 4, side: 'top', t: 2 / 3 },
+      { n: 5, side: 'right', t: 1 / 3 },
+      { n: 6, side: 'right', t: 2 / 3 },
+    ],
+  },
   turnLimit: 10,
   territory: 'friendly',
   objectives: [

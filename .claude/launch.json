@@ -6,6 +6,12 @@
       "runtimeExecutable": "wsl",
       "runtimeArgs": ["bash", "-lc", "export PATH=\"$HOME/.nvm/versions/node/v24.15.0/bin:$PATH\" && cd ~/projects/hotac-control && npm run dev"],
       "port": 3000
+    },
+    {
+      "name": "dev-mac",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
     }
   ]
 }

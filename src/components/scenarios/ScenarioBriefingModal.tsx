@@ -6,6 +6,7 @@ import type { PlayerCount, Scenario } from '../../data/scenarios/types';
 import { EngineToggle } from '../shared/EngineToggle';
 import { UpgradeSourceToggle } from '../shared/UpgradeSourceToggle';
 import { Rule } from '../Rule';
+import { MissionMap } from './MissionMap';
 
 const RANK_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
 const PLAYER_COUNT_OPTIONS: PlayerCount[] = [1, 2, 3, 4, 5, 6];
@@ -116,7 +117,11 @@ export function ScenarioBriefingModal({
         ))}
 
         <div className="scenarioMap mt-4">
-          <pre style={{ fontSize: '0.85em', lineHeight: 1.1 }}>{scenario.mapDiagram}</pre>
+          {scenario.map ? (
+            <MissionMap scenario={scenario} />
+          ) : (
+            <pre style={{ fontSize: '0.85em', lineHeight: 1.1 }}>{scenario.mapDiagram}</pre>
+          )}
         </div>
         <ul className="small">
           {scenario.mapNotes.map((note, i) => (

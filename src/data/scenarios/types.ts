@@ -228,6 +228,118 @@ export interface SpecialRule {
   coveredOnSquadCard?: boolean;
 }
 
+/**
+ * Stylized "holo" mission map — a small declarative spec rendered to SVG by
+ * `<MissionMap>`. Coordinates are in **grid cells** (origin top-left), not
+ * pixels, on a `grid`×`grid` board (default 9). The renderer derives the bulk
+ * of the picture from defaults + scenario data, so a typical map only declares
+ * its bespoke zones/features:
+ *
+ *   map: {
+ *     setupEdge: { side: 'bottom' },         // draws the player band + "A"
+ *     zones:    [{ id: 'B', rect: [2,2,7,7] }],
+ *     features: [{ kind: 'asteroids', count: 6, in: 'B', seed: 33 }],
+ *   }
+ *
+ * The approach-vector ring (1–6 or 1–12) is derived from the squads' `vector`
+ * values and swept clockwise from the setup edge — no need to place numbers.
+ */
+export type MapSide = 'top' | 'bottom' | 'left' | 'right';
+
+/** Palette key → app `--accent-*` token. `holo` is the default. */
+export type MapHue = 'holo' | 'warn' | 'danger';
+
+/**
+ * One numbered approach vector, placed by hand on `side` at fraction `t`
+ * (0..1 along that edge from its clockwise-start corner). Authored per map —
+ * the printed rings vary too much to derive reliably.
+ */
+export interface MapVector {
+  n: number;
+  side: MapSide;
+  t: number;
+}
+
+/** A point in grid-cell units, or the board centre. */
+export type MapPoint = readonly [number, number] | 'center';
+
+/** Rectangle in grid-cell units: `[x0, y0, x1, y1]`. */
+export type MapRect = readonly [number, number, number, number];
+
+/**
+ * A labelled region. Declare exactly one shape field (`rect` / `band` /
+ * `disc` / `corner` / `point`); the renderer picks the first present. Give it
+ * an `id` if a feature needs to reference it (e.g. asteroids `in: 'B'`).
+ */
+export interface MapZone {
+  /** Stable id for `MapFeature.in` references. */
+  id?: string;
+  /** Single-letter badge drawn on the zone (e.g. `'B'`). */
+  label?: string;
+  /** Palette key; defaults to `'holo'`. */
+  hue?: MapHue;
+  /** Hover tooltip. */
+  tip?: string;
+  /** Free rectangle in cell units. */
+  rect?: MapRect;
+  /** Edge band: `depth` cells deep along `side`, optional `span` along it. */
+  band?: { side: MapSide; depth: number; span?: readonly [number, number] };
+  /** Disc of radius `r` (cells) centred at `at`. */
+  disc?: { at: MapPoint; r: number };
+  /** Quarter-disc tucked into a board corner. */
+  corner?: { corner: 'tl' | 'tr' | 'bl' | 'br'; radius: number };
+  /** Bare label badge at a point (no filled body). */
+  point?: readonly [number, number];
+}
+
+/**
+ * A drawn feature. `asteroids` scatters `count` abstract rocks (seeded,
+ * min-distance enforced) either inside the zone named by `in`, or in an
+ * explicit `region`. `station` stamps a holo wireframe from the shape library.
+ */
+export type MapFeature =
+  | {
+      kind: 'asteroids';
+      count: number;
+      /** Zone id whose rect bounds the scatter region. */
+      in?: string;
+      /** Explicit scatter region (used when `in` is absent). */
+      region?: MapRect;
+      seed?: number;
+      /** Minimum centre-to-centre spacing in cells. Default 1.6. */
+      minDist?: number;
+    }
+  | { kind: 'station'; preset: 'triHub' | 'bar'; at: MapPoint; label?: string; tip?: string };
+
+/** A game token in our own holo glyph language. */
+export type MapToken =
+  | { kind: 'playerStart'; at: MapPoint; playerCount?: number; tip?: string }
+  | { kind: 'objective'; at: MapPoint; label?: string; tip?: string }
+  | { kind: 'structure'; at: MapPoint; label?: string; playerCount?: number; tip?: string };
+
+export interface MissionMap {
+  /** Board size in cells (square). Default 9. */
+  grid?: number;
+  /** Ambient seed for the starfield and any feature that omits its own. */
+  seed?: number;
+  /**
+   * Player setup edge — auto-draws a `--accent-warn` band + label badge and
+   * removes that edge from the vector ring. Defaults to `{ side: 'bottom' }`.
+   * Pass `false` for missions with no edge setup.
+   */
+  setupEdge?: { side: MapSide; label?: string; depth?: number } | false;
+  /**
+   * Approach-vector ring. Author an explicit `MapVector[]` per map (the printed
+   * rings vary too much to derive). `'auto'` derives 6 vs 12 from the squads'
+   * `vector` values and sweeps clockwise from the setup edge as a fallback; a
+   * number forces that derived count; `false` hides the ring. Default `'auto'`.
+   */
+  vectors?: readonly MapVector[] | 'auto' | 6 | 12 | false;
+  zones?: readonly MapZone[];
+  features?: readonly MapFeature[];
+  tokens?: readonly MapToken[];
+}
+
 export interface Scenario {
   id: string;
   version: string;
@@ -236,6 +348,9 @@ export interface Scenario {
   briefing: string;
   mapDiagram: string;
   mapNotes: readonly string[];
+  /** Optional stylized SVG map. When present, `<MissionMap>` renders it in the
+   * briefing in place of the ASCII `mapDiagram`. */
+  map?: MissionMap;
   turnLimit: number;
   territory: Territory;
   objectives: readonly ScenarioObjective[];
