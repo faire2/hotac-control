@@ -79,6 +79,7 @@ export function spawnFromScenarioSquad(
   const wantUniqueApproach = hasTag(squad, 'uniqueApproach') !== undefined;
   const wantHuntsPlayer = hasTag(squad, 'huntsPlayer') !== undefined;
   const splitPerShip = wantUniqueApproach || wantHuntsPlayer;
+  const maneuverOverride = hasTag(squad, 'maneuverOverride')?.maneuvers;
 
   function upgradesFor(shipType: ShipId): {
     upgrades: readonly Upgrade[];
@@ -131,6 +132,7 @@ export function spawnFromScenarioSquad(
           arrivedAtRound: ctx.round,
           aiTag: squad.aiTag,
           behaviorDescription: ctx.scenario.behaviorDescriptions?.[squad.aiTag],
+          ...(maneuverOverride ? { maneuverOverride } : {}),
           ...(wantHuntsPlayer ? { huntsPlayerIndex: playerIndices[i] } : {}),
         },
         ships: [shipInstance(shipType, upgrades, resolved.bonusShields[i])],
@@ -178,6 +180,7 @@ export function spawnFromScenarioSquad(
         arrivedAtRound: ctx.round,
         aiTag: squad.aiTag,
         behaviorDescription: ctx.scenario.behaviorDescriptions?.[squad.aiTag],
+        ...(maneuverOverride ? { maneuverOverride } : {}),
       },
       ships: Array.from({ length: count }, () => shipInstance(shipType, upgrades, bonusShield)),
     } satisfies Squadron;

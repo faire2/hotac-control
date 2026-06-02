@@ -26,9 +26,40 @@ export const refuelingStation2: Scenario = {
     'Neutral Territory — 12 turns',
     'A: Player setup / escape edge',
     'B: Asteroids ×12, random layout (Range >1 apart, Range >1 from edge)',
-    'P: Patrol arrival (special, see rules)',
-    'E: Elite arrival (special, see rules)',
+    'Sensor Beacons (marked): 2 per player, placed at random on asteroids',
+    'P / E: Patrol & Elite arrivals (random vectors, see rules)',
   ],
+  map: {
+    grid: 9,
+    seed: 33,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'A',
+        hue: 'danger',
+        band: { side: 'bottom', depth: 1 },
+        tip: 'A — Player setup / escape edge: deploy here and retreat off this edge',
+      },
+      {
+        id: 'B',
+        label: 'B',
+        hue: 'holo',
+        rect: [1, 1, 8, 7.5],
+        tip: 'B — Asteroids ×12: random layout, Range >1 apart and Range >1 from any edge',
+      },
+    ],
+    features: [
+      { kind: 'asteroids', count: 12, beaconsPerPlayer: 2, in: 'B', seed: 33, minDist: 1.5 },
+    ],
+    vectors: [
+      { n: 1, side: 'left', t: 2 / 3 },
+      { n: 2, side: 'left', t: 1 / 3 },
+      { n: 3, side: 'top', t: 1 / 3 },
+      { n: 4, side: 'top', t: 2 / 3 },
+      { n: 5, side: 'right', t: 1 / 3 },
+      { n: 6, side: 'right', t: 2 / 3 },
+    ],
+  },
   turnLimit: 12,
   territory: 'enemy',
   objectives: [

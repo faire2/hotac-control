@@ -316,11 +316,29 @@ hand-authored — layouts are not derived from squad data.**
   shuttles / turbolasers / cargo appear as the table grows. No count badges.
 - [x] **Quarter-circle corner setup zones** (`zone.corner`) render as an SVG arc
   wedge, matching the printed quarter-circle deployment areas.
+- [x] **Sensor-beacon asteroids.** Asteroid fields take `beaconsPerPlayer`; the
+  resolver marks the first `beaconsPerPlayer × playerCount` rocks as carrying a
+  Sensor Beacon emplacement (player-count-aware), drawn with a holo satellite
+  marker on the asteroid. Used by Disable Sensor Net.
+- [x] **Modular-station hull outlines** (`MapFeature.kind: 'hull'`). Draws the
+  assemblable station silhouette as a holo wireframe behind the emplacement
+  tiles, so players can match the physical terrain pieces. `HullModule` shapes:
+  `poly` (hex hub / triangular junction / square tile), `bay` (home-plate
+  pentagon = landing bay or angled turbolaser wedge), and `corridor` bridges.
+  Modules take a `playerCount` threshold, so the four outer turbolaser wedges +
+  their junctions gate in with the table like the `structure` T tiles. Used by
+  Capture Refueling Station — verified gating at 2p (core only) and 6p (full snowflake).
 - [x] Authored maps: Local Trouble, Capture the Officer Part I, Capture the
   Officer Part II ("Nobody Home"), Capture the Officer Part III ("Miners
   Strike" — quarter-circle setup zone, landing-pad stations, player-count-gated
-  cargo blocks / turbolasers / second shuttle).
-- [ ] Author the remaining 13 missions' maps (incremental, one per session).
+  cargo blocks / turbolasers / second shuttle), and the full Refueling Station
+  arc: Part I ("Rescue Rebel Operatives" — HWK ally + central asteroid field),
+  Part II ("Disable Sensor Net" — 12-asteroid field with player-count-scaled
+  sensor beacons), Part III ("Capture Refueling Station" — modular station
+  rendered faithfully from the printed terrain tiles: Command Center / Shield
+  Generator / Fuel Tank / Turbolaser emplacements over a `hull` wireframe
+  silhouette, two docking bays, four player-count-gated turbolaser arms).
+- [ ] Author the remaining 10 missions' maps (incremental, one per session).
 
 ### Backlog (Needs Planning)
 - Backfill `Scenario.behaviorDescriptions` for all 17 missions. Field landed 2026-05-11; schema + render slot are wired (squad card carousel target panel, under the priority list). Each mission needs ~3 entries keyed by `aiTag` value (`Attack`/`Escort`/`Strike`/`Special`/`Flee*`), text copied/condensed from the existing `specialRules` sidebars. Same tag means different things across missions (`Special` = Lambda Shuttle in CapOfficer-1 vs. VT-49 in Minefields-2), so authoring is per-mission. `:icon:` shortcodes supported and validated.

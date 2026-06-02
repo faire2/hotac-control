@@ -137,6 +137,7 @@ export function Squad({ squad, squadId }: Props) {
         setTargetPosition: handleSetTargetPosition,
         stressed,
         handleStress,
+        maneuverOverride: squad.scenarioMeta?.maneuverOverride,
       }}
     >
       <div

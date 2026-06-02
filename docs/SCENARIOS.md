@@ -106,7 +106,8 @@ type SquadTag =
   | { kind: 'uniqueApproach' }
   | { kind: 'huntsPlayer' }
   | { kind: 'dynamicSpawn'; handler: string }
-  | { kind: 'noUpgrades' };
+  | { kind: 'noUpgrades' }
+  | { kind: 'maneuverOverride'; maneuvers: readonly Maneuver[] };  // dial samples this fixed list, ignoring target position
 
 type SetupOp =
   | { kind: 'add'; ship: ShipId; gate?: { rebelInitGte: number } }
@@ -160,19 +161,27 @@ type MapPoint = readonly [number, number] | 'center';   // cell units, origin to
 
 interface MapZone {                          // exactly one shape key
   label?; hue?; tip?; id?;                    // id lets a feature target this zone (`in`)
+  exit?: MapSide;                             // draw outward escape chevrons along this side
   band?: { side: MapSide; depth: number; span?: readonly [number, number] };
   rect?: MapRect; disc?: { at; r }; corner?: { corner; radius }; point?: MapPoint;
+  tri?: readonly [MapPoint, MapPoint, MapPoint];   // triangle by 3 vertices
 }
 
 type MapFeature =
-  | { kind: 'asteroids'; count; debris?; in?; region?; seed?; minDist? }
-  | { kind: 'station'; preset: 'triHub' | 'bar'; at; label?; tip? };
+  | { kind: 'asteroids'; count; debris?; beaconsPerPlayer?; in?; region?; seed?; minDist? }
+  | { kind: 'minefields'; perPlayer?; count?; in?; region?; seed?; minDist?; tip? }
+  | { kind: 'station'; preset: 'triHub' | 'bar'; at; label?; tip? }
+  | { kind: 'hull'; root: HullNode; at; connectorWidth?; tip? };   // radial assembly tree, see STATION-ASSEMBLY.md
+
+// HullNode = { shape: 'hex'|'square'|'triangle'|'bay'; size; depth?; rotate?; emplacements?; arms?; playerCount? }
+// HullArm  = { angle; gap?; direct?; to: HullNode }   // angle selects the parent FACE; child docks on its normal
 
 type MapToken =
   | { kind: 'playerStart'; at; playerCount?; tip? }
   | { kind: 'objective'; at; label?; tip? }
   | { kind: 'structure'; at; label?; playerCount?; tip? }
-  | { kind: 'ship'; at; ship: ShipId; hue?; label?; playerCount?; tip? };
+  | { kind: 'ship'; at; ship: ShipId; hue?; label?; playerCount?; tip? }
+  | { kind: 'transport'; at; angle?; length?; width?; label?; playerCount?; tip? };
 
 interface MapVector { n: number; side: MapSide; t: number; }  // t = 0..1 along the edge
 ```
@@ -201,10 +210,60 @@ as the table grows. Tokens with no threshold are always present. No count badges
 as an SVG arc wedge anchored at the chosen board corner (matches the printed quarter-circle
 deployment areas), with the zone label centred on the wedge.
 
+**Sensor-beacon asteroids.** An asteroid feature with `beaconsPerPlayer: N` marks the
+first `N × playerCount` rocks (resolver-side) as carrying a Sensor Beacon emplacement,
+drawn with a holo satellite marker on the asteroid. Player-count-aware — the marked count
+scales with the table, matching the printed "two beacons per player, placed at random on
+asteroids" rule. The beacon positions are a subset of the same sampled rocks, so markers
+always sit on real asteroids.
+
+**Minefield clusters.** A `minefields` feature samples proximity-mine tokens with the same
+seeded min-distance placer as asteroids, drawn as red mines (danger ring + three spikes +
+core). Count is `perPlayer × playerCount + count` — `perPlayer` scales the field with the
+table (Mine Fields I places 3 per player), while `count` is a flat number. `in` targets a
+zone by id (or pass an explicit `region` rect); `minDist` defaults to `1.2` (just beyond
+Range 1, matching the "each mine Range 1+ from two others" rule). When the targeted zone is a
+`tri` (triangle), the scatter is clipped to the inset triangle — Mine Fields II uses two
+right-triangle zones (B1/B2, legs 6) splitting a square along its diagonal, with one
+6-mine feature per triangle, so the two halves flank the transport that lies along the shared
+hypotenuse.
+
+**Transport token.** `transport` draws the GR-75 as a tapered hull silhouette (blunt wide bow,
+narrowing to the stern) echoing its top-down view — no
+`ShipId`/glyph dependency, since the GR-75 is an `AllyShipId` with no entry in the ship-glyph
+map. `angle` rotates it (degrees), `length`/`width` size it (cell units, default 2.4 × 0.82);
+the label is drawn upright outside the rotated body. Use it for the huge-ship ally that the
+players escort or rescue.
+
+**Escape edges.** A zone's `exit: MapSide` draws outward-pointing chevrons along that board
+side, marking where ships flee/jump. It composes with any shape — Mine Fields III pairs
+`exit: 'top'` with a clipped `band` (`span: [0, 2]`) so the chevrons sit only in the
+corner-anchored Range-2 escape strip rather than the full edge.
+
+**Modular-station hull outlines.** A `hull` feature draws the structural silhouette of an
+assemblable station as a holo wireframe behind the lettered emplacement tiles, so players
+can match the physical terrain pieces they need to build. It is authored as a **radial
+assembly tree** (`root: HullNode` with nested `arms`), built outward from a hub by a pure
+placer — **see [`STATION-ASSEMBLY.md`](./STATION-ASSEMBLY.md)** for the full model, shape
+ports, the face-docking rule, `rotate`/`direct`/`gap`, gating, and the tuning constants.
+`refuelingStation3.ts` is the worked example: pointy-top hex hub, square turbolaser/shield
+arms, two hex junctions feeding player-count-gated turbolasers, and two docking bays.
+
 Authored examples: `localTrouble.ts` (bottom setup edge + central rect zone),
 `captureOfficer1.ts` (no setup edge, top escape band + flanking setup bands + ship tokens),
-and `captureOfficer3.ts` ("Miners Strike" — quarter-circle setup zone, `bar` landing-pad
-stations, player-count-gated cargo blocks / turbolasers / second shuttle).
+`captureOfficer3.ts` ("Miners Strike" — quarter-circle setup zone, `bar` landing-pad
+stations, player-count-gated cargo blocks / turbolasers / second shuttle), and the
+Refueling Station arc: `refuelingStation1.ts` (HWK-290 ally token + central asteroid
+field), `refuelingStation2.ts` ("Disable Sensor Net" — 12 asteroids with `beaconsPerPlayer`
+beacons), `refuelingStation3.ts` ("Capture Refueling Station" — a modular station built
+from lettered `structure` emplacement tiles (C/S/F/T) in a snowflake over a `hull` wireframe
+silhouette, two `point`-zone docking-bay labels (G/H), and four player-count-gated turbolaser
+arms). Mine Fields arc: `minefields1.ts` ("Tread Softly" — a `perPlayer: 3` minefield in a
+central rect zone, bottom setup edge), `minefields2.ts` ("Imperial Entanglements" — two `tri`
+minefield halves (6 mines each, legs ≈7 long, hugging opposite corners and split by a narrow
+diagonal corridor), a tapered-hull `transport` stranded in the top-right of the
+corridor, corner setup zone + Decimator arrival `point`), `minefields3.ts` ("Care Package" — 12-asteroid run, escort `transport`,
+and a `band` + `exit: 'top'` escape edge).
 
 ## Setup-op semantics
 
@@ -262,7 +321,15 @@ Pipeline:
 4. For `huntsPlayer`, `shufflePlayerIndices` produces a 1..N permutation
    assigned one per squadron.
 5. Stamp each Squadron with `scenarioSquadName`, `arrivedFromVector`,
-   `approachLabel`, `arrivedAtRound`, `huntsPlayerIndex`.
+   `approachLabel`, `arrivedAtRound`, `huntsPlayerIndex`, and (from a
+   `maneuverOverride` tag) `maneuverOverride`.
+
+A `maneuverOverride` tag copies its `maneuvers` list onto `scenarioMeta`,
+which `Squad.tsx` feeds into `TargetPositionContext`. `SquadManeuverGenerator`
+then bypasses the position-table lookup entirely: the dial roll (0–5) indexes
+the list via `floor(roll / 6 * length)`, so clicking *any* dial segment yields
+a random entry from the list. Used for special-AI ships whose movement is a
+plain die roll — e.g. the Mine Fields II Decimator (1d6 → 1/2/3 straight).
 
 Helper exports from the module:
 
@@ -355,7 +422,8 @@ src/components/scenarios/
 ├── ArrivalNotificationModal.tsx  # post-spawn arrivals listing
 ├── MissionMap.tsx                # holo SVG map renderer (zones, asteroids, ship tokens, vectors)
 ├── MissionMap.css                # .missionMap container styling
-└── missionMapModel.ts            # pure resolveMissionMap(scenario) → DrawableMap (no React)
+├── missionMapModel.ts            # pure resolveMissionMap(scenario) → DrawableMap (no React)
+└── stationAssembly.ts            # pure placeStation(): HullNode tree → polygons (see STATION-ASSEMBLY.md)
 
 src/components/menu/
 ├── MainMenu.tsx                  # top-bar dropdown: New / Open / Logout

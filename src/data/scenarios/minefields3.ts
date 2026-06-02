@@ -8,12 +8,12 @@ Protect the transport from Imperial Patrols until it clears the asteroid field a
 
 const mapDiagram = `             4         5
         ┌─────────────────────┐
-    3   │  A           [B]    │   6
-        │  · · · · · · · ·    │
-        │  · GR-75 · · · ·    │
-        │  · · · · · · · ·    │
-        │                     │
-        │     A         A     │
+    3   │ B B                 │   6
+        │ B    · · · · ·      │
+        │ B  · · · · · ·      │
+        │    · · · · ·  A A A │
+        │    · · · · ·  A A A │
+        │           A A A[GR] │
         └─────────────────────┘
              2         1`;
 
@@ -26,11 +26,64 @@ export const minefields3: Scenario = {
   mapDiagram,
   mapNotes: [
     'Hostile Territory — 10 turns',
-    'A: Player setup area',
-    'B: Escape edge (Range 2 from corner)',
+    'A: Player setup area (3×3 square)',
+    'B: Escape edge (Range 2 from the top-left corner, wrapping both the top and left edges)',
     'C: Asteroids ×12 (random layout, Range >1 apart and within box shown)',
     'Assault squads enter on any random vector behind the GR-75 front edge.',
   ],
+  map: {
+    grid: 9,
+    seed: 33,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'A',
+        hue: 'warn',
+        rect: [6, 6, 9, 9],
+        tip: 'A — Player setup area (3×3 square): deploy your ships and the transport in this corner',
+      },
+      {
+        label: 'B',
+        hue: 'warn',
+        exit: 'top',
+        band: { side: 'top', depth: 0.7, span: [0, 2] },
+        // Nudge the badge down into the corner pocket so it clears the top
+        // frame border (default auto-position lands on the edge line).
+        labelAt: [1, 1],
+        tip: 'B — Escape edge (Range 2 from the top-left corner, wrapping both edges): the transport and any survivors escape this way',
+      },
+      {
+        hue: 'warn',
+        exit: 'left',
+        band: { side: 'left', depth: 0.7, span: [0, 2] },
+        tip: 'B — Escape edge (Range 2 from the top-left corner, wrapping both edges): the transport and any survivors escape this way',
+      },
+      {
+        id: 'C',
+        label: 'C',
+        hue: 'holo',
+        rect: [1, 2, 7, 7],
+        tip: 'C — Asteroid field: 12 asteroids, random layout, Range >1 apart and within this box',
+      },
+    ],
+    features: [{ kind: 'asteroids', count: 12, in: 'C', seed: 33, minDist: 1.4 }],
+    tokens: [
+      {
+        kind: 'transport',
+        at: [7.95, 7.5],
+        angle: 180,
+        tip: 'Quantum Storm — the GR-75 transport begins in the player setup area',
+      },
+    ],
+    vectors: [
+      { n: 1, side: 'bottom', t: 1 / 2 },
+      { n: 2, side: 'bottom', t: 1 / 6 },
+      { n: 3, side: 'left', t: 1 / 2 },
+      { n: 4, side: 'top', t: 1 / 2 },
+      { n: 5, side: 'top', t: 5 / 6 },
+      { n: 6, side: 'right', t: 1 / 2 },
+    ],
+  },
   turnLimit: 10,
   territory: 'hostile',
   objectives: [
@@ -60,7 +113,7 @@ export const minefields3: Scenario = {
     imperialPoints: 1,
   },
   allies: [
-    { ship: 'GR75', displayName: 'Quantum Storm' },
+    { ship: 'GR75', displayName: 'Quantum Storm', startingEnergy: 5 },
   ],
   squads: [
     {

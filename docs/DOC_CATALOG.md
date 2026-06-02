@@ -1,6 +1,6 @@
 # Documentation catalog
 
-Last updated: 2026-05-31
+Last updated: 2026-06-01
 
 Central index of all project documentation. Update this file whenever you add, rename, or materially change a doc.
 
@@ -24,6 +24,7 @@ Central index of all project documentation. Update this file whenever you add, r
 | Doc | Purpose |
 |---|---|
 | [`SCENARIOS.md`](./SCENARIOS.md) | Scenario loader: data shape, resolution rules, free-play vs scenario-play UI regimes, holo mission-map spec (`MissionMap`), validator coverage, authoring guide. |
+| [`STATION-ASSEMBLY.md`](./STATION-ASSEMBLY.md) | The `hull` map feature: authoring an assemblable station as a radial `HullNode` tree, the face-docking rule, shape ports, `rotate`/`direct`/`gap`, player-count gating, tuning constants. Read before editing a station silhouette. |
 
 ## Internal reference (not deployed, not versioned)
 
@@ -39,4 +40,4 @@ pdftoppm -r 150 -png docs/anderson/AI_All_Empire_SHIPCARDS_ALL.pdf docs/anderson
 
 - `DESIGN-SYSTEM.md` — defer until a UI rework is in scope. Current app has ~5 colors and one font; design-system ceremony isn't earned.
 - `API.md`, `DEPLOYMENT.md` runbooks — no backend; deployment is push-to-Vercel and that's documented in ROADMAP.md.
-- Feature-level `FEATURE-NAME.md` docs — add when a feature has enough surface to warrant one. Currently every feature is small enough to live in code + comments.
+- Feature-level `FEATURE-NAME.md` docs — add when a feature has enough surface to warrant one (e.g. `STATION-ASSEMBLY.md`). Keep small features in code + comments.

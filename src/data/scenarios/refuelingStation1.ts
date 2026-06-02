@@ -26,10 +26,53 @@ export const refuelingStation1: Scenario = {
   mapDiagram,
   mapNotes: [
     'Neutral Territory — 10 turns',
-    'A: Rebel Operative HWK-290 setup',
-    'B: Player setup / escape edge',
+    'A: Rebel Operative HWK-290 setup edge',
+    'B: Player setup / escape edge (HWK escapes off this edge)',
     'C: Asteroids ×6, random layout (Range >1 apart, Range >2 from edge)',
   ],
+  map: {
+    grid: 9,
+    seed: 21,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'A',
+        hue: 'danger',
+        band: { side: 'top', depth: 1 },
+        tip: 'A — Rebel Operative HWK-290 setup edge',
+      },
+      {
+        label: 'B',
+        hue: 'danger',
+        band: { side: 'bottom', depth: 1 },
+        tip: 'B — Player setup / escape edge: deploy here; the HWK escapes off this edge',
+      },
+      {
+        id: 'C',
+        label: 'C',
+        hue: 'holo',
+        rect: [2, 2.5, 7, 6.5],
+        tip: 'C — Asteroids ×6: random layout, Range >1 apart and Range >2 from any edge',
+      },
+    ],
+    features: [{ kind: 'asteroids', count: 6, in: 'C', seed: 21, minDist: 1.7 }],
+    tokens: [
+      {
+        kind: 'ship',
+        ship: 'HWK290',
+        at: [4.5, 1.5],
+        tip: 'Rebel Operatives (HWK-290, In 1) — begins here, must escape off edge B',
+      },
+    ],
+    vectors: [
+      { n: 1, side: 'left', t: 2 / 3 },
+      { n: 2, side: 'left', t: 1 / 3 },
+      { n: 3, side: 'top', t: 1 / 3 },
+      { n: 4, side: 'top', t: 2 / 3 },
+      { n: 5, side: 'right', t: 1 / 3 },
+      { n: 6, side: 'right', t: 2 / 3 },
+    ],
+  },
   turnLimit: 10,
   territory: 'enemy',
   objectives: [

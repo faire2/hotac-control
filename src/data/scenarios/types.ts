@@ -19,6 +19,7 @@
 import type { ShipId } from '../Ships';
 import type { Upgrade } from '../shared/coreUpgrades';
 import type { AllySetup } from '../rebelAllies';
+import type { Maneuver } from '../Maneuvers';
 
 export type PlayerCount = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -112,12 +113,20 @@ export type SetupOp =
  *                   supplies the ships. Composition may be empty.
  *   noUpgrades      Skip the Imperial Pilot upgrade draw for this squad.
  *                   Equivalent to the legacy `noUpgrades?: boolean` flag.
+ *   maneuverOverride  Replace the position-table maneuver lookup with a fixed
+ *                   list sampled by the dial roll — the ship ignores target
+ *                   position and just "rolls" one of these maneuvers on every
+ *                   dial click. Used for special-AI ships whose movement is a
+ *                   plain die roll (e.g. the Mine Fields II Decimator: 1d6 →
+ *                   1/2/3 straight). The roll (0–5) maps uniformly across the
+ *                   list via `floor(roll / 6 * maneuvers.length)`.
  */
 export type SquadTag =
   | { kind: 'uniqueApproach' }
   | { kind: 'huntsPlayer' }
   | { kind: 'dynamicSpawn'; handler: string }
-  | { kind: 'noUpgrades' };
+  | { kind: 'noUpgrades' }
+  | { kind: 'maneuverOverride'; maneuvers: readonly Maneuver[] };
 
 export function hasTag<K extends SquadTag['kind']>(
   squad: { tags?: readonly SquadTag[] },
@@ -280,24 +289,103 @@ export interface MapZone {
   hue?: MapHue;
   /** Hover tooltip. */
   tip?: string;
+  /**
+   * Override for the label-badge position (cell units). By default the badge
+   * sits inside the shape; set this to nudge it elsewhere — e.g. just *outside*
+   * a near-full-board rect so it doesn't land on top of the contents.
+   */
+  labelAt?: readonly [number, number];
   /** Free rectangle in cell units. */
   rect?: MapRect;
   /** Edge band: `depth` cells deep along `side`, optional `span` along it. */
   band?: { side: MapSide; depth: number; span?: readonly [number, number] };
+  /**
+   * Marks this zone as an escape edge: draws outward-pointing exit chevrons
+   * along the named board side, signalling "fly off here to escape". Pair with
+   * a `band` hugging the same side (optionally a short `span` for a
+   * corner-anchored edge). Used by Care Package's Point B.
+   */
+  exit?: MapSide;
   /** Disc of radius `r` (cells) centred at `at`. */
   disc?: { at: MapPoint; r: number };
   /** Quarter-disc tucked into a board corner. */
   corner?: { corner: 'tl' | 'tr' | 'bl' | 'br'; radius: number };
+  /**
+   * Triangle defined by three vertices (cell units). A `minefields` feature can
+   * target it by `id` to scatter mines clipped to the triangle (used by Mine
+   * Fields II — two right-triangle minefield halves flanking the transport).
+   */
+  tri?: readonly [MapPoint, MapPoint, MapPoint];
   /** Bare label badge at a point (no filled body). */
   point?: readonly [number, number];
+}
+
+/** A white emplacement tile (square + letter) drawn inside a hull module. */
+export interface HullEmplacement {
+  /** Letter on the tile: C (command), S (shield), F (fuel), T (turbolaser), … */
+  label: string;
+  tip?: string;
+}
+
+/**
+ * A node in a radial station assembly. The placer (see `stationAssembly.ts`)
+ * positions each child arm at the parent's boundary along `HullArm.angle`,
+ * links it with a connector of the assembly's standard width, and rotates the
+ * child so its connector port faces the parent — building the station outward
+ * from the hub so every piece touches correctly. Shapes:
+ *   - `hex`      — hexagonal central hub.
+ *   - `square`   — square emplacement tile.
+ *   - `triangle` — small junction node (branches to several arms).
+ *   - `bay`      — docking bay / turbolaser wedge: a body `size` half-wide and
+ *                  `depth` deep whose far edge is a straight wide wall (faces
+ *                  outward) and whose hub side necks down to exactly the
+ *                  connector width (never ends in a point).
+ */
+export interface HullNode {
+  shape: 'hex' | 'square' | 'triangle' | 'bay';
+  /** Size in cells: circumradius (hex/triangle), half-side (square), body half-width (bay). */
+  size: number;
+  /** Bay only — body depth in cells (neck to the straight outer wall). */
+  depth?: number;
+  /** White emplacement tiles drawn inside this module. */
+  emplacements?: readonly HullEmplacement[];
+  tip?: string;
+  /** Sub-modules branching off this one. */
+  arms?: readonly HullArm[];
+  /** Hide this node, its inbound connector, and its whole sub-tree below this player count. */
+  playerCount?: number;
+  /**
+   * Extra rotation (degrees) applied to this node's hull outline and the faces
+   * its children dock against — but NOT its emplacement labels. Hexes default to
+   * flat-top (so children dock edge-to-edge, never on a vertex); set `rotate: 30`
+   * to render a pointy-top hub while keeping its emplacement row level.
+   */
+  rotate?: number;
+}
+
+/** One branch of a station assembly: a child node attached at a given angle. */
+export interface HullArm {
+  /** Absolute direction parent-centre → child, degrees (0 = +x/right, 90 = down, −90 = up). */
+  angle: number;
+  /** Connector length from the parent boundary to the child's port, in cells. Default 0.5. */
+  gap?: number;
+  /**
+   * Dock the child straight onto the parent face with no connector segment
+   * (the child's port abuts the hull). Use for modules that sit flush against
+   * the hub rather than on a standalone connector; `gap` is ignored.
+   */
+  direct?: boolean;
+  to: HullNode;
 }
 
 /**
  * A drawn feature. `asteroids` scatters `count` abstract rocks (seeded,
  * min-distance enforced) either inside the zone named by `in`, or in an
  * explicit `region`. `station` stamps a holo wireframe from the shape library.
+ * `hull` draws a modular-station silhouette, assembled radially from `root`.
  */
 export type MapFeature =
+  | { kind: 'hull'; at: MapPoint; root: HullNode; connectorWidth?: number; tip?: string }
   | {
       kind: 'asteroids';
       count: number;
@@ -307,6 +395,13 @@ export type MapFeature =
        * `minDist` spacing the printed maps require (">1 apart").
        */
       debris?: number;
+      /**
+       * Marks the first `beaconsPerPlayer × playerCount` rocks as carrying a
+       * Sensor Beacon emplacement (drawn with a holo satellite marker on the
+       * asteroid). Player-count-aware — scales with the table like the printed
+       * "two beacons per player" rule. Used by Disable Sensor Net.
+       */
+      beaconsPerPlayer?: number;
       /** Zone id whose rect bounds the scatter region. */
       in?: string;
       /** Explicit scatter region (used when `in` is absent). */
@@ -314,6 +409,26 @@ export type MapFeature =
       seed?: number;
       /** Minimum centre-to-centre spacing in cells. Default 1.6. */
       minDist?: number;
+    }
+  | {
+      /**
+       * Proximity-mine tokens, scattered like asteroids but drawn as red mines.
+       * Total count = `perPlayer × playerCount` (the "3 mines per player" rule)
+       * plus any flat `count`. Seeded, min-distance enforced.
+       */
+      kind: 'minefields';
+      /** Mines added per player at the table. */
+      perPlayer?: number;
+      /** Flat mine count, independent of player count. */
+      count?: number;
+      /** Zone id whose rect bounds the scatter region. */
+      in?: string;
+      /** Explicit scatter region (used when `in` is absent). */
+      region?: MapRect;
+      seed?: number;
+      /** Minimum centre-to-centre spacing in cells. Default 1.2 (just beyond Range 1). */
+      minDist?: number;
+      tip?: string;
     }
   | { kind: 'station'; preset: 'triHub' | 'bar'; at: MapPoint; label?: string; tip?: string };
 
@@ -334,6 +449,22 @@ export type MapToken =
       hue?: MapHue;
       label?: string;
       /** The ship is only rendered when the current player count is >= this threshold. */
+      playerCount?: number;
+      tip?: string;
+    }
+  /**
+   * A huge-ship transport (the GR-75 supply transport) drawn as its oblong hull
+   * body — an elongated rounded capsule, NOT the rectangular play base. `angle`
+   * rotates the body (degrees, 0 = horizontal); `length`/`width` size it in
+   * cells.
+   */
+  | {
+      kind: 'transport';
+      at: MapPoint;
+      angle?: number;
+      length?: number;
+      width?: number;
+      label?: string;
       playerCount?: number;
       tip?: string;
     };

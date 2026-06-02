@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type { AiEngine, ShipId, UpgradeSource } from '../data/Ships';
-import type { Position } from '../data/Maneuvers';
+import type { Maneuver, Position } from '../data/Maneuvers';
 import type { Upgrade } from '../data/shared/coreUpgrades';
 import type { SimpleVector } from '../data/scenarios/types';
 
@@ -17,6 +17,10 @@ export interface TargetPositionContextValue {
   setTargetPosition: (position: Position | readonly Position[]) => void;
   stressed: boolean;
   handleStress: () => void;
+  /** When set, the maneuver readout ignores the position table and samples
+   * this fixed list by `maneuverRandNum` (special-AI ships whose movement is
+   * a plain die roll — see `SquadTag` `maneuverOverride`). */
+  maneuverOverride?: readonly Maneuver[];
 }
 
 /**
@@ -76,6 +80,11 @@ export interface ScenarioSpawnMeta {
    * `Scenario.behaviorDescriptions[aiTag]` at spawn time. May contain
    * `:icon:` shortcodes. Rendered under the target-priority list. */
   behaviorDescription?: string;
+  /** Fixed maneuver list for special-AI ships whose movement is a plain die
+   * roll, copied from the squad's `maneuverOverride` tag at spawn time. When
+   * present, the maneuver dial samples this list instead of the position
+   * table (any dial click → a random entry). */
+  maneuverOverride?: readonly Maneuver[];
 }
 
 /** Display string for a squadron's approach — label wins over vector number,

@@ -12,7 +12,9 @@ import {
   resolveMissionMap,
   zoneRect,
   type DrawableAsteroids,
+  type DrawableHull,
   type DrawableMap,
+  type DrawableMines,
   type DrawableStation,
   type DrawableVector,
   type ResolvedToken,
@@ -21,6 +23,12 @@ import './MissionMap.css';
 
 const CELL = 66;
 const MARGIN = 60;
+
+// Shared GR-75 transport hull size (cells). Single source of truth — scenarios
+// may still override per-token, but normally inherit these so every map draws
+// the transport at a consistent scale.
+const GR75_LENGTH = 2.1;
+const GR75_WIDTH = 0.7;
 
 const HUE: Record<MapHue, string> = {
   holo: 'var(--accent-holo)',
@@ -41,6 +49,8 @@ const SHIP_GLYPH_CHAR: Partial<Record<ShipId, string>> = {
   TIEADVX: 'A',
   TIEDEF: 'D',
   TIEPH: 'P',
+  HWK290: 'h',
+  OUTER_RIM_SMUGGLER: 'o',
 };
 
 interface Geo {
@@ -169,6 +179,45 @@ function Grid({ geo }: { geo: Geo }) {
   );
 }
 
+const OUT_DIR: Record<MapSide, readonly [number, number]> = {
+  top: [0, -1],
+  bottom: [0, 1],
+  left: [-1, 0],
+  right: [1, 0],
+};
+
+/** Outward exit chevrons along the long axis of an escape-edge band rect. */
+function ExitChevrons({ rect, side }: { rect: readonly [number, number, number, number]; side: MapSide }) {
+  const [x, y, w, h] = rect;
+  const [ox, oy] = OUT_DIR[side];
+  const perpx = -oy;
+  const perpy = ox;
+  const horizontal = side === 'top' || side === 'bottom';
+  const a = 7;
+  const b = 8;
+  const cx0 = x + w / 2;
+  const cy0 = y + h / 2;
+  const span = horizontal ? w : h;
+  const chevrons: ReactElement[] = [];
+  for (const frac of [-0.28, 0, 0.28]) {
+    const px = horizontal ? cx0 + frac * span : cx0;
+    const py = horizontal ? cy0 : cy0 + frac * span;
+    const f = (n: number) => n.toFixed(1);
+    chevrons.push(
+      <polyline
+        key={frac}
+        points={`${f(px + perpx * a)},${f(py + perpy * a)} ${f(px + ox * b)},${f(py + oy * b)} ${f(px - perpx * a)},${f(py - perpy * a)}`}
+        fill="none"
+        stroke="var(--accent-warn)"
+        strokeWidth={2.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />,
+    );
+  }
+  return <g filter="url(#mm-glow)">{chevrons}</g>;
+}
+
 type Zone = DrawableMap['zones'][number];
 
 function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
@@ -229,6 +278,7 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
           strokeDasharray="6 7"
           strokeOpacity={0.7}
         />
+        {zone.exit ? <ExitChevrons rect={[x, y, w, h]} side={zone.exit} /> : null}
       </>
     );
   } else if (zone.rect) {
@@ -306,10 +356,33 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
     );
     bx = cx + dirX * R * 0.5;
     by = cy + dirY * R * 0.5;
+  } else if (zone.tri) {
+    const pts = zone.tri.map((p) => (p === 'center' ? ([grid / 2, grid / 2] as const) : p));
+    const pointsAttr = pts.map(([gx, gy]) => `${X(gx).toFixed(1)},${Y(gy).toFixed(1)}`).join(' ');
+    body = (
+      <>
+        <polygon points={pointsAttr} fill={col} fillOpacity={0.07} />
+        <polygon
+          points={pointsAttr}
+          fill="none"
+          stroke={col}
+          strokeWidth={1.4}
+          strokeDasharray="6 7"
+          strokeOpacity={0.7}
+        />
+      </>
+    );
+    bx = X((pts[0][0] + pts[1][0] + pts[2][0]) / 3);
+    by = Y((pts[0][1] + pts[1][1] + pts[2][1]) / 3);
   } else {
     const p = zone.point ?? [grid / 2, grid / 2];
     bx = X(p[0]);
     by = Y(p[1]);
+  }
+
+  if (zone.labelAt) {
+    bx = X(zone.labelAt[0]);
+    by = Y(zone.labelAt[1]);
   }
 
   return (
@@ -356,6 +429,17 @@ function AsteroidPolygon({
   );
 }
 
+function SensorBeacon({ cx, cy }: { cx: number; cy: number }) {
+  return (
+    <g filter="url(#mm-glow)">
+      <line x1={cx} y1={cy - 13} x2={cx} y2={cy - 6} stroke="var(--accent-holo)" strokeWidth={1.4} />
+      <circle cx={cx} cy={cy} r={6} fill="var(--accent-holo)" fillOpacity={0.85} stroke="#eaffff" strokeWidth={1.2} />
+      <line x1={cx - 9} y1={cy - 9} x2={cx + 9} y2={cy + 9} stroke="var(--accent-holo)" strokeWidth={1.2} strokeOpacity={0.8} />
+      <line x1={cx + 9} y1={cy - 9} x2={cx - 9} y2={cy + 9} stroke="var(--accent-holo)" strokeWidth={1.2} strokeOpacity={0.8} />
+    </g>
+  );
+}
+
 function AsteroidField({ geo, field }: { geo: Geo; field: DrawableAsteroids }) {
   const rng = mulberry32(((field.seed >>> 0) ^ 0x9e3779b9) >>> 0);
   return (
@@ -380,6 +464,64 @@ function AsteroidField({ geo, field }: { geo: Geo; field: DrawableAsteroids }) {
           rng={rng}
           stroke="var(--accent-danger)"
         />
+      ))}
+      {field.beacons.map(([gx, gy], i) => (
+        <SensorBeacon key={`b${i.toString()}`} cx={geo.X(gx)} cy={geo.Y(gy)} />
+      ))}
+    </g>
+  );
+}
+
+function Mine({ cx, cy, rng }: { cx: number; cy: number; rng: () => number }) {
+  // Proximity mine: a red ring with a small cluster of triangular spikes,
+  // echoing the printed minefield tokens.
+  const spin = rng() * 60;
+  const spikes: ReactElement[] = [];
+  for (let k = 0; k < 3; k++) {
+    const ang = ((spin + k * 120) * Math.PI) / 180;
+    const ax = Math.cos(ang);
+    const ay = Math.sin(ang);
+    const px = -ay;
+    const py = ax;
+    const tip = 22;
+    const base = 9;
+    spikes.push(
+      <polygon
+        key={k}
+        points={[
+          `${(cx + ax * tip).toFixed(1)},${(cy + ay * tip).toFixed(1)}`,
+          `${(cx + px * base).toFixed(1)},${(cy + py * base).toFixed(1)}`,
+          `${(cx - px * base).toFixed(1)},${(cy - py * base).toFixed(1)}`,
+        ].join(' ')}
+        fill="var(--accent-danger)"
+        fillOpacity={0.85}
+      />,
+    );
+  }
+  return (
+    <g filter="url(#mm-glow)">
+      <circle
+        cx={cx}
+        cy={cy}
+        r={13}
+        fill="var(--accent-danger)"
+        fillOpacity={0.08}
+        stroke="var(--accent-danger)"
+        strokeWidth={2}
+      />
+      {spikes}
+      <circle cx={cx} cy={cy} r={3} fill="var(--accent-danger)" />
+    </g>
+  );
+}
+
+function MineField({ geo, field }: { geo: Geo; field: DrawableMines }) {
+  const rng = mulberry32(((field.seed >>> 0) ^ 0x85ebca6b) >>> 0);
+  return (
+    <g>
+      {field.tip ? <title>{field.tip}</title> : null}
+      {field.mines.map(([gx, gy], i) => (
+        <Mine key={`m${i.toString()}`} cx={geo.X(gx)} cy={geo.Y(gy)} rng={rng} />
       ))}
     </g>
   );
@@ -481,6 +623,27 @@ function Station({ geo, station }: { geo: Geo; station: DrawableStation }) {
   );
 }
 
+function Hull({ geo, hull }: { geo: Geo; hull: DrawableHull }) {
+  const f = (n: number) => n.toFixed(1);
+  return (
+    <g filter="url(#mm-glow)">
+      {hull.tip ? <title>{hull.tip}</title> : null}
+      {hull.polys.map((poly, i) => (
+        <polygon
+          key={`hp${i.toString()}`}
+          points={poly.map(([gx, gy]) => `${f(geo.X(gx))},${f(geo.Y(gy))}`).join(' ')}
+          fill="var(--accent-holo)"
+          fillOpacity={0.05}
+          stroke="var(--accent-holo)"
+          strokeWidth={1.6}
+          strokeOpacity={0.7}
+          strokeLinejoin="round"
+        />
+      ))}
+    </g>
+  );
+}
+
 function FighterChevron({ cx, cy, s, color }: { cx: number; cy: number; s: number; color: string }) {
   const f = (n: number) => n.toFixed(1);
   return (
@@ -547,6 +710,53 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
           {glyph}
         </text>
         {token.label ? <LabelBadge cx={cx + 22} cy={cy - 20} text={token.label} hue={token.hue ?? 'holo'} /> : null}
+      </>
+    );
+  } else if (token.kind === 'transport') {
+    // GR-75 supply transport: a tapered hull silhouette (blunt wide bow at +x,
+    // narrowing to the stern at -x), echoing the top-down view. Rotated about
+    // its centre by `angle`.
+    const L = (token.length ?? GR75_LENGTH) * CELL;
+    const W = (token.width ?? GR75_WIDTH) * CELL;
+    const rot = token.angle ?? 0;
+    const hl = L / 2;
+    const hw = W / 2;
+    // Half-hull profile from bow (+x) to stern (-x); mirrored across the spine.
+    const profile: readonly [number, number][] = [
+      [hl, 0.5],
+      [hl * 0.55, 1],
+      [-hl * 0.2, 0.85],
+      [-hl * 0.8, 0.42],
+      [-hl, 0.26],
+    ];
+    const pts: string[] = [];
+    for (const [px, ky] of profile) pts.push(`${(cx + px).toFixed(1)},${(cy - hw * ky).toFixed(1)}`);
+    for (let i = profile.length - 1; i >= 0; i--) {
+      const [px, ky] = profile[i];
+      pts.push(`${(cx + px).toFixed(1)},${(cy + hw * ky).toFixed(1)}`);
+    }
+    body = (
+      <>
+        <g filter="url(#mm-glow)" transform={`rotate(${rot.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})`}>
+          <polygon
+            points={pts.join(' ')}
+            fill="var(--accent-holo)"
+            fillOpacity={0.12}
+            stroke="var(--accent-holo)"
+            strokeWidth={2}
+            strokeLinejoin="round"
+          />
+          <line
+            x1={cx - hl * 0.8}
+            y1={cy}
+            x2={cx + hl * 0.9}
+            y2={cy}
+            stroke="var(--accent-holo)"
+            strokeWidth={1.2}
+            strokeOpacity={0.6}
+          />
+        </g>
+        {token.label ? <LabelBadge cx={cx} cy={cy - W * 0.9} text={token.label} hue="holo" /> : null}
       </>
     );
   } else {
@@ -664,6 +874,12 @@ export function MissionMap({ scenario, playerCount }: { scenario: Scenario; play
       <Grid geo={geo} />
       {map.asteroids.map((f, i) => (
         <AsteroidField key={`a${i.toString()}`} geo={geo} field={f} />
+      ))}
+      {map.minefields.map((f, i) => (
+        <MineField key={`m${i.toString()}`} geo={geo} field={f} />
+      ))}
+      {map.hulls.map((h, i) => (
+        <Hull key={`h${i.toString()}`} geo={geo} hull={h} />
       ))}
       {map.stations.map((s, i) => (
         <Station key={`s${i.toString()}`} geo={geo} station={s} />

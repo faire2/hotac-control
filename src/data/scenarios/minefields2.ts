@@ -1,4 +1,5 @@
 import type { Scenario } from './types';
+import { MVRS } from '../Maneuvers';
 
 const briefing = `"We've just received an urgent message from one of our incoming GR-75 supply transports — the Quantum Storm! They dropped out of hyperspace in the middle of an uncharted Imperial minefield and are unable to escape!
 
@@ -8,12 +9,12 @@ Scramble, pilots!"`;
 
 const mapDiagram = `             4         5
         ┌─────────────────────┐
-    3   │     S    [GR-75]    │   6
-        │   M M M  M M M      │
-        │  M G M D M D M      │
-        │   M M M  M M M      │
-        │                     │
-        │           A         │
+    3   │  M M M       [GR-75]│   6
+        │  M M M  ⟍           │
+        │  M M     ⟍          │
+        │           ⟍   M M M │
+        │            ⟍  M M M │
+        │      A        M M M │
         └─────────────────────┘
              2         1`;
 
@@ -30,6 +31,58 @@ export const minefields2: Scenario = {
     'B: Imperial Minefields (×6 per area, Range >1 apart / from edge)',
     'Uses special rules for Minefields — see p33 of source PDF',
   ],
+  map: {
+    grid: 9,
+    seed: 21,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'A',
+        hue: 'warn',
+        corner: { corner: 'br', radius: 3 },
+        tip: 'A — Player setup area: deploy your ships in this corner',
+      },
+      {
+        label: 'C',
+        hue: 'holo',
+        point: [0.6, 8.4],
+        tip: 'C — the Decimator task force arrives from this corner on turn 6',
+      },
+      {
+        id: 'B1',
+        label: 'B',
+        hue: 'danger',
+        tri: [[0.5, 0.5], [7.5, 0.5], [0.5, 7.5]],
+        tip: 'B — Imperial minefield (6 mines per area): two right-triangle halves (legs 7 long), separated by a narrow diagonal corridor, mines Range >1 apart',
+      },
+      {
+        id: 'B2',
+        hue: 'danger',
+        tri: [[8.5, 8.5], [1.5, 8.5], [8.5, 1.5]],
+        tip: 'B — Imperial minefield (6 mines per area): two right-triangle halves (legs 7 long), separated by a narrow diagonal corridor, mines Range >1 apart',
+      },
+    ],
+    features: [
+      { kind: 'minefields', count: 6, in: 'B1', seed: 21, minDist: 1.3 },
+      { kind: 'minefields', count: 6, in: 'B2', seed: 22, minDist: 1.3 },
+    ],
+    tokens: [
+      {
+        kind: 'transport',
+        at: [7, 2],
+        angle: -45,
+        tip: 'Quantum Storm — the GR-75 transport, stranded in the top-right corner of the corridor between the two minefields (escape via hyperspace)',
+      },
+    ],
+    vectors: [
+      { n: 1, side: 'bottom', t: 1 / 2 },
+      { n: 2, side: 'left', t: 2 / 3 },
+      { n: 3, side: 'left', t: 1 / 3 },
+      { n: 4, side: 'top', t: 1 / 3 },
+      { n: 5, side: 'top', t: 2 / 3 },
+      { n: 6, side: 'right', t: 1 / 3 },
+    ],
+  },
   turnLimit: 10,
   territory: 'enemy',
   objectives: [
@@ -102,6 +155,12 @@ export const minefields2: Scenario = {
       arrival: { kind: 'turn', turn: 6 },
       vector: 'C',
       aiTag: 'Special',
+      // Decimator AI: while the transport is in play it just rolls 1d6 for
+      // movement → 1/2/3 straight (ignores target position). The maneuver
+      // dial samples this list, so any click yields a random straight.
+      tags: [
+        { kind: 'maneuverOverride', maneuvers: [MVRS.STRAIGHT1, MVRS.STRAIGHT2, MVRS.STRAIGHT3] },
+      ],
       composition: {
         1: [{ kind: 'add', ship: 'VT49' }],
         4: [{ kind: 'addShields', count: 2 }],
@@ -143,9 +202,11 @@ Players may choose to either perform an action for the transport, or roll a die:
     {
       title: 'Decimator AI',
       body: `While the transport is in play, for movement, the Decimator rolls 1d6.
-- 1-2: speed 1 bank
-- 3-4: speed 2 bank
-- 5-6: speed 3 bank
+- 1-2: speed 1 straight
+- 3-4: speed 2 straight
+- 5-6: speed 3 straight
+
+(On the squad card, clicking anywhere on the maneuver dial rolls this for you.)
 
 If it begins its movement touching the transport, it docks instead to capture the ship with a boarding party. If this happens, then the Rebels lose.`,
     },

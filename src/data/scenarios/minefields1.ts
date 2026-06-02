@@ -30,6 +30,30 @@ export const minefields1: Scenario = {
     'B: Imperial Minefields (sample layout — see Minefield Setup)',
     'Uses special rules for Minefields — see p33 of source PDF',
   ],
+  map: {
+    grid: 9,
+    seed: 7,
+    setupEdge: { side: 'bottom' },
+    zones: [
+      {
+        id: 'B',
+        label: 'B',
+        hue: 'danger',
+        rect: [1, 1, 8, 8],
+        labelAt: [0.45, 0.45],
+        tip: 'B — Imperial minefield: 3 tokens per player, each just beyond Range 1 from two others and Range 1+ from the edge',
+      },
+    ],
+    features: [{ kind: 'minefields', perPlayer: 3, in: 'B', seed: 7, minDist: 1.3 }],
+    vectors: [
+      { n: 1, side: 'bottom', t: 2 / 3 },
+      { n: 2, side: 'bottom', t: 1 / 3 },
+      { n: 3, side: 'left', t: 1 / 3 },
+      { n: 4, side: 'top', t: 1 / 3 },
+      { n: 5, side: 'top', t: 2 / 3 },
+      { n: 6, side: 'right', t: 1 / 3 },
+    ],
+  },
   turnLimit: 12,
   territory: 'friendly',
   objectives: [
