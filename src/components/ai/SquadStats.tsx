@@ -8,6 +8,8 @@ interface Props {
    * `noUpgrades` squads — the Init column then falls back to
    * `ship.initiative`. */
   rollMeta?: UpgradeRollMeta;
+  /** Mission-fixed initiative (allies). Wins over rollMeta + ship default. */
+  initiativeOverride?: number;
 }
 
 /* Maps internal ShipId to the slug used by the xwing-miniatures-ships
@@ -35,9 +37,9 @@ const SHIP_GLYPH: Record<ShipId, string> = {
   OUTER_RIM_SMUGGLER: 'yt2400lightfreighter',
 };
 
-export const SquadStats = ({ shipType, rollMeta }: Props) => {
+export const SquadStats = ({ shipType, rollMeta, initiativeOverride }: Props) => {
   const ship = Ships[shipType];
-  const initiative = rollMeta?.initiative ?? ship.initiative;
+  const initiative = initiativeOverride ?? rollMeta?.initiative ?? ship.initiative;
   const glyphSlug = SHIP_GLYPH[shipType];
 
   return (
