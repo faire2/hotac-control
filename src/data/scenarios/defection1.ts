@@ -28,10 +28,63 @@ export const defection1: Scenario = {
   mapDiagram,
   mapNotes: [
     'Neutral Territory — 12 turns',
-    'A: Player setup area',
-    'B: Satellite Relay ×1 per player',
+    'A: Player setup area (the planet in the corner)',
+    'B: Satellite Relay ×1 per player (extra relays at higher player counts)',
     'C: Asteroids ×6, random layout (Range >1 from any terrain / from edge)',
+    'Centre: Holonet receiver — tri-hub station with a Sensor Array',
   ],
+  map: {
+    grid: 9,
+    seed: 21,
+    setupEdge: false,
+    zones: [
+      {
+        id: 'planet',
+        label: 'A',
+        hue: 'danger',
+        corner: { corner: 'br', radius: 3.2 },
+        tip: 'A — Player setup area: deploy near the planet tucked into the corner',
+      },
+      {
+        label: 'C',
+        hue: 'holo',
+        point: [1.7, 5.4],
+        tip: 'C — Asteroid field: 6 rocks, random layout (Range >1 from terrain / edges)',
+      },
+    ],
+    features: [
+      {
+        kind: 'station',
+        preset: 'triHub',
+        at: [4.5, 4.2],
+        tip: 'Holonet receiver — the tri-hub station (Sensor Array emplacement at the core)',
+      },
+      {
+        kind: 'asteroids',
+        count: 6,
+        region: [0.9, 0.9, 7.6, 7.6],
+        seed: 27,
+        minDist: 1.8,
+      },
+    ],
+    tokens: [
+      // Six relays surround the holonet receiver. The two centre relays (top /
+      // bottom, on the mid-line of the second square row in from each edge) are
+      // the base pair; the four corner intersections fill in as players are
+      // added. The 'B' relay sits inside the asteroid field at the top.
+      {
+        kind: 'relay',
+        at: [4.5, 2],
+        label: 'B',
+        tip: 'Satellite Relay (B) — disable to identify the spy holonet channel; destroying one costs XP',
+      },
+      { kind: 'relay', at: [4.5, 7], tip: 'Satellite Relay — disable to identify the spy holonet channel' },
+      { kind: 'relay', at: [3, 3], playerCount: 3, tip: 'Satellite Relay (3+ players)' },
+      { kind: 'relay', at: [6, 3], playerCount: 4, tip: 'Satellite Relay (4+ players)' },
+      { kind: 'relay', at: [3, 6], playerCount: 5, tip: 'Satellite Relay (5+ players)' },
+      { kind: 'relay', at: [6, 6], playerCount: 6, tip: 'Satellite Relay (6+ players)' },
+    ],
+  },
   turnLimit: 12,
   territory: 'enemy',
   objectives: [

@@ -23,10 +23,40 @@ export const chasingPhantoms4: Scenario = {
   mapDiagram,
   mapNotes: [
     'Hostile Territory — 10 turns',
-    'A: Player setup area',
+    'A: Player setup area (centre)',
     'B: Cloud ×10 (Ion Storm, random layout, Range >1 apart)',
     'Uses the Ion Storm variant rules for Clouds — see p32 of source PDF',
   ],
+  map: {
+    grid: 9,
+    seed: 44,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'A',
+        hue: 'warn',
+        rect: [3, 3, 6, 6],
+        tip: 'A — Player setup area: deploy your ships in the central zone; the ambush comes from every vector',
+      },
+      {
+        label: 'B',
+        hue: 'holo',
+        point: [4.5, 1.6],
+        tip: 'B — Ion storm clouds: 10 large clouds, random layout (Range >1 apart). Uses the Ion Storm variant rules.',
+      },
+    ],
+    features: [
+      {
+        kind: 'ionStorms',
+        count: 10,
+        region: [0.8, 0.8, 8.2, 8.2],
+        seed: 44,
+        minDist: 1.8,
+        size: 0.9,
+        tip: 'Ion storms — large ion clouds scattered across the whole sector; the TIE Interceptors ambush out of them',
+      },
+    ],
+  },
   turnLimit: 10,
   territory: 'hostile',
   objectives: [

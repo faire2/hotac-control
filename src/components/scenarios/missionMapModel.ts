@@ -11,6 +11,7 @@
 
 import type { ShipId } from '../../data/Ships';
 import type {
+  ApproachDir,
   MapHue,
   MapPoint,
   MapRect,
@@ -33,6 +34,13 @@ const ASTEROID_INSET = 0.3;
 export type ResolvedToken =
   | { kind: 'playerStart'; at: readonly [number, number]; playerCount?: number; tip?: string }
   | { kind: 'objective'; at: readonly [number, number]; label?: string; tip?: string }
+  | {
+      kind: 'relay';
+      at: readonly [number, number];
+      label?: string;
+      playerCount?: number;
+      tip?: string;
+    }
   | {
       kind: 'structure';
       at: readonly [number, number];
@@ -65,6 +73,16 @@ export interface DrawableVector {
   side: MapSide;
   /** Fraction along the edge, 0..1 from its clockwise-start corner. */
   t: number;
+  /** Board corner this badge sits on, if any — drawn pointing diagonally inward. */
+  corner?: 'bl' | 'tl' | 'tr' | 'br';
+  /**
+   * Interior anchor (grid coords) for a lettered approach vector that sits on an
+   * inner intersection instead of the board edge. When present, `dir` gives the
+   * direction it points along and `label` overrides the number in the badge.
+   */
+  at?: readonly [number, number];
+  dir?: ApproachDir;
+  label?: string;
 }
 
 export interface DrawableAsteroids {
@@ -80,6 +98,14 @@ export interface DrawableAsteroids {
 export interface DrawableMines {
   mines: readonly (readonly [number, number])[];
   seed: number;
+  tip?: string;
+}
+
+export interface DrawableIonStorms {
+  clouds: readonly (readonly [number, number])[];
+  seed: number;
+  /** Cloud radius in cells. */
+  size: number;
   tip?: string;
 }
 
@@ -103,6 +129,7 @@ export interface DrawableMap {
   zones: readonly (MapZone & { hue: MapHue })[];
   asteroids: readonly DrawableAsteroids[];
   minefields: readonly DrawableMines[];
+  ionStorms: readonly DrawableIonStorms[];
   stations: readonly DrawableStation[];
   hulls: readonly DrawableHull[];
   tokens: readonly ResolvedToken[];
@@ -156,6 +183,39 @@ export function vectorRing(setupSide: MapSide, count: 6 | 12): DrawableVector[] 
     for (const t of ts) out.push({ n: n++, side, t });
   }
   return out;
+}
+
+/**
+ * Full-perimeter ring for central-setup maps (no setup edge). Numbered 1..count
+ * clockwise starting at the bottom-left corner: up the left edge, across the
+ * top, down the right edge, then back across the bottom. Corners (1,4,7,10 for
+ * a 12-ring) sit exactly on the board corners, matching the printed map.
+ */
+export function vectorRingPerimeter(count: 6 | 12): DrawableVector[] {
+  if (count === 12) {
+    return [
+      { n: 1, side: 'left', t: 1, corner: 'bl' }, // bottom-left corner
+      { n: 2, side: 'left', t: 2 / 3 },
+      { n: 3, side: 'left', t: 1 / 3 },
+      { n: 4, side: 'top', t: 0, corner: 'tl' }, // top-left corner
+      { n: 5, side: 'top', t: 1 / 3 },
+      { n: 6, side: 'top', t: 2 / 3 },
+      { n: 7, side: 'right', t: 0, corner: 'tr' }, // top-right corner
+      { n: 8, side: 'right', t: 1 / 3 },
+      { n: 9, side: 'right', t: 2 / 3 },
+      { n: 10, side: 'bottom', t: 1, corner: 'br' }, // bottom-right corner
+      { n: 11, side: 'bottom', t: 2 / 3 },
+      { n: 12, side: 'bottom', t: 1 / 3 },
+    ];
+  }
+  return [
+    { n: 1, side: 'left', t: 1, corner: 'bl' }, // bottom-left corner
+    { n: 2, side: 'left', t: 1 / 3 },
+    { n: 3, side: 'top', t: 1 / 3 },
+    { n: 4, side: 'top', t: 2 / 3 },
+    { n: 5, side: 'right', t: 2 / 3 },
+    { n: 6, side: 'bottom', t: 1 / 2 },
+  ];
 }
 
 // --- zone bounds + asteroid sampling ---------------------------------------
@@ -301,15 +361,31 @@ export function resolveMissionMap(scenario: Scenario, playerCount?: number): Dra
     vectors = [];
   } else if (vspec === undefined || vspec === 'auto' || vspec === 6 || vspec === 12) {
     const count = vspec === undefined || vspec === 'auto' ? deriveVectorCount(scenario.squads) : vspec;
-    vectors = vectorRing(setupEdge?.side ?? 'bottom', count);
+    // Central-setup maps (no setup edge) get a full-perimeter ring with corners;
+    // edge-setup maps get the swept ring over the three non-setup edges.
+    vectors = setupEdge ? vectorRing(setupEdge.side, count) : vectorRingPerimeter(count);
   } else {
     vectors = vspec.map((v) => ({ n: v.n, side: v.side, t: v.t }));
   }
+
+  // Lettered interior approach vectors (e.g. C/D/E/F) — drawn as inward-pointing
+  // chevrons on inner intersections, in addition to any edge ring above.
+  (spec.approaches ?? []).forEach((a, i) => {
+    vectors.push({
+      n: 100 + i,
+      side: 'top',
+      t: 0,
+      at: resolvePoint(a.at, grid),
+      dir: a.dir,
+      label: a.label,
+    });
+  });
 
   // Features → asteroids + stations.
   const byId = new Map(specZones.filter((z) => z.id).map((z) => [z.id, z] as const));
   const asteroids: DrawableAsteroids[] = [];
   const minefields: DrawableMines[] = [];
+  const ionStorms: DrawableIonStorms[] = [];
   const stations: DrawableStation[] = [];
   const hulls: DrawableHull[] = [];
   const stationTokens: ResolvedToken[] = [];
@@ -366,6 +442,22 @@ export function resolveMissionMap(scenario: Scenario, playerCount?: number): Dra
           f.tip ??
           'Minefield — each token placed just beyond Range 1 from two others and Range 1+ from the edge',
       });
+    } else if (f.kind === 'ionStorms') {
+      const zone = f.in ? byId.get(f.in) : undefined;
+      const region: MapRect =
+        f.region ??
+        (zone ? insetRect(zoneRect(zone, grid), ASTEROID_INSET) : insetRect([0, 0, grid, grid], 1.5));
+      const fSeed = f.seed ?? seed;
+      const size = f.size ?? 0.95;
+      const clouds = sampleAsteroids(region, f.count, fSeed, f.minDist ?? 1.9);
+      ionStorms.push({
+        clouds,
+        seed: fSeed,
+        size,
+        tip:
+          f.tip ??
+          'Ion storms — large ion clouds; placement is randomized at setup, Range >1 apart',
+      });
     } else {
       stations.push({ preset: f.preset, at: resolvePoint(f.at, grid), label: f.label, tip: f.tip });
     }
@@ -390,6 +482,7 @@ export function resolveMissionMap(scenario: Scenario, playerCount?: number): Dra
     zones: [...setupZone, ...specZones],
     asteroids,
     minefields,
+    ionStorms,
     hulls,
     stations,
     tokens,

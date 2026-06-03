@@ -85,10 +85,47 @@ const inspectionSquadOnIdentify: DynamicSpawnHandler = {
   },
 };
 
+const escapePodPlaced: DynamicSpawnHandler = {
+  key: 'escapePodPlaced',
+  title: 'Escape Pod revealed (Needle in a Hay Stack)',
+  recurring: false,
+  prompts: [
+    {
+      id: 'placed',
+      kind: 'confirm',
+      label: 'Was the Escape Pod token (signal 12) placed this round?',
+      defaultValue: false,
+    },
+  ],
+  decide(input) {
+    return { spawn: input.placed === true };
+  },
+};
+
+const dockingPortRevealed: DynamicSpawnHandler = {
+  key: 'dockingPortRevealed',
+  title: 'Docking Port revealed (Cloak and Dagger)',
+  recurring: true,
+  prompts: [
+    {
+      id: 'revealed',
+      kind: 'confirm',
+      label:
+        'Did you reveal a Docking Port this round? (signal 1/2/3 at 4/5/6 players respectively — adds 1 TIE Phantom)',
+      defaultValue: false,
+    },
+  ],
+  decide(input) {
+    return { spawn: input.revealed === true };
+  },
+};
+
 export const DYNAMIC_SPAWN_HANDLERS: Readonly<Record<string, DynamicSpawnHandler>> =
   Object.freeze({
     sensorCheckPatrol,
     inspectionSquadOnIdentify,
+    escapePodPlaced,
+    dockingPortRevealed,
   });
 
 export function findHandler(key: string): DynamicSpawnHandler | undefined {

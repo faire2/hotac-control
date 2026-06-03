@@ -28,8 +28,25 @@ export const defection2: Scenario = {
     'Hostile Territory — 10 turns',
     'A: Player setup edge',
     'B: Asteroids ×6 (random layout, Range >2 from edges, Range >1 apart)',
-    'P: Prototype TIE Defender squad',
+    'P: Prototype TIE Defender squad (1 per player, max 4)',
   ],
+  map: {
+    grid: 9,
+    seed: 22,
+    setupEdge: { side: 'bottom' },
+    zones: [
+      { label: 'B', hue: 'holo', point: [1.4, 4.4], tip: 'B — Asteroid field: 6 rocks (Range >2 from edges, >1 apart)' },
+    ],
+    features: [{ kind: 'asteroids', count: 6, region: [1.6, 2.8, 7.4, 6.6], seed: 22, minDist: 1.9 }],
+    tokens: [
+      // Prototype TIE Defender squad — one Defender per player (max 4). The
+      // playerCount gates reproduce the squad's cumulative 1/2/2/3/3/4 count.
+      { kind: 'ship', ship: 'TIEDEF', at: [3.5, 1.5], tip: 'Prototype TIE Defender — one of these is the Defector' },
+      { kind: 'ship', ship: 'TIEDEF', at: [4.5, 1.5], playerCount: 2, tip: 'Prototype TIE Defender (2+ players)' },
+      { kind: 'ship', ship: 'TIEDEF', at: [5.5, 1.5], playerCount: 4, tip: 'Prototype TIE Defender (4+ players)' },
+      { kind: 'ship', ship: 'TIEDEF', at: [6.5, 1.5], playerCount: 6, tip: 'Prototype TIE Defender (6 players)' },
+    ],
+  },
   turnLimit: 10,
   territory: 'hostile',
   objectives: [

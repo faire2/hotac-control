@@ -7,12 +7,13 @@
 
 import type { ReactElement } from 'react';
 import type { ShipId } from '../../data/Ships';
-import type { MapHue, MapSide, Scenario } from '../../data/scenarios/types';
+import type { ApproachDir, MapHue, MapSide, Scenario } from '../../data/scenarios/types';
 import {
   resolveMissionMap,
   zoneRect,
   type DrawableAsteroids,
   type DrawableHull,
+  type DrawableIonStorms,
   type DrawableMap,
   type DrawableMines,
   type DrawableStation,
@@ -290,17 +291,19 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
     body = (
       <>
         <rect x={x} y={y} width={w} height={h} fill={col} fillOpacity={0.07} />
-        <rect
-          x={x}
-          y={y}
-          width={w}
-          height={h}
-          fill="none"
-          stroke={col}
-          strokeWidth={1.4}
-          strokeDasharray="6 7"
-          strokeOpacity={0.7}
-        />
+        {zone.border === false ? null : (
+          <rect
+            x={x}
+            y={y}
+            width={w}
+            height={h}
+            fill="none"
+            stroke={col}
+            strokeWidth={1.4}
+            strokeDasharray="6 7"
+            strokeOpacity={0.7}
+          />
+        )}
       </>
     );
     bx = X(rx0) + 20;
@@ -527,6 +530,88 @@ function MineField({ geo, field }: { geo: Geo; field: DrawableMines }) {
   );
 }
 
+// Build a smooth closed outline through `pts` using a Catmull-Rom spline
+// converted to cubic Béziers. Rounds off the corners so a jittered ring of
+// points reads as a soft billow rather than a spiky polygon.
+function smoothClosedPath(pts: readonly (readonly [number, number])[]): string {
+  const n = pts.length;
+  if (n < 3) return '';
+  const p = (i: number) => pts[((i % n) + n) % n];
+  let d = `M ${p(0)[0].toFixed(1)},${p(0)[1].toFixed(1)}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = p(i - 1);
+    const p1 = p(i);
+    const p2 = p(i + 1);
+    const p3 = p(i + 2);
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C ${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return `${d} Z`;
+}
+
+function IonStorm({ cx, cy, r, rng }: { cx: number; cy: number; r: number; rng: () => number }) {
+  // A billowing nebula: a few overlapping irregular lobes layered translucently
+  // so they read as one soft ion cloud (much larger than an asteroid rock).
+  // Each lobe is a Catmull-Rom-smoothed ring with gentle radial jitter, so the
+  // edges curve softly instead of forming sharp polygon corners.
+  //
+  // Per-cloud character varies to match the reference art: clouds differ in
+  // overall size and are gently elongated along a random axis (area-preserving
+  // stretch), so the field mixes round blobs with kidney/oblong shapes rather
+  // than uniform circles.
+  const sizeMul = 0.68 + rng() * 0.3;
+  const phi = rng() * Math.PI;
+  const cosP = Math.cos(phi);
+  const sinP = Math.sin(phi);
+  const sx = Math.sqrt(1 + rng() * 0.4); // long axis (kept modest so clouds stay ~2×2)
+  const sy = 1 / sx; // short axis (keeps overall area roughly constant)
+  const baseR = r * sizeMul;
+  const lobes: ReactElement[] = [];
+  for (let l = 0; l < 3; l++) {
+    const ox = (rng() - 0.5) * baseR * 0.45;
+    const oy = (rng() - 0.5) * baseR * 0.45;
+    const lr = baseR * (0.6 + rng() * 0.32);
+    const n = 9 + Math.floor(rng() * 3);
+    const pts: [number, number][] = [];
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * Math.PI * 2;
+      const rad = lr * (0.84 + rng() * 0.2);
+      // build the point in the cloud's local frame, elongate, then rotate by phi
+      const lx = (ox + Math.cos(ang) * rad) * sx;
+      const ly = (oy + Math.sin(ang) * rad) * sy;
+      pts.push([cx + lx * cosP - ly * sinP, cy + lx * sinP + ly * cosP]);
+    }
+    lobes.push(
+      <path
+        key={l}
+        d={smoothClosedPath(pts)}
+        fill="var(--accent-holo)"
+        fillOpacity={0.1}
+        stroke="var(--accent-holo)"
+        strokeWidth={1.4}
+        strokeOpacity={0.45}
+        strokeLinejoin="round"
+      />,
+    );
+  }
+  return <g filter="url(#mm-glow)">{lobes}</g>;
+}
+
+function IonStormField({ geo, field }: { geo: Geo; field: DrawableIonStorms }) {
+  const rng = mulberry32(((field.seed >>> 0) ^ 0xc2b2ae35) >>> 0);
+  return (
+    <g>
+      {field.tip ? <title>{field.tip}</title> : null}
+      {field.clouds.map(([gx, gy], i) => (
+        <IonStorm key={`i${i.toString()}`} cx={geo.X(gx)} cy={geo.Y(gy)} r={field.size * CELL} rng={rng} />
+      ))}
+    </g>
+  );
+}
+
 function StationTriHub({ cx, cy, label, tip }: { cx: number; cy: number; label?: string; tip?: string }) {
   const arms: ReactElement[] = [];
   for (let k = 0; k < 3; k++) {
@@ -692,6 +777,51 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
         <circle cx={cx} cy={cy} r={3} fill="var(--accent-holo)" />
       </g>
     );
+  } else if (token.kind === 'relay') {
+    // Simplified satellite-relay buoy: a small core on landing legs, a broadcast
+    // antenna with a beacon, and two signal arcs — reads as a transmitter even
+    // at radar scale, distinct from rocks/mines/ships.
+    const f = (n: number) => n.toFixed(1);
+    body = (
+      <>
+        <g filter="url(#mm-glow)">
+          {/* core body */}
+          <circle
+            cx={cx}
+            cy={cy + 5}
+            r={6.5}
+            fill="var(--accent-holo)"
+            fillOpacity={0.12}
+            stroke="var(--accent-holo)"
+            strokeWidth={1.6}
+          />
+          {/* landing legs */}
+          <line x1={cx - 4} y1={cy + 9.5} x2={cx - 7} y2={cy + 15} stroke="var(--accent-holo)" strokeWidth={1.4} />
+          <line x1={cx + 4} y1={cy + 9.5} x2={cx + 7} y2={cy + 15} stroke="var(--accent-holo)" strokeWidth={1.4} />
+          {/* antenna mast + dish crossbar */}
+          <line x1={cx} y1={cy - 1} x2={cx} y2={cy - 14} stroke="var(--accent-holo)" strokeWidth={1.6} />
+          <line x1={cx - 5} y1={cy - 8} x2={cx + 5} y2={cy - 8} stroke="var(--accent-holo)" strokeWidth={1.4} />
+          {/* beacon */}
+          <circle cx={cx} cy={cy - 16} r={2.6} fill="var(--accent-holo)" />
+          {/* broadcast arcs */}
+          <path
+            d={`M ${f(cx + 4.5)} ${f(cy - 20)} A 6 6 0 0 1 ${f(cx + 4.5)} ${f(cy - 12)}`}
+            fill="none"
+            stroke="var(--accent-holo)"
+            strokeWidth={1.3}
+            strokeOpacity={0.7}
+          />
+          <path
+            d={`M ${f(cx - 4.5)} ${f(cy - 20)} A 6 6 0 0 0 ${f(cx - 4.5)} ${f(cy - 12)}`}
+            fill="none"
+            stroke="var(--accent-holo)"
+            strokeWidth={1.3}
+            strokeOpacity={0.7}
+          />
+        </g>
+        {token.label ? <LabelBadge cx={cx + 18} cy={cy - 14} text={token.label} hue="holo" /> : null}
+      </>
+    );
   } else if (token.kind === 'ship') {
     const col = HUE[token.hue ?? 'holo'];
     const glyph = SHIP_GLYPH_CHAR[token.ship];
@@ -804,25 +934,67 @@ const VEC_DIR: Record<MapSide, readonly [number, number]> = {
   right: [-1, 0],
 };
 
+// Board-corner anchors and their inward (toward-centre) unit directions.
+const CORNER_ANCHOR: Record<'bl' | 'tl' | 'tr' | 'br', readonly [number, number]> = {
+  bl: [0, 1],
+  tl: [0, 0],
+  tr: [1, 0],
+  br: [1, 1],
+};
+const CORNER_INWARD: Record<'bl' | 'tl' | 'tr' | 'br', readonly [number, number]> = {
+  bl: [Math.SQRT1_2, -Math.SQRT1_2],
+  tl: [Math.SQRT1_2, Math.SQRT1_2],
+  tr: [-Math.SQRT1_2, Math.SQRT1_2],
+  br: [-Math.SQRT1_2, -Math.SQRT1_2],
+};
+
+// Direction an interior approach chevron points (tip unit vector). Diagonals
+// reuse CORNER_INWARD; cardinals follow SVG axes (y grows downward → south).
+const APPROACH_DIR: Record<ApproachDir, readonly [number, number]> = {
+  ...CORNER_INWARD,
+  n: [0, -1],
+  s: [0, 1],
+  e: [1, 0],
+  w: [-1, 0],
+};
+
 function VectorBadge({ geo, vector }: { geo: Geo; vector: DrawableVector }) {
   const { size } = geo;
   const pos = vector.t * size + MARGIN;
   let cx = 0;
   let cy = 0;
-  if (vector.side === 'top') {
-    cx = pos;
-    cy = MARGIN - 28;
-  } else if (vector.side === 'bottom') {
-    cx = pos;
-    cy = MARGIN + size + 28;
-  } else if (vector.side === 'left') {
-    cx = MARGIN - 28;
-    cy = pos;
+  let ax: number;
+  let ay: number;
+  if (vector.at) {
+    // Interior approach vector: sit on an inner intersection, chevron aimed
+    // along the given direction (diagonal or cardinal).
+    [ax, ay] = APPROACH_DIR[vector.dir ?? 'tl'];
+    cx = geo.X(vector.at[0]);
+    cy = geo.Y(vector.at[1]);
+  } else if (vector.corner) {
+    // Sit on the board corner, offset diagonally outward, chevron aimed at centre.
+    [ax, ay] = CORNER_INWARD[vector.corner];
+    const [gx, gy] = CORNER_ANCHOR[vector.corner];
+    const anchorX = MARGIN + gx * size;
+    const anchorY = MARGIN + gy * size;
+    cx = anchorX - ax * 30;
+    cy = anchorY - ay * 30;
   } else {
-    cx = MARGIN + size + 28;
-    cy = pos;
+    if (vector.side === 'top') {
+      cx = pos;
+      cy = MARGIN - 28;
+    } else if (vector.side === 'bottom') {
+      cx = pos;
+      cy = MARGIN + size + 28;
+    } else if (vector.side === 'left') {
+      cx = MARGIN - 28;
+      cy = pos;
+    } else {
+      cx = MARGIN + size + 28;
+      cy = pos;
+    }
+    [ax, ay] = VEC_DIR[vector.side];
   }
-  const [ax, ay] = VEC_DIR[vector.side];
   const w = 20;
   const h = 16;
   const tipL = 11;
@@ -838,7 +1010,7 @@ function VectorBadge({ geo, vector }: { geo: Geo; vector: DrawableVector }) {
   ].join(' ');
   return (
     <g filter="url(#mm-glow)">
-      <title>Approach vector {vector.n}</title>
+      <title>Approach vector {vector.label ?? vector.n}</title>
       <polygon points={pts} fill="#1f6f94" stroke="var(--accent-holo)" strokeWidth={1.2} />
       <text
         x={cx}
@@ -849,7 +1021,7 @@ function VectorBadge({ geo, vector }: { geo: Geo; vector: DrawableVector }) {
         textAnchor="middle"
         dominantBaseline="central"
       >
-        {vector.n}
+        {vector.label ?? vector.n}
       </text>
     </g>
   );
@@ -877,6 +1049,9 @@ export function MissionMap({ scenario, playerCount }: { scenario: Scenario; play
       ))}
       {map.minefields.map((f, i) => (
         <MineField key={`m${i.toString()}`} geo={geo} field={f} />
+      ))}
+      {map.ionStorms.map((f, i) => (
+        <IonStormField key={`i${i.toString()}`} geo={geo} field={f} />
       ))}
       {map.hulls.map((h, i) => (
         <Hull key={`h${i.toString()}`} geo={geo} hull={h} />

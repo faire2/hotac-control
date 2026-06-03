@@ -30,6 +30,43 @@ export const chasingPhantoms2: Scenario = {
     'B: Rebel Transport (anywhere inside A)',
     'C: Asteroid ×6, random layout (Range >1 apart / from edge / transport)',
   ],
+  map: {
+    grid: 9,
+    seed: 42,
+    setupEdge: false,
+    zones: [
+      {
+        label: 'A',
+        hue: 'warn',
+        rect: [3, 3, 6, 6],
+        tip: 'A — Player setup area: deploy your ships here; the Bright Hope (transport) starts anywhere inside',
+      },
+      {
+        label: 'C',
+        hue: 'holo',
+        point: [8.4, 4.5],
+        tip: 'C — Asteroid field: 6 rocks, random layout (Range >1 apart / from edges / from the transport)',
+      },
+    ],
+    features: [
+      {
+        kind: 'asteroids',
+        count: 6,
+        region: [0.9, 0.9, 8.1, 8.1],
+        seed: 42,
+        minDist: 2.4,
+      },
+    ],
+    tokens: [
+      {
+        kind: 'transport',
+        at: [4.5, 4.5],
+        angle: -30,
+        label: 'B',
+        tip: 'Bright Hope — the GR-75 sensor transport (B) begins in the centre setup area',
+      },
+    ],
+  },
   turnLimit: 10,
   territory: 'enemy',
   objectives: [

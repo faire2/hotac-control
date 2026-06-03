@@ -30,6 +30,31 @@ export const chasingPhantoms1: Scenario = {
     'B: Distress Signal Tokens (sample layout)',
     'C: Ion Storm ×10 (random layout, Range >1 apart)',
   ],
+  map: {
+    grid: 9,
+    seed: 41,
+    setupEdge: { side: 'bottom' },
+    zones: [
+      {
+        id: 'storms',
+        label: 'C',
+        hue: 'holo',
+        rect: [0.6, 0.6, 8.4, 6.2],
+        tip: 'C — Ion storm field: 10 large ion clouds (random layout, Range >1 apart). A Tracking token sits at the centre of each.',
+      },
+    ],
+    features: [
+      {
+        kind: 'ionStorms',
+        count: 10,
+        in: 'storms',
+        seed: 41,
+        minDist: 1.5,
+        size: 0.9,
+        tip: 'Ion storms — large ion clouds; a Tracking token is placed at the centre of each at setup',
+      },
+    ],
+  },
   turnLimit: 12,
   territory: 'enemy',
   objectives: [
@@ -120,9 +145,14 @@ export const chasingPhantoms1: Scenario = {
       name: 'Phantom',
       // Mission introduces TIE Phantoms — once this mission has been completed,
       // future "Less random ships" mode rolls can resolve to TIEPH.
+      //
+      // Arrival is event-driven, NOT at setup: per the "Phantom Squad" rule the
+      // squad arrives the turn after the Escape Pod token is revealed. Modeled
+      // with the standard end-of-round confirmation popup (one-shot).
       arrival: { kind: 'setup' },
       vector: '1d6',
       aiTag: 'Attack',
+      tags: [{ kind: 'dynamicSpawn', handler: 'escapePodPlaced' }],
       composition: {
         1: [{ kind: 'add', ship: 'TIEPH' }],
         2: [{ kind: 'add', ship: 'TIEPH' }],

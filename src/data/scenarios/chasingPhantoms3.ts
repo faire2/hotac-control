@@ -29,7 +29,33 @@ export const chasingPhantoms3: Scenario = {
     'A: Player setup edge',
     'B: Signal Tokens ×10 (one per Cloud)',
     'C: Cloud ×10 (random layout, Range >1 apart, not inside area A)',
+    'R&D Station is NOT placed on the board at setup — see special rules; it is revealed by scanning clouds.',
   ],
+  map: {
+    grid: 9,
+    seed: 43,
+    setupEdge: { side: 'bottom' },
+    zones: [
+      {
+        id: 'storms',
+        label: 'C',
+        hue: 'holo',
+        rect: [0.6, 0.6, 8.4, 6.2],
+        tip: 'C — Ion cloud field: 10 clouds (random layout, Range >1 apart, not inside area A). A Tracking token sits at the centre of each.',
+      },
+    ],
+    features: [
+      {
+        kind: 'ionStorms',
+        count: 10,
+        in: 'storms',
+        seed: 43,
+        minDist: 1.5,
+        size: 0.9,
+        tip: 'Ion clouds — scan the Tracking token at each to find the R&D Station and Docking Ports',
+      },
+    ],
+  },
   turnLimit: 12,
   territory: 'hostile',
   objectives: [
@@ -92,6 +118,19 @@ export const chasingPhantoms3: Scenario = {
         4: [{ kind: 'replace', ship: 'TIEIN', gate: { rebelInitGte: 3 } }],
         5: [{ kind: 'add', ship: 'TIELN' }],
         6: [{ kind: 'replace', ship: 'TIEIN', gate: { rebelInitGte: 4 } }],
+      },
+    },
+    {
+      name: 'Docking Port',
+      // Revealed by scanning ion clouds: signal 1/2/3 at 4/5/6 players places a
+      // Docking Port with a TIE Phantom, in addition to the Reinforcements
+      // chart. Resolved each round via the standard end-of-round popup.
+      arrival: { kind: 'setup' },
+      vector: '1d6',
+      aiTag: 'Attack',
+      tags: [{ kind: 'dynamicSpawn', handler: 'dockingPortRevealed' }],
+      composition: {
+        1: [{ kind: 'add', ship: 'TIEPH' }],
       },
     },
   ],

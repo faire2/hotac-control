@@ -26,9 +26,44 @@ export const defection3: Scenario = {
   mapDiagram,
   mapNotes: [
     'Neutral Territory — 12 turns',
-    'A: Player setup / escape edge (all edges)',
-    'B: Asteroids ×6 (random layout, Range >1 apart / from edges / enemies)',
+    'A / B: Player setup / escape areas (any edge)',
+    'C / D / E / F: training-squad approach points',
+    'Asteroids ×6 (random layout, Range >1 apart / from edges / enemies)',
+    'Centre: the Instructor shuttle (Lambda)',
   ],
+  map: {
+    grid: 9,
+    seed: 23,
+    setupEdge: false,
+    zones: [
+      // Imperial-controlled space: red border frame (corners owned by the
+      // top/bottom bands only, so they aren't double-painted).
+      { hue: 'danger', rect: [0, 0, 9, 1], border: false, tip: 'Imperial-controlled space — board edge' },
+      { hue: 'danger', rect: [0, 8, 9, 9], border: false, tip: 'Imperial-controlled space — board edge' },
+      { hue: 'danger', rect: [0, 1, 1, 8], border: false, tip: 'Imperial-controlled space — board edge' },
+      { hue: 'danger', rect: [8, 1, 9, 8], border: false, tip: 'Imperial-controlled space — board edge' },
+      // Player setup / escape areas.
+      { label: 'A', hue: 'warn', point: [0.55, 5.7], tip: 'A — Player setup / escape area' },
+      { label: 'B', hue: 'warn', point: [0.55, 4.3], tip: 'B — Player setup / escape area' },
+    ],
+    // Lettered squad approach vectors — chevrons on the inner intersections in a
+    // clockwise pinwheel: C→west, F→north, E→east, D→south.
+    approaches: [
+      { label: 'C', at: [3, 3], dir: 'w' },
+      { label: 'F', at: [6, 3], dir: 'n' },
+      { label: 'D', at: [3, 6], dir: 's' },
+      { label: 'E', at: [6, 6], dir: 'e' },
+    ],
+    features: [{ kind: 'asteroids', count: 6, region: [1.6, 1.6, 7.4, 7.4], seed: 91, minDist: 1.9 }],
+    tokens: [
+      {
+        kind: 'ship',
+        ship: 'LAMBDA',
+        at: [4.5, 4.5],
+        tip: 'Instructor shuttle (Lambda) — its training crew coordinates the trainees (Quality Education)',
+      },
+    ],
+  },
   turnLimit: 12,
   territory: 'enemy',
   objectives: [

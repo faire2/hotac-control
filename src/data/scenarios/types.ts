@@ -255,6 +255,12 @@ export interface SpecialRule {
  */
 export type MapSide = 'top' | 'bottom' | 'left' | 'right';
 
+/**
+ * Direction an interior approach chevron points: the four diagonals
+ * (`tl`/`tr`/`bl`/`br`) or the four cardinals (`n`/`s`/`e`/`w`).
+ */
+export type ApproachDir = 'bl' | 'tl' | 'tr' | 'br' | 'n' | 's' | 'e' | 'w';
+
 /** Palette key → app `--accent-*` token. `holo` is the default. */
 export type MapHue = 'holo' | 'warn' | 'danger';
 
@@ -295,6 +301,13 @@ export interface MapZone {
    * a near-full-board rect so it doesn't land on top of the contents.
    */
   labelAt?: readonly [number, number];
+  /**
+   * Whether to draw the dashed outline stroke around the shape. Defaults to
+   * `true`. Set `false` for frame/band zones whose stroke would otherwise paint
+   * an unwanted border *inside* the play area (e.g. the red Imperial-space
+   * frame in Defection III).
+   */
+  border?: boolean;
   /** Free rectangle in cell units. */
   rect?: MapRect;
   /** Edge band: `depth` cells deep along `side`, optional `span` along it. */
@@ -430,6 +443,26 @@ export type MapFeature =
       minDist?: number;
       tip?: string;
     }
+  | {
+      /**
+       * Ion storms — large, irregular nebula clouds (much bigger than asteroid
+       * rocks), scattered like asteroids but drawn as translucent cyan clouds.
+       * A Tracking token conceptually sits at the centre of each. Seeded,
+       * min-distance enforced.
+       */
+      kind: 'ionStorms';
+      count: number;
+      /** Zone id whose rect bounds the scatter region. */
+      in?: string;
+      /** Explicit scatter region (used when `in` is absent). */
+      region?: MapRect;
+      seed?: number;
+      /** Minimum centre-to-centre spacing in cells. Default 1.9 (big clouds). */
+      minDist?: number;
+      /** Cloud radius in cells (irregular blob ~ this big). Default 0.95. */
+      size?: number;
+      tip?: string;
+    }
   | { kind: 'station'; preset: 'triHub' | 'bar'; at: MapPoint; label?: string; tip?: string };
 
 /** A game token in our own holo glyph language. */
@@ -437,6 +470,12 @@ export type MapToken =
   | { kind: 'playerStart'; at: MapPoint; playerCount?: number; tip?: string }
   | { kind: 'objective'; at: MapPoint; label?: string; tip?: string }
   | { kind: 'structure'; at: MapPoint; label?: string; playerCount?: number; tip?: string }
+  /**
+   * A satellite/holonet relay buoy (Defection arc). Drawn as a simplified
+   * broadcast antenna glyph. `playerCount` gates the extra relays that only
+   * appear at higher player counts (the printed "Np" buoys).
+   */
+  | { kind: 'relay'; at: MapPoint; label?: string; playerCount?: number; tip?: string }
   /**
    * A real ship silhouette drawn from the vendored `XWingShip` icon font (the
    * same glyphs the squad cards use). `ship` is an internal `ShipId`; an
@@ -487,6 +526,13 @@ export interface MissionMap {
    * number forces that derived count; `false` hides the ring. Default `'auto'`.
    */
   vectors?: readonly MapVector[] | 'auto' | 6 | 12 | false;
+  /**
+   * Lettered interior approach vectors (e.g. C/D/E/F squad spawn points). Each
+   * is drawn as a chevron badge sitting on an inner intersection, in addition to
+   * any edge ring. `dir` is the direction the chevron points: the four diagonals
+   * (`tl` = toward bottom-right, etc.) or the four cardinals (`n`/`s`/`e`/`w`).
+   */
+  approaches?: readonly { label: string; at: MapPoint; dir: ApproachDir }[];
   zones?: readonly MapZone[];
   features?: readonly MapFeature[];
   tokens?: readonly MapToken[];
