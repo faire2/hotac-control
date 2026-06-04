@@ -1060,6 +1060,7 @@
 }
 
 .squad-mfd .ally-dial-cell {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1145,6 +1146,20 @@
   text-shadow: 0 0 4px var(--stat-attack-glow);
 }
 
+/* GR-75 energy yield — small holo badge tucked in the cell's lower-right
+ * corner, marking how much energy the maneuver charges. */
+.squad-mfd .ally-dial-energy {
+  position: absolute;
+  right: -0.1em;
+  bottom: -0.2em;
+  font-family: var(--mono);
+  font-size: 0.55em;
+  line-height: 1;
+  color: var(--accent-holo);
+  text-shadow: 0 0 3px var(--accent-holo-glow);
+  pointer-events: none;
+}
+
 .squad-mfd .ally-dial-mirror-note {
   margin: 6px 0 0 0;
   font-family: var(--mono);
@@ -1153,6 +1168,54 @@
   text-transform: uppercase;
   color: var(--text-readout-dim);
   text-align: right;
+}
+
+/* ----------------------------------------------------------------------
+ * Ally action bar — one printed action per line, replacing the AI carousel
+ * for player-piloted allies. Holo palette matches the dial alongside it.
+ * -------------------------------------------------------------------- */
+
+.squad-mfd .ally-actions {
+  padding: 0 4px 6px 4px;
+}
+
+.squad-mfd .ally-actions-list {
+  list-style: none;
+  margin: 6px 0 0 0;
+  padding: 0;
+}
+
+.squad-mfd .ally-actions-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-bottom: 1px dashed var(--accent-holo-faint);
+  font-family: var(--mono);
+  font-size: 0.85em;
+  color: var(--accent-holo-bright);
+}
+
+.squad-mfd .ally-actions-item:last-child {
+  border-bottom: none;
+}
+
+.squad-mfd .ally-actions-icon {
+  font-size: 1.15em;
+  line-height: 1;
+  color: var(--accent-holo);
+  text-shadow: 0 0 5px var(--accent-holo-glow);
+}
+
+.squad-mfd .ally-actions-linked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.squad-mfd .ally-actions-link-arrow {
+  font-size: 0.9em;
+  color: var(--text-readout-dim);
 }
 
 /* ----------------------------------------------------------------------

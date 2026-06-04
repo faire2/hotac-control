@@ -100,7 +100,18 @@ export const refuelingStation1: Scenario = {
     next: { kind: 'reshuffle' },
   },
   allies: [
-    { ship: 'HWK290', displayName: 'Rebel Operatives' },
+    {
+      ship: 'HWK290',
+      displayName: 'Rebel Operatives',
+      initiative: 1,
+      // "...a total number of shields equal to the number of players."
+      startingShields: 0,
+      bonusShieldsPerPlayers: 1,
+      // "...Speed 4 maneuvers are treated as red."
+      dialMods: [{ speed: 4, difficulty: 'red' }],
+      // "...it is unable to perform the Boost action."
+      removeActions: ['boost'],
+    },
   ],
   squads: [
     {

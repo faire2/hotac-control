@@ -18,6 +18,7 @@ import {
   checkAndersonContentShortcodes,
 } from './validate/upgrades';
 import { checkScenarios } from './validate/scenarios';
+import { checkAllyActions } from './validate/allies';
 import type { ValidationFailure } from './validate/types';
 
 export function runValidator(): void {
@@ -29,6 +30,7 @@ export function runValidator(): void {
   checkFgaContentShortcodes(failures);
   checkAndersonContentShortcodes(failures);
   checkScenarios(failures);
+  checkAllyActions(failures);
 
   if (failures.length > 0) {
     const lines = failures.map((f) => `  [${f.rule}] ${f.detail}`).join('\n');

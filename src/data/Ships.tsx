@@ -279,9 +279,9 @@ export const Ships: Readonly<Record<ShipId, Ship>> = Object.freeze({
   GR75: {
     name: 'GR-75 Transport',
     initiative: 0,
-    shields: 4,
+    shields: 3,
     hull: 12,
-    attack: [],
+    attack: [{ attack: ATTACKS.frontArc, damage: 2 }],
     agility: 0,
     id: 'GR75',
     ai: [],

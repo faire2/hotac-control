@@ -34,7 +34,7 @@ const SHIP_GLYPH: Record<ShipId, string> = {
   SITH: 'sithinfiltrator',
   HWK290: 'hwk290lightfreighter',
   GR75: 'gr75mediumtransport',
-  OUTER_RIM_SMUGGLER: 'yt2400lightfreighter',
+  OUTER_RIM_SMUGGLER: 'yt1300lightfreighter',
 };
 
 export const SquadStats = ({ shipType, rollMeta, initiativeOverride }: Props) => {

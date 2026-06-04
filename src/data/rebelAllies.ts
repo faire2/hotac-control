@@ -12,6 +12,8 @@
  */
 
 import type { Upgrade } from './shared/coreUpgrades';
+import type { DialMod } from './allyDials';
+import type { AllyActionId } from './allyActions';
 
 /**
  * Subset of `ShipId` covering rebel-ally ship types. Distinct alias so
@@ -49,4 +51,15 @@ export interface AllySetup {
    * +1 at 2-3 players, +2 at 4 players.
    */
   bonusShieldsPerPlayers?: number;
+  /**
+   * Mission dial modifiers — recolour matching maneuver-dial entries. E.g.
+   * the damaged HWK-290 whose "Speed 4 maneuvers are treated as red":
+   * `dialMods: [{ speed: 4, difficulty: 'red' }]`.
+   */
+  dialMods?: readonly DialMod[];
+  /**
+   * Action-bar ids to strip for this mission. E.g. the damaged HWK-290 that
+   * "is unable to perform the Boost action": `removeActions: ['boost']`.
+   */
+  removeActions?: readonly AllyActionId[];
 }

@@ -1,4 +1,9 @@
 import type { Scenario } from './types';
+import {
+  TARGETING_COORDINATOR,
+  REPAIR_TEAM,
+  COMMS_BOOSTER,
+} from '../allyUpgrades';
 
 const briefing = `"During our recovery of the Trellisk's crew, we witnessed a new Imperial fighter equipped with a cloaking device. Luckily, our spies have confirmed only a single squadron of new TIE Phantoms was deployed to this sector for field testing.
 
@@ -91,7 +96,11 @@ export const chasingPhantoms2: Scenario = {
   },
   randomPoolExclusions: ['LAMBDA', 'TIEPH'],
   allies: [
-    { ship: 'GR75', displayName: 'Bright Hope', startingShields: 0 },
+    {
+      ship: 'GR75',
+      displayName: 'Bright Hope',
+      upgrades: [TARGETING_COORDINATOR, REPAIR_TEAM, COMMS_BOOSTER],
+    },
   ],
   squads: [
     {

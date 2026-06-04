@@ -86,7 +86,7 @@ export const chasingPhantoms1: Scenario = {
     next: { kind: 'arcLink', missionId: 'chasing-phantoms-2' },
   },
   allies: [
-    { ship: 'OUTER_RIM_SMUGGLER', displayName: 'Recovery Ship' },
+    { ship: 'OUTER_RIM_SMUGGLER', displayName: 'Recovery Ship', initiative: 1 },
   ],
   squads: [
     {

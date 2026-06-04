@@ -1,4 +1,6 @@
 import { Ships } from '../Ships';
+import { ALLY_DIALS } from '../allyDials';
+import { ALLY_ACTIONS } from '../allyActions';
 import { SCENARIOS } from '../scenarios/registry';
 import type { Scenario, ScenarioSquad, SetupOp } from '../scenarios/types';
 import { hasTag } from '../scenarios/types';
@@ -222,6 +224,33 @@ function checkScenario(
           detail: `${scope}.allies[${i.toString()}]: startingEnergy set but "${ally.ship}" has no energy resource`,
         });
       }
+    }
+    if (ally.dialMods && ally.ship in Ships) {
+      const dial = ALLY_DIALS[ally.ship] ?? [];
+      ally.dialMods.forEach((mod, j) => {
+        const matches = dial.some(
+          (e) =>
+            (mod.speed === undefined || mod.speed === e.speed) &&
+            (mod.direction === undefined || mod.direction === e.direction),
+        );
+        if (!matches) {
+          failures.push({
+            rule: 'Scenario ally dialMods',
+            detail: `${scope}.allies[${i.toString()}].dialMods[${j.toString()}]: matches no entry in the ${ally.ship} dial (typo?)`,
+          });
+        }
+      });
+    }
+    if (ally.removeActions && ally.ship in Ships) {
+      const ids = new Set((ALLY_ACTIONS[ally.ship] ?? []).map((a) => a.id));
+      ally.removeActions.forEach((rid, j) => {
+        if (!ids.has(rid)) {
+          failures.push({
+            rule: 'Scenario ally removeActions',
+            detail: `${scope}.allies[${i.toString()}].removeActions[${j.toString()}]: "${rid}" is not in the ${ally.ship} action bar`,
+          });
+        }
+      });
     }
   });
 

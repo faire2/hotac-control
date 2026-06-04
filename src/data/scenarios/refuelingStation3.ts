@@ -230,7 +230,7 @@ export const refuelingStation3: Scenario = {
     imperialPoints: 1,
   },
   allies: [
-    { ship: 'OUTER_RIM_SMUGGLER', displayName: 'Assault Ship' },
+    { ship: 'OUTER_RIM_SMUGGLER', displayName: 'Assault Ship', initiative: 1 },
   ],
   squads: [
     {

@@ -9,6 +9,7 @@ import { SquadStats } from './SquadStats';
 import SquadActionsCarousel from './actionsCarousel/SquadActionsCarousel';
 import { TargetPosition } from './maneuvers/TargetPosition';
 import { AllyManeuverDial } from './maneuvers/AllyManeuverDial';
+import { AllyActions } from './AllyActions';
 import UpgradesCard from './upgrades/UpgradesCard';
 import { GlobalSquadsValuesContext, TargetPositionContext, approachDisplay } from '../../context/Contexts';
 import type { Squadron } from '../../context/Contexts';
@@ -207,15 +208,23 @@ export function Squad({ squad, squadId }: Props) {
           <ShipsVariables squadId={squadId} />
           <div className="row no-gutters align-items-stretch">
             <div className="col-6 pr-1 d-flex flex-column">
-              {isAlly ? <AllyManeuverDial shipType={shipType} /> : <TargetPosition />}
+              {isAlly ? (
+                <AllyManeuverDial dial={squad.ally?.dial ?? []} />
+              ) : (
+                <TargetPosition />
+              )}
             </div>
             <div className="col-6 pl-1 d-flex flex-column">
-              <SquadActionsCarousel
-                aiEngine={aiEngine}
-                shipType={shipType}
-                aiTag={squad.scenarioMeta?.aiTag}
-                behaviorDescription={squad.scenarioMeta?.behaviorDescription}
-              />
+              {isAlly ? (
+                <AllyActions actions={squad.ally?.actions ?? []} />
+              ) : (
+                <SquadActionsCarousel
+                  aiEngine={aiEngine}
+                  shipType={shipType}
+                  aiTag={squad.scenarioMeta?.aiTag}
+                  behaviorDescription={squad.scenarioMeta?.behaviorDescription}
+                />
+              )}
             </div>
           </div>
           <UpgradesCard squadId={squadId} />

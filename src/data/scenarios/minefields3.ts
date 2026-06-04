@@ -1,4 +1,9 @@
 import type { Scenario } from './types';
+import {
+  DAMAGE_CONTROL_TEAM,
+  COMMS_TEAM,
+  TIBANNA_RESERVES,
+} from '../allyUpgrades';
 
 const briefing = `"Despite our best efforts, we have been unable to keep up with the Empire's vast mine-laying activities around Nulan.
 
@@ -113,7 +118,12 @@ export const minefields3: Scenario = {
     imperialPoints: 1,
   },
   allies: [
-    { ship: 'GR75', displayName: 'Quantum Storm', startingEnergy: 5 },
+    {
+      ship: 'GR75',
+      displayName: 'Quantum Storm',
+      startingEnergy: 5,
+      upgrades: [DAMAGE_CONTROL_TEAM, COMMS_TEAM, TIBANNA_RESERVES],
+    },
   ],
   squads: [
     {

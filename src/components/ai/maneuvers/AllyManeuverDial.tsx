@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { ShipId } from '../../../data/Ships';
-import { ALLY_DIALS, type DialDifficulty, type DialDirection, type DialEntry } from '../../../data/allyDials';
+import type { DialDifficulty, DialDirection, DialEntry } from '../../../data/allyDials';
 
 interface Props {
-  shipType: ShipId;
+  /** The ally's resolved dial (mission `dialMods` already applied). */
+  dial: readonly DialEntry[];
 }
 
 const DIFFICULTY_CLASS: Readonly<Record<DialDifficulty, string>> = {
@@ -96,10 +96,9 @@ function entryKey(entry: DialEntry): string {
   return `${entry.speed.toString()}:${entry.direction}`;
 }
 
-export function AllyManeuverDial({ shipType }: Props) {
-  const dial = ALLY_DIALS[shipType];
+export function AllyManeuverDial({ dial }: Props) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  if (!dial || dial.length === 0) return null;
+  if (dial.length === 0) return null;
   const rows = buildRows(dial);
 
   return (
@@ -118,7 +117,11 @@ export function AllyManeuverDial({ shipType }: Props) {
                 }
                 const key = entryKey(entry);
                 const isSelected = key === selectedKey;
-                const label = `Speed ${row.speed.toString()} ${DIRECTION_LABEL[entry.direction]} (${entry.difficulty})`;
+                const energyLabel =
+                  entry.energy !== undefined
+                    ? `, +${entry.energy.toString()} energy`
+                    : '';
+                const label = `Speed ${row.speed.toString()} ${DIRECTION_LABEL[entry.direction]} (${entry.difficulty})${energyLabel}`;
                 return (
                   <button
                     key={column}
@@ -137,6 +140,11 @@ export function AllyManeuverDial({ shipType }: Props) {
                       className={`${DIFFICULTY_CLASS[entry.difficulty]} ${DIRECTION_ICON[entry.direction]} ally-dial-icon`}
                       aria-hidden="true"
                     />
+                    {entry.energy !== undefined && (
+                      <span className="ally-dial-energy" aria-hidden="true">
+                        +{entry.energy}
+                      </span>
+                    )}
                   </button>
                 );
               })}

@@ -3,6 +3,8 @@ import type { AiEngine, ShipId, UpgradeSource } from '../data/Ships';
 import type { Maneuver, Position } from '../data/Maneuvers';
 import type { Upgrade } from '../data/shared/coreUpgrades';
 import type { SimpleVector } from '../data/scenarios/types';
+import type { DialEntry } from '../data/allyDials';
+import type { AllyAction } from '../data/allyActions';
 
 /**
  * Squad-local UI state for the position picker, AI engine selector, and stress toggle.
@@ -137,6 +139,16 @@ export interface Squadron {
   ships: ShipInstance[];
   /** Set iff spawned by a scenario. Free play leaves this undefined. */
   scenarioMeta?: ScenarioSpawnMeta;
+  /**
+   * Resolved ally profile — the player-piloted ally's maneuver dial and
+   * action bar, with mission `dialMods` / `removeActions` already applied.
+   * Computed once at spawn (see `spawnAlliesFromScenario`); absent for AI
+   * squads, which use the AI carousel instead.
+   */
+  ally?: {
+    dial: readonly DialEntry[];
+    actions: readonly AllyAction[];
+  };
 }
 
 export interface ShipInstance {

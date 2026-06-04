@@ -111,7 +111,7 @@ export const minefields2: Scenario = {
     imperialPoints: 1,
   },
   allies: [
-    { ship: 'GR75', displayName: 'Quantum Storm', startingShields: 0 },
+    { ship: 'GR75', displayName: 'Quantum Storm' },
   ],
   squads: [
     {

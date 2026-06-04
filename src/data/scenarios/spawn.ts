@@ -24,6 +24,8 @@ import getUpgrades from '../upgrades/getUpgrades';
 import type { Squadron, ShipInstance, UpgradeRollMeta } from '../../context/Contexts';
 import type { SpawnSettings } from '../campaigns/settings';
 import { resolveSquad, resolveSquadVector } from './resolve';
+import { resolveAllyDial } from '../allyDials';
+import { resolveAllyActions } from '../allyActions';
 import { hasTag } from './types';
 import type {
   PlayerCount,
@@ -269,6 +271,10 @@ export function spawnAlliesFromScenario(
         squadName,
         approachLabel: 'Setup',
         arrivedAtRound: 1,
+      },
+      ally: {
+        dial: resolveAllyDial(ally.ship, ally.dialMods),
+        actions: resolveAllyActions(ally.ship, ally.removeActions),
       },
     } satisfies Squadron;
   });
