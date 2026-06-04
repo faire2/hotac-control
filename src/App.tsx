@@ -24,6 +24,7 @@ import { runValidator } from './data/__validate__';
 import { LoadScenarioModal } from './components/scenarios/LoadScenarioModal';
 import { ScenarioBriefingModal } from './components/scenarios/ScenarioBriefingModal';
 import { EndScenarioModal } from './components/scenarios/EndScenarioModal';
+import { MissionMapsGalleryModal } from './components/scenarios/MissionMapsGalleryModal';
 import { findScenario } from './data/scenarios/registry';
 import {
   spawnFromScenarioSquad,
@@ -171,14 +172,24 @@ function App() {
   const [showNewGamePicker, setShowNewGamePicker] = useState(false);
   const [showOpenBrowser, setShowOpenBrowser] = useState(false);
   const [showCampaignSetup, setShowCampaignSetup] = useState(false);
+  const [showMissionMapsGallery, setShowMissionMapsGallery] = useState(false);
+  // Set when a card is clicked in the maps gallery. The briefing modal renders
+  // this scenario in `view` mode on top of the gallery; closing the briefing
+  // returns to the gallery. Independent of `mode` so opening a map briefing
+  // doesn't disturb an in-progress mission.
+  const [galleryBriefingScenarioId, setGalleryBriefingScenarioId] = useState<string | null>(null);
 
   // Derive scenario/round/briefing state via helpers from `appMode.ts`.
   // Briefing has two facets: pre-start (mission.phase = briefing) and
   // during-play overlay (briefingOverlayOpen, while mission.phase = active).
   const activeScenarioId = getActiveScenarioId(mode);
   const round = getActiveRound(mode);
-  const briefingScenarioId = getBriefingScenarioId(mode, briefingOverlayOpen);
-  const briefingMode = getBriefingMode(mode);
+  const modeBriefingScenarioId = getBriefingScenarioId(mode, briefingOverlayOpen);
+  // Gallery picks override the mode-derived briefing so opening a map briefing
+  // is decoupled from any in-progress mission.
+  const briefingScenarioId = galleryBriefingScenarioId ?? modeBriefingScenarioId;
+  const briefingMode: 'start' | 'view' =
+    galleryBriefingScenarioId !== null ? 'view' : getBriefingMode(mode);
   const activeScenario = activeScenarioId ? findScenario(activeScenarioId) : undefined;
   const briefingScenario = briefingScenarioId ? findScenario(briefingScenarioId) : undefined;
 
@@ -281,7 +292,10 @@ function App() {
   }
 
   function handleHideBriefing() {
-    if (briefingOverlayOpen) {
+    if (galleryBriefingScenarioId !== null) {
+      // Close the gallery briefing; the gallery itself stays open underneath.
+      setGalleryBriefingScenarioId(null);
+    } else if (briefingOverlayOpen) {
       setBriefingOverlayOpen(false);
     } else {
       // Closing the pre-start briefing modal returns to free play.
@@ -666,6 +680,7 @@ function App() {
                 onNewClick={() => { setShowNewGamePicker(true); }}
                 onOpenClick={() => { setShowOpenBrowser(true); }}
                 onLoadScenarioClick={() => { setShowScenarioPicker(true); }}
+                onMissionMapsClick={() => { setShowMissionMapsGallery(true); }}
                 onLogoutClick={() => {
                   // Stub: the app has no auth today. Will be wired to OAuth + Neon later.
                   alert('Logout will be available once accounts land. Close the tab to end your session.');
@@ -870,6 +885,11 @@ function App() {
                 }
               });
             }}
+          />
+          <MissionMapsGalleryModal
+            show={showMissionMapsGallery}
+            onHide={() => { setShowMissionMapsGallery(false); }}
+            onPick={(id) => { setGalleryBriefingScenarioId(id); }}
           />
         </ShipHandlingContext.Provider>
       </GlobalSquadsValuesContext.Provider>

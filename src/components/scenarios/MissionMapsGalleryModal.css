@@ -1,0 +1,86 @@
+.missionMapsArc + .missionMapsArc {
+  margin-top: 1.5rem;
+}
+
+.missionMapsArcTitle {
+  border-bottom: 1px solid rgba(90, 200, 255, 0.22);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.9rem;
+}
+
+.missionMapsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 992px) {
+  .missionMapsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.missionMapsCard {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid rgba(90, 200, 255, 0.25);
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+}
+
+.missionMapsCard:hover,
+.missionMapsCard:focus-visible {
+  border-color: var(--accent-holo);
+  box-shadow: 0 0 0 1px var(--accent-holo), 0 10px 24px rgba(0, 0, 0, 0.35);
+  outline: none;
+}
+
+.missionMapsCard:active {
+  transform: translateY(1px);
+}
+
+.missionMapsCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.missionMapsCardTitle {
+  font-weight: 700;
+}
+
+.missionMapsCardSubtitle {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.missionMapsCardArc {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+/* Override the .missionMap max-width so thumbnails fit a grid cell. The
+ * SVG keeps its intrinsic viewBox, so it scales down cleanly. */
+.missionMapsCardBody .missionMap {
+  max-width: 100%;
+}
+
+.missionMapsAsciiFallback {
+  font-size: 0.7rem;
+  line-height: 1.05;
+  margin: 0;
+  padding: 0.5rem;
+  background: rgba(7, 16, 31, 0.6);
+  border-radius: 6px;
+  overflow: hidden;
+}

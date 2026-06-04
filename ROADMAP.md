@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-31 (Phase 12 — holo mission maps: hand-authored SVG `MissionMap` spec, ship-silhouette tokens, asteroid+debris fields, player-count-aware token gating + quarter-circle setup zones, Local Trouble + Capture the Officer I/II/III maps)
+Last updated: 2026-06-04 (Phase 12 — holo mission maps: hand-authored SVG `MissionMap` spec, ship-silhouette tokens, asteroid+debris fields, player-count-aware token gating + quarter-circle setup zones, Local Trouble + Capture the Officer I/II/III + Refueling Station I/II/III maps; Mission Maps gallery view planned)
 
 ## Project summary
 
@@ -339,6 +339,18 @@ hand-authored — layouts are not derived from squad data.**
   Generator / Fuel Tank / Turbolaser emplacements over a `hull` wireframe
   silhouette, two docking bays, four player-count-gated turbolaser arms).
 - [ ] Author the remaining 10 missions' maps (incremental, one per session).
+- [ ] **Mission Maps gallery modal** — new `MissionMapsGalleryModal` listing
+  every authored `Scenario.map` on one page. Wire as a fourth `MainMenu` entry
+  ("Mission maps") alongside New / Open / Load scenario; always visible
+  regardless of mode (does not touch campaign state, so no `AppMode` variant —
+  open/close is a single `showGallery` boolean). Responsive grid (2 cols
+  tablet / 3 cols desktop), cards grouped into sections by arc (Intro / Capture
+  Officer / Refueling Station / Defection / Chasing Phantoms / Minefields).
+  Each card: title + arc tag + a thumbnail `<MissionMap>` rendered at
+  `playerCount = 4` (smaller viewport, no tooltips, no player-count toggle).
+  Clicking a card opens the full briefing modal in `view` mode. Skip missions
+  without a `map` set (or render the ASCII `mapDiagram` in a `<pre>` tile).
+  Lives in `src/components/scenarios/MissionMapsGalleryModal.tsx`.
 
 ### Backlog (Needs Planning)
 - Backfill `Scenario.behaviorDescriptions` for all 17 missions. Field landed 2026-05-11; schema + render slot are wired (squad card carousel target panel, under the priority list). Each mission needs ~3 entries keyed by `aiTag` value (`Attack`/`Escort`/`Strike`/`Special`/`Flee*`), text copied/condensed from the existing `specialRules` sidebars. Same tag means different things across missions (`Special` = Lambda Shuttle in CapOfficer-1 vs. VT-49 in Minefields-2), so authoring is per-mission. `:icon:` shortcodes supported and validated.
