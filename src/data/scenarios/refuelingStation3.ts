@@ -78,6 +78,8 @@ export const refuelingStation3: Scenario = {
           size: 0.8,
           // Pointy-top hub (flat-top is the hex default for edge-to-edge junctions).
           rotate: 30,
+          // Triangle so F C F fit inside the hex instead of overrunning its edges.
+          emplacementLayout: 'triangle',
           emplacements: [
             { label: 'F', tip: 'Fuel Tank emplacement' },
             { label: 'C', tip: 'Command Center — the commandos must capture this; if destroyed, the Rebels lose' },
@@ -102,8 +104,8 @@ export const refuelingStation3: Scenario = {
               direct: true,
               to: {
                 shape: 'bay',
-                size: 0.9,
-                depth: 0.72,
+                size: 0.855,
+                depth: 0.684,
                 emplacements: [
                   { label: 'F', tip: 'Fuel Tank emplacement — Docking Bay 2' },
                   { label: 'F', tip: 'Fuel Tank emplacement — Docking Bay 2' },
@@ -115,8 +117,8 @@ export const refuelingStation3: Scenario = {
               direct: true,
               to: {
                 shape: 'bay',
-                size: 0.9,
-                depth: 0.72,
+                size: 0.855,
+                depth: 0.684,
                 emplacements: [
                   { label: 'F', tip: 'Fuel Tank emplacement — Docking Bay 1' },
                   { label: 'F', tip: 'Fuel Tank emplacement — Docking Bay 1' },

@@ -163,11 +163,31 @@ function emplacementTokens(
   list: readonly HullEmplacement[],
   center: Pt,
   deg: number,
+  layout: 'row' | 'triangle' = 'row',
 ): ResolvedToken[] {
   const n = list.length;
+  // Triangle: middle element at the apex (top), outer two at the base — keeps a
+  // 3-emplacement hub inside its hexagon instead of spilling past the edges.
+  if (layout === 'triangle' && n === 3) {
+    const r = EMPLACEMENT_SPACING * 0.62;
+    const bx = r * Math.cos(Math.PI / 6);
+    const by = r * Math.sin(Math.PI / 6);
+    const local: readonly Pt[] = [
+      [-bx, by], // index 0 → base-left
+      [0, -r], //   index 1 → apex
+      [bx, by], //  index 2 → base-right
+    ];
+    return list.map((e, i) => ({
+      kind: 'structure',
+      at: place(local[i], center, deg),
+      angle: deg,
+      label: e.label,
+      tip: e.tip,
+    }));
+  }
   return list.map((e, i) => {
     const lx = (i - (n - 1) / 2) * EMPLACEMENT_SPACING;
-    return { kind: 'structure', at: place([lx, 0], center, deg), label: e.label, tip: e.tip };
+    return { kind: 'structure', at: place([lx, 0], center, deg), angle: deg, label: e.label, tip: e.tip };
   });
 }
 
@@ -183,7 +203,7 @@ function walk(
   const selfDeg = deg + (node.rotate ?? 0);
   const outline = localOutline(node, connectorWidth).pts.map((p) => place(p, center, selfDeg));
   polys.push(outline);
-  if (node.emplacements) tokens.push(...emplacementTokens(node.emplacements, center, deg));
+  if (node.emplacements) tokens.push(...emplacementTokens(node.emplacements, center, deg, node.emplacementLayout));
 
   for (const arm of node.arms ?? []) {
     const threshold = arm.to.playerCount;

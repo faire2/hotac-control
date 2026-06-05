@@ -156,6 +156,20 @@ and draw solid bodies as faceted wireframes.
     reserved for real threats so it keeps its "stay out" meaning.
   - *Warn (amber)* → calm solid edge + tint (no hatch).
   - Discs / quarter-discs / triangles → solid edges (dashes removed), hatch fill when danger.
+  - *Neutral rect* also carries a faint solid full edge (not just brackets) so large zones read.
+  - *Neutral band* (edge strips, e.g. escape edges): stronger tint + a bright glowing **inner edge**
+    on the board-facing side (a full outline is invisible since the other sides hug the border).
+- **GR-75 transport** → symmetric elongated **lozenge** (ellipse), dense transverse cargo ribbing,
+  dorsal spine, and forward cargo-clamp **prongs** at the bow — per the canonical top-down view, not
+  a tapered teardrop.
+- **Stations:**
+  - *Emplacement modules* (hull assembly) get a dedicated `structure` token branch — clipped-corner
+    holo box + inner frame + mono function letter (F/C/T/S). The assembler now threads each node's
+    rotation (`deg`) onto the token (`structure.angle`) so the **box rotates to align with its tilted
+    docking bay / arm**, while the letter stays upright. Fixes the "upright box on a tilted panel" look.
+  - *Bar* preset → docking platform: clipped-corner deck, corner brackets, approach chevrons, centre
+    landing target.
+  - *Tri-hub* → concentric hub ring + core ring + docking lights at the arm tips.
 - **Asteroids** → faint fill + 1–2 internal **facet lines** ("scanned rock"). **Debris** → small
   filled chips, visually distinct from full rocks.
 - **Margin instrumentation** (corner squares only — vector-badge-free; all `aria-hidden`):

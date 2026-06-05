@@ -362,6 +362,12 @@ export interface HullNode {
   depth?: number;
   /** White emplacement tiles drawn inside this module. */
   emplacements?: readonly HullEmplacement[];
+  /**
+   * How emplacements are arranged within the module. `row` (default) lays them
+   * in a level line. `triangle` (exactly 3) puts the middle one at the apex and
+   * the outer two at the base — fits a hex hub without overrunning its edges.
+   */
+  emplacementLayout?: 'row' | 'triangle';
   tip?: string;
   /** Sub-modules branching off this one. */
   arms?: readonly HullArm[];

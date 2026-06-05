@@ -531,11 +531,26 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
         {zone.exit ? <ExitChevrons rect={[x, y, w, h]} side={zone.exit} /> : null}
       </>
     ) : (
-      <>
-        <polygon points={clip} fill={col} fillOpacity={0.1} />
-        <CornerBrackets x={x} y={y} w={w} h={h} col={col} />
-        {zone.exit ? <ExitChevrons rect={[x, y, w, h]} side={zone.exit} /> : null}
-      </>
+      (() => {
+        // Edge bands hug the board border on three sides, so a full outline is
+        // invisible. Instead: a stronger fill + a bright "inner edge" (the side
+        // facing the play area) that clearly delineates the strip.
+        const inner: [number, number, number, number] =
+          side === 'top'
+            ? [x, y + h, x + w, y + h]
+            : side === 'bottom'
+              ? [x, y, x + w, y]
+              : side === 'left'
+                ? [x + w, y, x + w, y + h]
+                : [x, y, x, y + h];
+        return (
+          <>
+            <polygon points={clip} fill={col} fillOpacity={0.16} />
+            <line x1={inner[0]} y1={inner[1]} x2={inner[2]} y2={inner[3]} stroke={col} strokeWidth={2} strokeOpacity={0.85} filter="url(#mm-glow)" />
+            {zone.exit ? <ExitChevrons rect={[x, y, w, h]} side={zone.exit} /> : null}
+          </>
+        );
+      })()
     );
   } else if (zone.rect) {
     const [rx0, ry0, rx1, ry1] = zone.rect;
@@ -552,8 +567,13 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
       </>
     ) : (
       <>
-        <polygon points={clip} fill={col} fillOpacity={0.08} />
-        {showEdge ? <CornerBrackets x={x} y={y} w={w} h={h} col={col} /> : null}
+        <polygon points={clip} fill={col} fillOpacity={0.11} />
+        {showEdge ? (
+          <>
+            <polygon points={clip} fill="none" stroke={col} strokeWidth={1.1} strokeOpacity={0.5} />
+            <CornerBrackets x={x} y={y} w={w} h={h} col={col} />
+          </>
+        ) : null}
       </>
     );
     bx = X(rx0) + 20;
@@ -870,7 +890,7 @@ function StationTriHub({ cx, cy, label, tip }: { cx: number; cy: number; label?:
     ].join(' ');
     arms.push(
       <polygon
-        key={k}
+        key={`p${k.toString()}`}
         points={panel}
         fill="var(--accent-holo)"
         fillOpacity={0.08}
@@ -879,58 +899,47 @@ function StationTriHub({ cx, cy, label, tip }: { cx: number; cy: number; label?:
         strokeLinejoin="round"
       />,
     );
+    // Docking light at each arm tip.
+    arms.push(
+      <circle key={`l${k.toString()}`} cx={(bx + ax * 18).toFixed(1)} cy={(by + ay * 18).toFixed(1)} r={2} fill="var(--accent-holo-bright)" />,
+    );
   }
   return (
     <>
       <g filter="url(#mm-glow)">
         {tip ? <title>{tip}</title> : null}
         {arms}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={13}
-          fill="var(--accent-holo)"
-          fillOpacity={0.12}
-          stroke="var(--accent-holo)"
-          strokeWidth={1.8}
-        />
+        {/* concentric hub: outer ring + solid core */}
+        <circle cx={cx} cy={cy} r={19} fill="none" stroke="var(--accent-holo)" strokeWidth={1} strokeOpacity={0.45} />
+        <circle cx={cx} cy={cy} r={13} fill="var(--accent-holo)" fillOpacity={0.12} stroke="var(--accent-holo)" strokeWidth={1.8} />
+        <circle cx={cx} cy={cy} r={5} fill="none" stroke="var(--accent-holo)" strokeWidth={0.9} strokeOpacity={0.6} />
       </g>
-      {label ? <LabelBadge cx={cx} cy={cy + 44} text={label} hue="holo" /> : null}
+      {label ? <LabelBadge cx={cx} cy={cy + 46} text={label} hue="holo" /> : null}
     </>
   );
 }
 
 function StationBar({ cx, cy, label, tip }: { cx: number; cy: number; label?: string; tip?: string }) {
   const w = 78;
-  const h = 30;
-  const ticks = [-w / 4, 0, w / 4];
+  const h = 32;
+  const f = (n: number) => n.toFixed(1);
+  const x = cx - w / 2;
+  const y = cy - h / 2;
+  const clip = clippedRectPoints(x, y, w, h, 8);
   return (
     <>
       <g filter="url(#mm-glow)">
         {tip ? <title>{tip}</title> : null}
-        <rect
-          x={cx - w / 2}
-          y={cy - h / 2}
-          width={w}
-          height={h}
-          rx={6}
-          fill="var(--accent-holo)"
-          fillOpacity={0.08}
-          stroke="var(--accent-holo)"
-          strokeWidth={1.8}
-        />
-        {ticks.map((dx, i) => (
-          <line
-            key={i}
-            x1={cx + dx}
-            y1={cy - h / 2}
-            x2={cx + dx}
-            y2={cy + h / 2}
-            stroke="var(--accent-holo)"
-            strokeWidth={1}
-            strokeOpacity={0.6}
-          />
-        ))}
+        {/* docking-platform deck */}
+        <polygon points={clip} fill="var(--accent-holo)" fillOpacity={0.08} stroke="var(--accent-holo)" strokeWidth={1.8} />
+        <CornerBrackets x={x} y={y} w={w} h={h} col="var(--accent-holo)" arm={9} />
+        {/* approach chevrons pointing in from each end */}
+        <path d={`M ${f(x + 8)} ${f(cy - 6)} L ${f(x + 14)} ${f(cy)} L ${f(x + 8)} ${f(cy + 6)}`} fill="none" stroke="var(--accent-holo)" strokeWidth={1.2} strokeOpacity={0.7} />
+        <path d={`M ${f(x + w - 8)} ${f(cy - 6)} L ${f(x + w - 14)} ${f(cy)} L ${f(x + w - 8)} ${f(cy + 6)}`} fill="none" stroke="var(--accent-holo)" strokeWidth={1.2} strokeOpacity={0.7} />
+        {/* centre landing target */}
+        <circle cx={cx} cy={cy} r={5} fill="none" stroke="var(--accent-holo-bright)" strokeWidth={1.2} />
+        <line x1={cx - 8} y1={cy} x2={cx + 8} y2={cy} stroke="var(--accent-holo-bright)" strokeWidth={0.9} strokeOpacity={0.7} />
+        <line x1={cx} y1={cy - 8} x2={cx} y2={cy + 8} stroke="var(--accent-holo-bright)" strokeWidth={0.9} strokeOpacity={0.7} />
       </g>
       {label ? <LabelBadge cx={cx} cy={cy + h} text={label} hue="holo" /> : null}
     </>
@@ -983,7 +992,7 @@ function FighterChevron({ cx, cy, s, color }: { cx: number; cy: number; s: numbe
 function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
   const cx = geo.X(token.at[0]);
   const cy = geo.Y(token.at[1]);
-  let body: ReactElement;
+  let body: ReactElement | null = null;
   if (token.kind === 'playerStart') {
     body = (
       <>
@@ -1116,72 +1125,65 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
     const rot = token.angle ?? 0;
     const hl = L / 2;
     const hw = W / 2;
-    // Half-hull profile from bow (+x) to stern (-x); mirrored across the spine.
-    const profile: readonly [number, number][] = [
-      [hl, 0.5],
-      [hl * 0.55, 1],
-      [-hl * 0.2, 0.85],
-      [-hl * 0.8, 0.42],
-      [-hl, 0.26],
-    ];
-    const pts: string[] = [];
-    for (const [px, ky] of profile) pts.push(`${(cx + px).toFixed(1)},${(cy - hw * ky).toFixed(1)}`);
-    for (let i = profile.length - 1; i >= 0; i--) {
-      const [px, ky] = profile[i];
-      pts.push(`${(cx + px).toFixed(1)},${(cy + hw * ky).toFixed(1)}`);
+    const f = (n: number) => n.toFixed(1);
+    // GR-75 is a symmetric elongated lozenge (rounded both ends, widest amidships)
+    // with forward cargo-clamp prongs at the bow (+x) and dense transverse cargo
+    // ribbing — per the canonical top-down view, not a tapered teardrop.
+    const ribCount = 8;
+    const ribs: ReactElement[] = [];
+    for (let i = 1; i < ribCount; i++) {
+      const fx = -1 + (2 * i) / ribCount;
+      const px = fx * hl;
+      const hh = hw * Math.sqrt(Math.max(0, 1 - fx * fx));
+      ribs.push(
+        <line key={`rib${i.toString()}`} x1={f(cx + px)} y1={f(cy - hh)} x2={f(cx + px)} y2={f(cy + hh)} stroke="var(--accent-holo)" strokeWidth={0.9} strokeOpacity={0.5} />,
+      );
     }
     body = (
       <>
-        <g filter="url(#mm-glow)" transform={`rotate(${rot.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})`}>
-          <polygon
-            points={pts.join(' ')}
-            fill="var(--accent-holo)"
-            fillOpacity={0.12}
-            stroke="var(--accent-holo)"
-            strokeWidth={2}
-            strokeLinejoin="round"
-          />
-          <line
-            x1={cx - hl * 0.8}
-            y1={cy}
-            x2={cx + hl * 0.9}
-            y2={cy}
-            stroke="var(--accent-holo)"
-            strokeWidth={1.2}
-            strokeOpacity={0.6}
-          />
+        <g filter="url(#mm-glow)" transform={`rotate(${rot.toFixed(1)} ${f(cx)} ${f(cy)})`}>
+          <ellipse cx={cx} cy={cy} rx={hl} ry={hw} fill="var(--accent-holo)" fillOpacity={0.12} stroke="var(--accent-holo)" strokeWidth={2} />
+          {ribs}
+          {/* dorsal spine */}
+          <line x1={f(cx - hl * 0.92)} y1={cy} x2={f(cx + hl * 0.92)} y2={cy} stroke="var(--accent-holo)" strokeWidth={1.1} strokeOpacity={0.6} />
+          {/* forward cargo-clamp prongs, projecting past the bow tip (+x) */}
+          <line x1={f(cx + hl * 0.5)} y1={cy} x2={f(cx + hl * 1.2)} y2={cy} stroke="var(--accent-holo-bright)" strokeWidth={1.6} strokeLinecap="round" />
+          <line x1={f(cx + hl * 0.55)} y1={f(cy - hw * 0.4)} x2={f(cx + hl * 1.06)} y2={f(cy - hw * 0.22)} stroke="var(--accent-holo-bright)" strokeWidth={1.3} strokeLinecap="round" />
+          <line x1={f(cx + hl * 0.55)} y1={f(cy + hw * 0.4)} x2={f(cx + hl * 1.06)} y2={f(cy + hw * 0.22)} stroke="var(--accent-holo-bright)" strokeWidth={1.3} strokeLinecap="round" />
         </g>
-        {token.label ? <LabelBadge cx={cx} cy={cy - W * 0.9} text={token.label} hue="holo" /> : null}
+        {token.label ? <LabelBadge cx={cx} cy={cy - W * 1.1} text={token.label} hue="holo" /> : null}
       </>
     );
   } else {
+    // Station emplacement module: a clipped-corner holo box with an inner frame
+    // and the function letter as a mono badge (F=fuel, C=command, T=turbolaser,
+    // S=shield). Reads as an installation module rather than a bare letter-box.
+    const s = 13;
+    const rot = token.angle ?? 0;
+    const outer = clippedRectPoints(cx - s, cy - s, s * 2, s * 2, 4);
+    const inner = clippedRectPoints(cx - s + 3, cy - s + 3, (s - 3) * 2, (s - 3) * 2, 2.5);
     body = (
-      <g filter="url(#mm-glow)">
-        <rect
-          x={cx - 12}
-          y={cy - 12}
-          width={24}
-          height={24}
-          rx={4}
-          fill="var(--accent-holo)"
-          fillOpacity={0.08}
-          stroke="var(--accent-holo)"
-          strokeWidth={1.6}
-        />
+      <>
+        {/* Box rotates to align with its hull panel; letter stays upright. */}
+        <g filter="url(#mm-glow)" transform={rot ? `rotate(${rot.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})` : undefined}>
+          <polygon points={outer} fill="var(--accent-holo)" fillOpacity={0.12} stroke="var(--accent-holo)" strokeWidth={1.6} />
+          <polygon points={inner} fill="none" stroke="var(--accent-holo)" strokeWidth={0.7} strokeOpacity={0.4} />
+        </g>
         {token.label ? (
           <text
             x={cx}
-            y={cy + 1}
-            fill="var(--accent-holo)"
-            fontSize={14}
-            fontWeight={800}
+            y={cy + 0.5}
+            fill="var(--accent-holo-bright)"
+            fontFamily="var(--mono, monospace)"
+            fontSize={11}
+            fontWeight={700}
             textAnchor="middle"
             dominantBaseline="central"
           >
             {token.label}
           </text>
         ) : null}
-      </g>
+      </>
     );
   }
   return (

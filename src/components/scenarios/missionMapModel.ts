@@ -44,6 +44,8 @@ export type ResolvedToken =
   | {
       kind: 'structure';
       at: readonly [number, number];
+      /** Orientation (deg) of the parent hull panel, so the module box aligns. */
+      angle?: number;
       label?: string;
       playerCount?: number;
       tip?: string;
