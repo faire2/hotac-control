@@ -7,6 +7,7 @@ import { EngineToggle } from '../shared/EngineToggle';
 import { UpgradeSourceToggle } from '../shared/UpgradeSourceToggle';
 import { Rule } from '../Rule';
 import { MissionMap } from './MissionMap';
+import './ScenarioBriefingModal.css';
 
 const RANK_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
 const PLAYER_COUNT_OPTIONS: PlayerCount[] = [1, 2, 3, 4, 5, 6];
@@ -110,11 +111,13 @@ export function ScenarioBriefingModal({
           </div>
         </div>
       </Modal.Header>
-      <Modal.Body>
-        <h5>Mission Briefing</h5>
-        {briefingParas.map((p, i) => (
-          <p key={i} style={{ whiteSpace: 'pre-wrap' }}>{p}</p>
-        ))}
+      <Modal.Body className="briefingBody">
+        <h5 className="briefingHeading">Mission Briefing</h5>
+        <div className="briefingTransmission">
+          {briefingParas.map((p, i) => (
+            <p key={i} style={{ whiteSpace: 'pre-wrap' }}>{p}</p>
+          ))}
+        </div>
 
         <div className="scenarioMap mt-4">
           {scenario.map ? (
@@ -123,16 +126,16 @@ export function ScenarioBriefingModal({
             <pre style={{ fontSize: '0.85em', lineHeight: 1.1 }}>{scenario.mapDiagram}</pre>
           )}
         </div>
-        <ul className="small">
+        <ul className="mapNotes small">
           {scenario.mapNotes.map((note, i) => (
             <li key={i}>{note}</li>
           ))}
         </ul>
 
-        <h5 className="mt-4">Mission Objectives</h5>
-        <ul>
+        <h5 className="briefingHeading mt-4">Mission Objectives</h5>
+        <ul className="objectiveList">
           {scenario.objectives.map((obj, i) => (
-            <li key={i}>
+            <li key={i} className={obj.kind === 'primary' ? 'obj-primary' : 'obj-bonus'}>
               <strong>{obj.kind === 'primary' ? 'Primary' : 'Bonus'}:</strong> {obj.text}
               {obj.reward ? <span className="badge badge-xp ml-2">{obj.reward}</span> : null}
             </li>
@@ -147,7 +150,7 @@ export function ScenarioBriefingModal({
           if (visibleRules.length === 0) return null;
           return (
             <>
-              <h5 className="mt-4">Special Rules</h5>
+              <h5 className="briefingHeading mt-4">Special Rules</h5>
               {visibleRules.map((rule, i) => (
                 <div key={i} className="specialRule">
                   <h6>{rule.title}</h6>

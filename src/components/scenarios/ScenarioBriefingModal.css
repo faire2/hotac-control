@@ -1,0 +1,103 @@
+/* ==========================================================================
+ * Scenario briefing modal — unified holo console.
+ *
+ * The modal frame, header, toggles, and badges are already themed globally in
+ * App.cockpit.css (.modal-content et al). This collocated sheet adds the
+ * briefing-specific structure that turns the body into one instrument readout:
+ * diegetic section headers, a "transmission" panel for the briefing prose, and
+ * holo tick bullets for notes / objectives. All scoped under .briefingBody so
+ * nothing leaks to other modals. Palette via the app's --accent-* tokens.
+ * ========================================================================== */
+
+/* Diegetic section header: ▸ LABEL ──────────── */
+.briefingBody .briefingHeading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.82em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-holo);
+  text-shadow: 0 0 8px var(--accent-holo-glow);
+}
+
+.briefingBody .briefingHeading::before {
+  content: '▸';
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+
+.briefingBody .briefingHeading::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(to right, var(--accent-holo-dim), transparent);
+}
+
+/* Incoming-transmission panel for the briefing prose. */
+.briefingBody .briefingTransmission {
+  border: 1px solid var(--accent-holo-faint);
+  border-left: 2px solid var(--accent-holo-dim);
+  background: rgba(90, 200, 255, 0.035);
+  padding: 10px 14px;
+  margin-bottom: 4px;
+}
+
+.briefingBody .briefingTransmission p:last-child {
+  margin-bottom: 0;
+}
+
+/* Holo tick bullets — map notes + objectives share the marker; objectives
+ * carry hue (primary cyan / bonus amber). */
+.briefingBody .mapNotes,
+.briefingBody .objectiveList {
+  list-style: none;
+  padding-left: 2px;
+  margin-top: 6px;
+}
+
+.briefingBody .mapNotes li,
+.briefingBody .objectiveList li {
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 5px;
+}
+
+.briefingBody .mapNotes li::before,
+.briefingBody .objectiveList li::before {
+  content: '▪';
+  position: absolute;
+  left: 2px;
+  top: -0.02em;
+  color: var(--accent-holo);
+  text-shadow: 0 0 5px var(--accent-holo-glow);
+}
+
+.briefingBody .objectiveList li.obj-bonus::before {
+  color: var(--accent-warn);
+  text-shadow: 0 0 5px rgba(255, 192, 77, 0.5);
+}
+
+.briefingBody .objectiveList li.obj-primary strong {
+  color: var(--accent-holo-bright);
+  letter-spacing: 0.04em;
+}
+
+.briefingBody .objectiveList li.obj-bonus strong {
+  color: var(--accent-warn);
+  letter-spacing: 0.04em;
+}
+
+/* Special-rule sub-headings as console labels. */
+.briefingBody .specialRule h6 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.8em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-holo-bright);
+  text-shadow: 0 0 6px var(--accent-holo-glow);
+}

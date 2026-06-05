@@ -37,6 +37,14 @@ const HUE: Record<MapHue, string> = {
   danger: 'var(--accent-danger)',
 };
 
+// Brighter fills for ship silhouettes — friendlies lift to near-white cyan to
+// match the squad card's --accent-holo-bright glyph; hostiles stay alert-red.
+const SHIP_FILL: Record<MapHue, string> = {
+  holo: 'var(--accent-holo-bright)',
+  warn: 'var(--accent-warn)',
+  danger: 'var(--accent-danger)',
+};
+
 /**
  * Internal `ShipId` → glyph character in the vendored `XWingShip` icon font
  * (see `src/fonts/xwing-miniatures.css`). Only the ships that actually appear
@@ -115,6 +123,7 @@ function LabelBadge({ cx, cy, text, hue }: { cx: number; cy: number; text: strin
 function Defs() {
   return (
     <defs>
+      {/* General stroke glow — tight halo hugging the vectors. */}
       <filter id="mm-glow" x="-50%" y="-50%" width="200%" height="200%">
         <feGaussianBlur stdDeviation="2.2" result="b" />
         <feMerge>
@@ -122,7 +131,63 @@ function Defs() {
           <feMergeNode in="SourceGraphic" />
         </feMerge>
       </filter>
+      {/* Two-tier bloom mirroring the squad card's
+       * drop-shadow(0 0 4px) + drop-shadow(0 0 8px) — a soft inner halo over a
+       * wider diffuse glow. Used for ship silhouettes and headline tokens. */}
+      <filter id="mm-bloom" x="-75%" y="-75%" width="250%" height="250%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="inner" />
+        <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="outer" />
+        <feMerge>
+          <feMergeNode in="outer" />
+          <feMergeNode in="inner" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+      {/* Diagonal hatch fills for hazard areas — reads as "marked/dangerous"
+       * far better than a red dashed border (frees red for actual threats). */}
+      <pattern id="mm-hatch-danger" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="7" stroke="var(--accent-danger)" strokeWidth="1" strokeOpacity="0.45" />
+      </pattern>
     </defs>
+  );
+}
+
+/** Points string for a rect with two clipped corners (top-right + bottom-left),
+ * echoing the squad-card / modal panel cut. */
+function clippedRectPoints(x: number, y: number, w: number, h: number, cut: number): string {
+  const f = (n: number) => n.toFixed(1);
+  return [
+    `${f(x)},${f(y)}`,
+    `${f(x + w - cut)},${f(y)}`,
+    `${f(x + w)},${f(y + cut)}`,
+    `${f(x + w)},${f(y + h)}`,
+    `${f(x + cut)},${f(y + h)}`,
+    `${f(x)},${f(y + h - cut)}`,
+  ].join(' ');
+}
+
+/** Four L-shaped registration brackets at a rect's corners (open edges) — the
+ * SW "designated area" idiom, used instead of a full dashed border. */
+function CornerBrackets({ x, y, w, h, col, arm = 14 }: { x: number; y: number; w: number; h: number; col: string; arm?: number }) {
+  const f = (n: number) => n.toFixed(1);
+  const L = (cx: number, cy: number, sx: number, sy: number, k: string) => (
+    <path
+      key={k}
+      d={`M ${f(cx + sx * arm)} ${f(cy)} L ${f(cx)} ${f(cy)} L ${f(cx)} ${f(cy + sy * arm)}`}
+      fill="none"
+      stroke={col}
+      strokeWidth={1.6}
+      strokeOpacity={0.95}
+      strokeLinecap="round"
+    />
+  );
+  return (
+    <g>
+      {L(x, y, 1, 1, 'a')}
+      {L(x + w, y, -1, 1, 'b')}
+      {L(x, y + h, 1, -1, 'c')}
+      {L(x + w, y + h, -1, -1, 'd')}
+    </g>
   );
 }
 
@@ -151,31 +216,218 @@ function Grid({ geo }: { geo: Geo }) {
   const lines: ReactElement[] = [];
   for (let i = 1; i < grid; i++) {
     const major = i === third || i === twoThird;
+    // Two-tier hierarchy: major thirds read clearly in full holo cyan; minor
+    // cells are a crisp solid hairline (not dashed) kept subordinate by opacity
+    // — bright lines on near-black, like the reference schematics.
     const common = major
-      ? { stroke: 'var(--accent-holo-dim)', strokeWidth: 1.3, strokeOpacity: 0.65 }
+      ? { stroke: 'var(--accent-holo)', strokeWidth: 1, strokeOpacity: 0.55 }
       : {
-          stroke: 'var(--accent-holo-dim)',
-          strokeWidth: 1,
-          strokeDasharray: '7 9',
-          strokeOpacity: 0.5,
+          stroke: 'var(--accent-holo)',
+          strokeWidth: 0.6,
+          strokeOpacity: 0.22,
         };
     lines.push(<line key={`v${i.toString()}`} x1={X(i)} y1={Y(0)} x2={X(i)} y2={Y(grid)} {...common} />);
     lines.push(<line key={`h${i.toString()}`} x1={X(0)} y1={Y(i)} x2={X(grid)} y2={Y(i)} {...common} />);
   }
+  // Small registration crosses where the major thirds intersect.
+  const crosses: ReactElement[] = [];
+  const c = 5;
+  for (const gx of [third, twoThird]) {
+    for (const gy of [third, twoThird]) {
+      const px = X(gx);
+      const py = Y(gy);
+      crosses.push(
+        <g key={`x${gx.toString()}-${gy.toString()}`} stroke="var(--accent-holo)" strokeWidth={1} strokeOpacity={0.7}>
+          <line x1={px - c} y1={py} x2={px + c} y2={py} />
+          <line x1={px} y1={py - c} x2={px} y2={py + c} />
+        </g>,
+      );
+    }
+  }
   return (
     <g>
       {lines}
+      {crosses}
       <rect
         x={X(0)}
         y={Y(0)}
         width={size}
         height={size}
         fill="none"
-        stroke="var(--accent-holo)"
+        stroke="var(--accent-holo-bright)"
         strokeWidth={2}
-        strokeOpacity={0.8}
+        strokeOpacity={1}
         filter="url(#mm-glow)"
       />
+    </g>
+  );
+}
+
+/**
+ * Diegetic readout chrome drawn in the SVG margin: corner registration
+ * brackets hugging the board, tick-scale rulers down every edge, and two
+ * faint mono corner labels. Pure instrument framing — no gameplay meaning —
+ * so it reads as a holoprojector display rather than a bare diagram.
+ */
+function Frame({ geo }: { geo: Geo }) {
+  const { grid, X, Y } = geo;
+  const f = (n: number) => n.toFixed(1);
+  const off = 8; // sit just outside the board border
+  const x0 = X(0) - off;
+  const x1 = X(grid) + off;
+  const y0 = Y(0) - off;
+  const y1 = Y(grid) + off;
+
+  // L-shaped registration bracket at each board corner.
+  const arm = 22;
+  const bracket = (cx: number, cy: number, sx: number, sy: number, key: string) => (
+    <path
+      key={key}
+      d={`M ${f(cx + sx * arm)} ${f(cy)} L ${f(cx)} ${f(cy)} L ${f(cx)} ${f(cy + sy * arm)}`}
+      fill="none"
+      stroke="var(--accent-holo-bright)"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+    />
+  );
+
+  // Tick-scale rulers: a short tick at every cell boundary on all four edges,
+  // a longer tick at the major thirds. Dim, so they frame without competing.
+  const ticks: ReactElement[] = [];
+  const minorLen = 4;
+  const majorLen = 9;
+  const third = grid / 3;
+  const twoThird = (2 * grid) / 3;
+  for (let i = 0; i <= grid; i++) {
+    const major = i === 0 || i === grid || i === third || i === twoThird;
+    const len = major ? majorLen : minorLen;
+    const opacity = major ? 1 : 0.55;
+    const tickProps = { stroke: 'var(--accent-holo)', strokeWidth: 1, strokeOpacity: opacity } as const;
+    const gx = X(i);
+    const gy = Y(i);
+    // top + bottom (vertical ticks)
+    ticks.push(<line key={`tt${i.toString()}`} x1={gx} y1={y0} x2={gx} y2={y0 - len} {...tickProps} />);
+    ticks.push(<line key={`tb${i.toString()}`} x1={gx} y1={y1} x2={gx} y2={y1 + len} {...tickProps} />);
+    // left + right (horizontal ticks)
+    ticks.push(<line key={`tl${i.toString()}`} x1={x0} y1={gy} x2={x0 - len} y2={gy} {...tickProps} />);
+    ticks.push(<line key={`tr${i.toString()}`} x1={x1} y1={gy} x2={x1 + len} y2={gy} {...tickProps} />);
+  }
+
+  const labelProps = {
+    fill: 'var(--accent-holo-dim, rgba(90,200,255,0.45))',
+    fontFamily: 'var(--mono, monospace)',
+    fontSize: 11,
+    letterSpacing: '0.18em',
+  } as const;
+
+  return (
+    <g aria-hidden="true">
+      <g filter="url(#mm-glow)">
+        {bracket(x0, y0, 1, 1, 'tl')}
+        {bracket(x1, y0, -1, 1, 'tr')}
+        {bracket(x0, y1, 1, -1, 'bl')}
+        {bracket(x1, y1, -1, -1, 'br')}
+      </g>
+      {ticks}
+      <text x={x0 - 2} y={y0 - 18} textAnchor="start" {...labelProps}>
+        {`GRID ${grid.toString()}·${grid.toString()}`}
+      </text>
+      <text x={x1 + 2} y={y1 + 26} textAnchor="end" {...labelProps}>
+        {'· REBEL TACNET ·'}
+      </text>
+    </g>
+  );
+}
+
+/* Decorative fake-Aurebesh glyphs (geometric, not transcribed) — each drawn in
+ * a ~10×13 cell starting at x=0. Same idiom as the squad card's Aurebesh strip. */
+const AUREBESH_GLYPHS = [
+  'M0 13 L5 1 L10 13 M2 9 L8 9',
+  'M0 1 L0 13 M0 2 L5 2 L5 6 L0 6 M0 8 L5 8 L5 12 L0 12',
+  'M0 1 L6 1 L6 7 L0 7 L6 13 L0 13',
+  'M0 1 L0 13 L6 13 M0 1 L6 1 M0 7 L4 7',
+  'M0 1 L0 13 M0 1 L6 4 L0 7 M0 13 L6 10',
+  'M0 1 L6 1 L6 13 L0 13 M0 7 L6 7',
+  'M0 13 L5 1 L10 13',
+  'M0 1 L0 13 M6 1 L6 13 M0 7 L6 7',
+  'M0 1 L6 1 L6 13 M0 1 L0 13 L6 13',
+  'M0 1 L6 1 L6 7 L0 7 L0 13 L6 13',
+] as const;
+
+/** A short row of decorative Aurebesh glyphs (a "data label"). */
+function AurebeshStrip({ x, y, count, scale = 1, col, seed = 7, opacity = 0.55 }: { x: number; y: number; count: number; scale?: number; col: string; seed?: number; opacity?: number }) {
+  return (
+    <g
+      aria-hidden="true"
+      transform={`translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${scale.toFixed(3)})`}
+      fill="none"
+      stroke={col}
+      strokeWidth={1.1 / scale}
+      strokeOpacity={opacity}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {Array.from({ length: count }, (_, i) => (
+        <path key={i} transform={`translate(${(i * 13).toString()} 0)`} d={AUREBESH_GLYPHS[(seed + i * 7) % AUREBESH_GLYPHS.length]} />
+      ))}
+    </g>
+  );
+}
+
+/** A small radial instrument bezel — concentric ring, degree ticks, and a
+ * filled reading wedge. Pure decoration; evokes the nav-plot dials (swtfa11/14). */
+function DialGauge({ cx, cy, r, col }: { cx: number; cy: number; r: number; col: string }) {
+  const f = (n: number) => n.toFixed(1);
+  const ticks: ReactElement[] = [];
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2;
+    const major = i % 6 === 0;
+    const ri = major ? r - 5 : r - 2.5;
+    ticks.push(
+      <line key={i} x1={f(cx + Math.cos(a) * ri)} y1={f(cy + Math.sin(a) * ri)} x2={f(cx + Math.cos(a) * r)} y2={f(cy + Math.sin(a) * r)} strokeWidth={major ? 1.1 : 0.6} strokeOpacity={0.7} />,
+    );
+  }
+  const a0 = -Math.PI / 2;
+  const a1 = a0 + (95 * Math.PI) / 180;
+  const rr = r - 4;
+  const wedge = `M ${f(cx)} ${f(cy)} L ${f(cx + Math.cos(a0) * rr)} ${f(cy + Math.sin(a0) * rr)} A ${f(rr)} ${f(rr)} 0 0 1 ${f(cx + Math.cos(a1) * rr)} ${f(cy + Math.sin(a1) * rr)} Z`;
+  return (
+    <g aria-hidden="true" stroke={col}>
+      <circle cx={cx} cy={cy} r={r} fill="none" strokeWidth={1} strokeOpacity={0.55} />
+      <path d={wedge} fill={col} fillOpacity={0.18} stroke="none" />
+      {ticks}
+      <circle cx={cx} cy={cy} r={r * 0.4} fill="none" strokeWidth={0.7} strokeOpacity={0.5} />
+      <circle cx={cx} cy={cy} r={1.6} fill={col} stroke="none" />
+    </g>
+  );
+}
+
+/** A tiny bar-graph readout — a row of vertical bars on a baseline. */
+function BarReadout({ x, y, col }: { x: number; y: number; col: string }) {
+  const bars = [6, 11, 8, 14, 5, 9];
+  return (
+    <g aria-hidden="true" stroke={col} strokeOpacity={0.6}>
+      {bars.map((v, i) => (
+        <line key={i} x1={x + i * 5} y1={y} x2={x + i * 5} y2={y - v} strokeWidth={2.4} />
+      ))}
+      <line x1={x - 2} y1={y} x2={x + bars.length * 5} y2={y} strokeWidth={0.8} strokeOpacity={0.4} />
+    </g>
+  );
+}
+
+/** Decorative instrument cluster in the margin corners (vector-badge-free real
+ * estate). Adds the dense "in-universe console" texture without touching the
+ * play grid. All aria-hidden. */
+function MarginInstruments({ geo }: { geo: Geo }) {
+  const { vb } = geo;
+  const dim = 'var(--accent-holo-dim)';
+  const holo = 'var(--accent-holo)';
+  return (
+    <g aria-hidden="true">
+      <DialGauge cx={vb - 32} cy={32} r={16} col={holo} />
+      <AurebeshStrip x={12} y={42} count={4} scale={0.95} col={dim} seed={2} />
+      <BarReadout x={16} y={vb - 24} col={dim} />
+      <AurebeshStrip x={vb - 96} y={vb - 52} count={5} scale={0.85} col={dim} seed={6} />
     </g>
   );
 }
@@ -224,6 +476,12 @@ type Zone = DrawableMap['zones'][number];
 function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
   const { grid, X, Y } = geo;
   const col = HUE[zone.hue];
+  // Danger zones read as a diagonal-hatched region with a solid bright edge;
+  // everything else (holo/warn) reads as a faint tint enclosed by corner
+  // brackets / solid edge — no interrupted/dashed borders anywhere. Hatch is
+  // reserved for real threats so it keeps its "stay out" meaning.
+  const isHazard = zone.hue === 'danger';
+  const hatch = 'url(#mm-hatch-danger)';
   let body: ReactElement | null = null;
   let bx = 0;
   let by = 0;
@@ -265,20 +523,17 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
       bx = X(grid) - d / 2;
       by = (Y(a) + Y(b)) / 2;
     }
-    body = (
+    const clip = clippedRectPoints(x, y, w, h, Math.min(10, w / 3, h / 3));
+    body = isHazard ? (
       <>
-        <rect x={x} y={y} width={w} height={h} fill={col} fillOpacity={0.1} />
-        <rect
-          x={x}
-          y={y}
-          width={w}
-          height={h}
-          fill="none"
-          stroke={col}
-          strokeWidth={1.4}
-          strokeDasharray="6 7"
-          strokeOpacity={0.7}
-        />
+        <polygon points={clip} fill={hatch} />
+        <polygon points={clip} fill="none" stroke={col} strokeWidth={1.6} strokeOpacity={0.95} />
+        {zone.exit ? <ExitChevrons rect={[x, y, w, h]} side={zone.exit} /> : null}
+      </>
+    ) : (
+      <>
+        <polygon points={clip} fill={col} fillOpacity={0.1} />
+        <CornerBrackets x={x} y={y} w={w} h={h} col={col} />
         {zone.exit ? <ExitChevrons rect={[x, y, w, h]} side={zone.exit} /> : null}
       </>
     );
@@ -288,22 +543,17 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
     const y = Y(ry0);
     const w = X(rx1) - X(rx0);
     const h = Y(ry1) - Y(ry0);
-    body = (
+    const showEdge = zone.border !== false;
+    const clip = clippedRectPoints(x, y, w, h, Math.min(10, w / 3, h / 3));
+    body = isHazard ? (
       <>
-        <rect x={x} y={y} width={w} height={h} fill={col} fillOpacity={0.07} />
-        {zone.border === false ? null : (
-          <rect
-            x={x}
-            y={y}
-            width={w}
-            height={h}
-            fill="none"
-            stroke={col}
-            strokeWidth={1.4}
-            strokeDasharray="6 7"
-            strokeOpacity={0.7}
-          />
-        )}
+        <polygon points={clip} fill={hatch} />
+        {showEdge ? <polygon points={clip} fill="none" stroke={col} strokeWidth={1.6} strokeOpacity={0.95} /> : null}
+      </>
+    ) : (
+      <>
+        <polygon points={clip} fill={col} fillOpacity={0.08} />
+        {showEdge ? <CornerBrackets x={x} y={y} w={w} h={h} col={col} /> : null}
       </>
     );
     bx = X(rx0) + 20;
@@ -315,17 +565,8 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
     const r = ((X(x1) - X(x0)) / 2);
     body = (
       <>
-        <circle cx={cx} cy={cy} r={r} fill={col} fillOpacity={0.1} />
-        <circle
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="none"
-          stroke={col}
-          strokeWidth={1.4}
-          strokeDasharray="6 7"
-          strokeOpacity={0.7}
-        />
+        <circle cx={cx} cy={cy} r={r} fill={isHazard ? hatch : col} fillOpacity={isHazard ? 1 : 0.1} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={col} strokeWidth={1.5} strokeOpacity={0.92} />
       </>
     );
     bx = cx;
@@ -346,15 +587,8 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
     const d = `M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${ex.toFixed(1)} ${cy.toFixed(1)} A ${R.toFixed(1)} ${R.toFixed(1)} 0 0 ${sweep.toString()} ${cx.toFixed(1)} ${ey.toFixed(1)} Z`;
     body = (
       <>
-        <path d={d} fill={col} fillOpacity={0.1} />
-        <path
-          d={d}
-          fill="none"
-          stroke={col}
-          strokeWidth={1.4}
-          strokeDasharray="6 7"
-          strokeOpacity={0.7}
-        />
+        <path d={d} fill={isHazard ? hatch : col} fillOpacity={isHazard ? 1 : 0.1} />
+        <path d={d} fill="none" stroke={col} strokeWidth={1.5} strokeOpacity={0.92} />
       </>
     );
     bx = cx + dirX * R * 0.5;
@@ -364,15 +598,8 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
     const pointsAttr = pts.map(([gx, gy]) => `${X(gx).toFixed(1)},${Y(gy).toFixed(1)}`).join(' ');
     body = (
       <>
-        <polygon points={pointsAttr} fill={col} fillOpacity={0.07} />
-        <polygon
-          points={pointsAttr}
-          fill="none"
-          stroke={col}
-          strokeWidth={1.4}
-          strokeDasharray="6 7"
-          strokeOpacity={0.7}
-        />
+        <polygon points={pointsAttr} fill={isHazard ? hatch : col} fillOpacity={isHazard ? 1 : 0.08} />
+        <polygon points={pointsAttr} fill="none" stroke={col} strokeWidth={1.5} strokeOpacity={0.92} />
       </>
     );
     bx = X((pts[0][0] + pts[1][0] + pts[2][0]) / 3);
@@ -411,25 +638,38 @@ function AsteroidPolygon({
   stroke: string;
 }) {
   const n = 8 + Math.floor(rng() * 3);
-  const pts: string[] = [];
+  const verts: [number, number][] = [];
   for (let i = 0; i < n; i++) {
     const ang = (i / n) * Math.PI * 2;
     const rad = base * (0.6 + rng() * 0.5);
-    pts.push(
-      `${(cx + Math.cos(ang) * rad).toFixed(1)},${(cy + Math.sin(ang) * rad * 0.82).toFixed(1)}`,
-    );
+    verts.push([cx + Math.cos(ang) * rad, cy + Math.sin(ang) * rad * 0.82]);
   }
+  const pts = verts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+  // Two internal facet lines across the body → a low-poly "scanned rock"
+  // rather than a hollow blob (cf. the faceted Falcon wireframe, swtfa13).
+  const seg = (a: number, b: number) =>
+    `M ${verts[a][0].toFixed(1)} ${verts[a][1].toFixed(1)} L ${verts[b][0].toFixed(1)} ${verts[b][1].toFixed(1)}`;
+  const facets = `${seg(0, Math.floor(n / 2))} ${seg(Math.floor(n / 3), Math.floor((2 * n) / 3))}`;
   return (
-    <polygon
-      points={pts.join(' ')}
-      fill="#7f93a6"
-      fillOpacity={0.12}
-      stroke={stroke}
-      strokeWidth={1.8}
-      strokeOpacity={0.7}
-      strokeLinejoin="round"
-    />
+    <g stroke={stroke} strokeLinejoin="round">
+      <polygon points={pts} fill="#6f8598" fillOpacity={0.18} strokeWidth={1.7} strokeOpacity={0.8} />
+      <path d={facets} fill="none" strokeWidth={0.9} strokeOpacity={0.4} />
+    </g>
   );
+}
+
+/** Small filled chip of debris — visually distinct from a full asteroid so a
+ * "field of junk" doesn't read like a cluster of rocks. */
+function DebrisChip({ cx, cy, rng, stroke }: { cx: number; cy: number; rng: () => number; stroke: string }) {
+  const s = 3 + rng() * 3;
+  const n = 3 + Math.floor(rng() * 2);
+  const pts: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + rng();
+    const r = s * (0.7 + rng() * 0.6);
+    pts.push(`${(cx + Math.cos(a) * r).toFixed(1)},${(cy + Math.sin(a) * r).toFixed(1)}`);
+  }
+  return <polygon points={pts.join(' ')} fill={stroke} fillOpacity={0.3} stroke={stroke} strokeWidth={0.8} strokeOpacity={0.7} />;
 }
 
 function SensorBeacon({ cx, cy }: { cx: number; cy: number }) {
@@ -459,11 +699,10 @@ function AsteroidField({ geo, field }: { geo: Geo; field: DrawableAsteroids }) {
         />
       ))}
       {field.debris.map(([gx, gy], i) => (
-        <AsteroidPolygon
+        <DebrisChip
           key={`d${i.toString()}`}
           cx={geo.X(gx)}
           cy={geo.Y(gy)}
-          base={10 + rng() * 6}
           rng={rng}
           stroke="var(--accent-danger)"
         />
@@ -823,23 +1062,49 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
       </>
     );
   } else if (token.kind === 'ship') {
-    const col = HUE[token.hue ?? 'holo'];
+    const hue = token.hue ?? 'holo';
+    // Bright fill + two-tier bloom mirrors the squad card's ship silhouette.
+    const fill = SHIP_FILL[hue];
     const glyph = SHIP_GLYPH_CHAR[token.ship];
+    const hostile = hue === 'danger';
+    // Hostile craft get a corner reticle so "tracked contact" reads at a glance.
+    const hw = 22;
+    const a = 7;
+    const f = (n: number) => n.toFixed(1);
+    const reticleCorner = (sx: number, sy: number, key: string) => (
+      <path
+        key={key}
+        d={`M ${f(cx + sx * hw - sx * a)} ${f(cy + sy * hw)} L ${f(cx + sx * hw)} ${f(cy + sy * hw)} L ${f(cx + sx * hw)} ${f(cy + sy * hw - sy * a)}`}
+        fill="none"
+        stroke={fill}
+        strokeWidth={1.4}
+        strokeOpacity={0.8}
+        strokeLinecap="round"
+      />
+    );
     body = (
       <>
+        {hostile ? (
+          <g filter="url(#mm-glow)">
+            {reticleCorner(-1, -1, 'rtl')}
+            {reticleCorner(1, -1, 'rtr')}
+            {reticleCorner(-1, 1, 'rbl')}
+            {reticleCorner(1, 1, 'rbr')}
+          </g>
+        ) : null}
         <text
           x={cx}
           y={cy}
-          fill={col}
+          fill={fill}
           fontFamily="XWingShip"
           fontSize={40}
           textAnchor="middle"
           dominantBaseline="central"
-          filter="url(#mm-glow)"
+          filter="url(#mm-bloom)"
         >
           {glyph}
         </text>
-        {token.label ? <LabelBadge cx={cx + 22} cy={cy - 20} text={token.label} hue={token.hue ?? 'holo'} /> : null}
+        {token.label ? <LabelBadge cx={cx + 22} cy={cy - 20} text={token.label} hue={hue} /> : null}
       </>
     );
   } else if (token.kind === 'transport') {
@@ -1031,6 +1296,7 @@ export function MissionMap({ scenario, playerCount }: { scenario: Scenario; play
   const map = resolveMissionMap(scenario, playerCount);
   const geo = makeGeo(map.grid);
   return (
+    <div className="holoframe">
     <svg
       className="missionMap"
       viewBox={`0 0 ${geo.vb.toString()} ${geo.vb.toString()}`}
@@ -1044,6 +1310,8 @@ export function MissionMap({ scenario, playerCount }: { scenario: Scenario; play
         <Zone key={`z${i.toString()}`} geo={geo} zone={z} />
       ))}
       <Grid geo={geo} />
+      <Frame geo={geo} />
+      <MarginInstruments geo={geo} />
       {map.asteroids.map((f, i) => (
         <AsteroidField key={`a${i.toString()}`} geo={geo} field={f} />
       ))}
@@ -1066,5 +1334,6 @@ export function MissionMap({ scenario, playerCount }: { scenario: Scenario; play
         <VectorBadge key={`vec${v.n.toString()}`} geo={geo} vector={v} />
       ))}
     </svg>
+    </div>
   );
 }
