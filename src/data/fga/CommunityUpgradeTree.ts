@@ -261,5 +261,122 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.gunner, 5, 6),
                 communityRow(C.rexlerBrath, 6, 6),
             ],
+        ],
+    // ── Newer-rules community ships (community_ships_cards.pdf p.15-21) ──
+    // X-Wing 2.0-style cards. Upgrade text lives in CommunityUpgrades.ts under
+    // distinct keys (the 2.0 variants reuse 1.0 names with different rules).
+    VT49:
+        [
+            [
+                communityRow(C.ministerTua, 1, 4),
+                communityRow(C.redlineAcquire, 3, 6),
+                communityRow(C.plasmaTorpedoes, 3, 6),
+                communityRow(C.concussionBombs, 4, 6),
+                communityRow(C.rearAdmiralChiraneauReinforce, 5, 6),
+                communityRow(C.trickShot, 6, 6),
+            ],
+            [
+                communityRow(C.veteranTurretGunner, 1, 4),
+                communityRow(C.shieldUpgrade, 3, 6),
+                communityRow(C.swarmTacticsTreat, 3, 6),
+                communityRow(C.ruthlessFriendlyHit, 4, 6),
+                communityRow(C.howlrunnerNear, 5, 6),
+                communityRow(C.darthVader, 6, 6),
+            ],
+            [
+                communityRow(C.deathTroopers, 1, 4),
+                communityRow(C.captainOicunn, 3, 6),
+                communityRow(C.intimidationRange0, 3, 6),
+                communityRow(C.veteranTurretGunner, 4, 6),
+                communityRow(C.seasonedNavigator, 5, 6),
+                communityRow(C.dauntless, 6, 6),
+            ],
+        ],
+    // TIE Advanced V1 gates by Force value on the card; printed tier numbers
+    // (3/4/5/6) are encoded as initiative here. Base loadout sits at tier 3
+    // (no init-1 basic), so it unlocks once the squad reaches initiative 3.
+    TIEADVV1:
+        [
+            [
+                communityRow(C.advancedSensors, 3, 6),
+                communityRow(C.protonRocketsBullseye, 3, 6),
+                communityRow(C.hullUpgrade, 3, 6),
+                communityRow(C.predictiveShot, 4, 6),
+                communityRow(C.shieldUpgrade, 5, 6),
+                communityRow(C.malice, 6, 6),
+            ],
+            [
+                communityRow(C.clusterMissilesAdvV1, 3, 6),
+                communityRow(C.hullUpgrade, 3, 6),
+                communityRow(C.collisionDetector, 3, 6),
+                communityRow(C.shatteringShot, 4, 6),
+                communityRow(C.shieldUpgrade, 5, 6),
+                communityRow(C.grandInquisitorDefence, 6, 6),
+            ],
+            [
+                communityRow(C.concussionMissilesExpose, 3, 6),
+                communityRow(C.hullUpgrade, 3, 6),
+                communityRow(C.fireControlSystemMaximize, 3, 6),
+                communityRow(C.extremeManeuvers, 4, 6),
+                communityRow(C.shieldUpgrade, 5, 6),
+                communityRow(C.foresight, 6, 6),
+            ],
+            [
+                communityRow(C.advancedSensors, 3, 6),
+                communityRow(C.hullUpgrade, 3, 6),
+                communityRow(C.hate, 3, 6),
+                communityRow(C.supernaturalReflexes, 4, 6),
+                communityRow(C.shieldUpgrade, 5, 6),
+                communityRow(C.grandInquisitorOffence, 6, 6),
+            ],
+        ],
+    // TIE Striker basic slot is empty on the card ("–"); encoded as noUpgrade.
+    TIESK:
+        [
+            [
+                communityRow(C.noUpgrade, 1, 2),
+                communityRow(C.hullUpgrade, 3, 6),
+                communityRow(C.ruthlessChooseFriendly, 4, 6),
+                communityRow(C.suppressiveGunner, 5, 6),
+                communityRow(C.ionBombs, 6, 6),
+            ],
+            [
+                communityRow(C.noUpgrade, 1, 2),
+                communityRow(C.hullUpgrade, 3, 6),
+                communityRow(C.elusive, 4, 6),
+                communityRow(C.suppressiveGunner, 5, 6),
+                communityRow(C.protonBombs, 6, 6),
+            ],
+            [
+                communityRow(C.noUpgrade, 1, 2),
+                communityRow(C.hullUpgrade, 3, 6),
+                communityRow(C.outmaneuver, 4, 6),
+                communityRow(C.suppressiveGunner, 5, 6),
+                communityRow(C.proximityBombs, 6, 6),
+            ],
+        ],
+    TIERP:
+        [
+            [
+                communityRow(C.deathTroopers, 1, 4),
+                communityRow(C.isbSlicer, 3, 6),
+                communityRow(C.disciplined, 4, 6),
+                communityRow(C.tacticalScrambler, 5, 6),
+                communityRow(C.outmaneuver, 6, 6),
+            ],
+            [
+                communityRow(C.deathTroopers, 1, 4),
+                communityRow(C.cienaRee, 3, 6),
+                communityRow(C.ruthlessChooseFriendly, 4, 6),
+                communityRow(C.tacticalScrambler, 5, 6),
+                communityRow(C.shieldUpgrade, 6, 6),
+            ],
+            [
+                communityRow(C.deathTroopers, 1, 4),
+                communityRow(C.tacticalOfficer, 3, 6),
+                communityRow(C.snapShot, 4, 6),
+                communityRow(C.tacticalScrambler, 5, 6),
+                communityRow(C.elusive, 6, 6),
+            ],
         ]
 });

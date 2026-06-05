@@ -18,6 +18,10 @@
  * "Anderson does not scale loadouts by playersRank" rule — the ladder
  * filter is the rows' own initiative thresholds, not a separate xpLevel
  * mapping like FGA.
+ *
+ * Elite handling (mirrors the Community engine): non-elite enemies receive
+ * only the card's Basic section; elite enemies additionally receive the
+ * Elite-section rows their initiative unlocks.
  */
 
 import { Ships, UPGRADES } from '../Ships';
@@ -49,7 +53,7 @@ export default function getUpgrades(
     case UPGRADES.COMMUNITY:
       return collapse(getCommunity(shipType, playersRank, isElite), UPGRADES.COMMUNITY);
     case UPGRADES.ANDERSON:
-      return collapse(getAnderson(shipType, playersRank), UPGRADES.ANDERSON);
+      return collapse(getAnderson(shipType, playersRank, isElite), UPGRADES.ANDERSON);
   }
 }
 
@@ -134,10 +138,19 @@ function pickAndersonVariant(variants: readonly AndersonVariant[]): AndersonVari
   return variants[idx] ?? null;
 }
 
-function getAnderson(shipType: ShipId, playersRank: number): readonly UpgradeRow[] {
+function getAnderson(
+  shipType: ShipId,
+  playersRank: number,
+  isElite: boolean,
+): readonly UpgradeRow[] {
   const variants = AndersonUpgrades[shipType] ?? [];
   const variant = pickAndersonVariant(variants);
   if (!variant) return [];
+  // Non-elite enemies use only the card's Basic section; elite enemies also
+  // gain the Elite-section rows their initiative unlocks. This mirrors the
+  // Community engine (basic-only for non-elite) and the card's Basic/Elite
+  // split — "Elite enemies use more of the abilities on the card" (HotAC p.31).
+  if (!isElite) return variant.basic;
   // playersRank doubles as the imperial pilot initiative threshold; see the
   // module docblock for the rationale.
   return getAndersonUpgrades(variant, playersRank);

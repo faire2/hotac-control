@@ -16,6 +16,7 @@ import {
   checkUpgradeSourceCoverage,
   checkFgaContentShortcodes,
   checkAndersonContentShortcodes,
+  checkCommunityTreeResolution,
 } from './validate/upgrades';
 import { checkScenarios } from './validate/scenarios';
 import { checkAllyActions } from './validate/allies';
@@ -29,6 +30,7 @@ export function runValidator(): void {
   checkUpgradeSourceCoverage(failures);
   checkFgaContentShortcodes(failures);
   checkAndersonContentShortcodes(failures);
+  checkCommunityTreeResolution(failures);
   checkScenarios(failures);
   checkAllyActions(failures);
 

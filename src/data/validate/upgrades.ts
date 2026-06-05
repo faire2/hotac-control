@@ -1,6 +1,8 @@
 import { Ships, UPGRADES } from '../Ships';
 import { FgaUpgradePool } from '../fga/FgaUpgradePool';
 import { CommunityUpgrades } from '../fga/CommunityUpgrades';
+import { CommunityUpgradeTree } from '../fga/CommunityUpgradeTree';
+import type { Upgrade } from '../shared/coreUpgrades';
 import { fgaTargetSelectionByShip } from '../fga/FgaTargetSelection';
 import { fgaShipActionsByShip } from '../fga/FgaShipActions';
 import { fgaAttackByShip } from '../fga/FgaAttack';
@@ -35,4 +37,28 @@ export function checkFgaContentShortcodes(failures: ValidationFailure[]): void {
 
 export function checkAndersonContentShortcodes(failures: ValidationFailure[]): void {
   checkUpgradeShortcodes('AndersonUpgradePool', AndersonUpgradePool, failures);
+}
+
+/**
+ * Every upgrade referenced by `CommunityUpgradeTree` must resolve to a defined
+ * `CommunityUpgrades` entry. `tsc` cannot catch a typo'd or missing key here
+ * because the pool is typed `Record<string, Upgrade>` — any `C.foo` access is
+ * assumed present — so a bad key silently becomes `upgrade: undefined` at
+ * runtime. This guards that gap (it once let `majorRhymer`/`ruthless`/
+ * `kirKanos`/`lieutenantColzet` ship as undefined rows).
+ */
+export function checkCommunityTreeResolution(failures: ValidationFailure[]): void {
+  const defined = new Set<Upgrade>(Object.values(CommunityUpgrades));
+  for (const [shipId, variants] of Object.entries(CommunityUpgradeTree)) {
+    variants.forEach((variant, variantIndex) => {
+      variant.forEach((row, rowIndex) => {
+        if (!defined.has(row.upgrade)) {
+          failures.push({
+            rule: 'Community upgrade resolution',
+            detail: `CommunityUpgradeTree.${shipId} variant ${String(variantIndex)}, row ${String(rowIndex)}: upgrade does not resolve to a CommunityUpgrades entry (likely a typo'd or missing key).`,
+          });
+        }
+      });
+    });
+  }
 }
