@@ -170,6 +170,12 @@ and draw solid bodies as faceted wireframes.
   - *Bar* preset → docking platform: clipped-corner deck, corner brackets, approach chevrons, centre
     landing target.
   - *Tri-hub* → concentric hub ring + core ring + docking lights at the arm tips.
+- **Tooltips:** the per-element tips (formerly plain native `<title>`) are now `data-tip`
+  attributes read by a delegated `onMouseMove` on the `.holoframe`, rendering an **instant
+  holo-styled tooltip** (cyan border, mono, glow, clipped corner) at the cursor. Covers zone badges
+  (B/G/H…), emplacement modules (T=Turbolaser, S=Shield, F=Fuel, C=Command), hazard/asteroid/ion
+  fields, stations, hull, and approach vectors. Trade-off: drops the screen-reader-announced
+  `<title>` (the SVG keeps its `aria-label`); acceptable for a visual map aid.
 - **Asteroids** → faint fill + 1–2 internal **facet lines** ("scanned rock"). **Debris** → small
   filled chips, visually distinct from full rocks.
 - **Margin instrumentation** (corner squares only — vector-badge-free; all `aria-hidden`):

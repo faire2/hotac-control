@@ -5,7 +5,7 @@
  * the resolved `DrawableMap`. Colors map to the app's `--accent-*` tokens.
  */
 
-import type { ReactElement } from 'react';
+import { useRef, useState, type ReactElement } from 'react';
 import type { ShipId } from '../../data/Ships';
 import type { ApproachDir, MapHue, MapSide, Scenario } from '../../data/scenarios/types';
 import {
@@ -636,8 +636,7 @@ function Zone({ geo, zone }: { geo: Geo; zone: Zone }) {
   }
 
   return (
-    <g>
-      {zone.tip ? <title>{zone.tip}</title> : null}
+    <g data-tip={zone.tip}>
       {body}
       {zone.label ? <LabelBadge cx={bx} cy={by} text={zone.label} hue={zone.hue} /> : null}
     </g>
@@ -706,8 +705,7 @@ function SensorBeacon({ cx, cy }: { cx: number; cy: number }) {
 function AsteroidField({ geo, field }: { geo: Geo; field: DrawableAsteroids }) {
   const rng = mulberry32(((field.seed >>> 0) ^ 0x9e3779b9) >>> 0);
   return (
-    <g>
-      {field.tip ? <title>{field.tip}</title> : null}
+    <g data-tip={field.tip}>
       {field.rocks.map(([gx, gy], i) => (
         <AsteroidPolygon
           key={`a${i.toString()}`}
@@ -780,8 +778,7 @@ function Mine({ cx, cy, rng }: { cx: number; cy: number; rng: () => number }) {
 function MineField({ geo, field }: { geo: Geo; field: DrawableMines }) {
   const rng = mulberry32(((field.seed >>> 0) ^ 0x85ebca6b) >>> 0);
   return (
-    <g>
-      {field.tip ? <title>{field.tip}</title> : null}
+    <g data-tip={field.tip}>
       {field.mines.map(([gx, gy], i) => (
         <Mine key={`m${i.toString()}`} cx={geo.X(gx)} cy={geo.Y(gy)} rng={rng} />
       ))}
@@ -862,8 +859,7 @@ function IonStorm({ cx, cy, r, rng }: { cx: number; cy: number; r: number; rng: 
 function IonStormField({ geo, field }: { geo: Geo; field: DrawableIonStorms }) {
   const rng = mulberry32(((field.seed >>> 0) ^ 0xc2b2ae35) >>> 0);
   return (
-    <g>
-      {field.tip ? <title>{field.tip}</title> : null}
+    <g data-tip={field.tip}>
       {field.clouds.map(([gx, gy], i) => (
         <IonStorm key={`i${i.toString()}`} cx={geo.X(gx)} cy={geo.Y(gy)} r={field.size * CELL} rng={rng} />
       ))}
@@ -905,9 +901,8 @@ function StationTriHub({ cx, cy, label, tip }: { cx: number; cy: number; label?:
     );
   }
   return (
-    <>
+    <g data-tip={tip}>
       <g filter="url(#mm-glow)">
-        {tip ? <title>{tip}</title> : null}
         {arms}
         {/* concentric hub: outer ring + solid core */}
         <circle cx={cx} cy={cy} r={19} fill="none" stroke="var(--accent-holo)" strokeWidth={1} strokeOpacity={0.45} />
@@ -915,7 +910,7 @@ function StationTriHub({ cx, cy, label, tip }: { cx: number; cy: number; label?:
         <circle cx={cx} cy={cy} r={5} fill="none" stroke="var(--accent-holo)" strokeWidth={0.9} strokeOpacity={0.6} />
       </g>
       {label ? <LabelBadge cx={cx} cy={cy + 46} text={label} hue="holo" /> : null}
-    </>
+    </g>
   );
 }
 
@@ -927,9 +922,8 @@ function StationBar({ cx, cy, label, tip }: { cx: number; cy: number; label?: st
   const y = cy - h / 2;
   const clip = clippedRectPoints(x, y, w, h, 8);
   return (
-    <>
+    <g data-tip={tip}>
       <g filter="url(#mm-glow)">
-        {tip ? <title>{tip}</title> : null}
         {/* docking-platform deck */}
         <polygon points={clip} fill="var(--accent-holo)" fillOpacity={0.08} stroke="var(--accent-holo)" strokeWidth={1.8} />
         <CornerBrackets x={x} y={y} w={w} h={h} col="var(--accent-holo)" arm={9} />
@@ -942,7 +936,7 @@ function StationBar({ cx, cy, label, tip }: { cx: number; cy: number; label?: st
         <line x1={cx} y1={cy - 8} x2={cx} y2={cy + 8} stroke="var(--accent-holo-bright)" strokeWidth={0.9} strokeOpacity={0.7} />
       </g>
       {label ? <LabelBadge cx={cx} cy={cy + h} text={label} hue="holo" /> : null}
-    </>
+    </g>
   );
 }
 
@@ -959,8 +953,7 @@ function Station({ geo, station }: { geo: Geo; station: DrawableStation }) {
 function Hull({ geo, hull }: { geo: Geo; hull: DrawableHull }) {
   const f = (n: number) => n.toFixed(1);
   return (
-    <g filter="url(#mm-glow)">
-      {hull.tip ? <title>{hull.tip}</title> : null}
+    <g filter="url(#mm-glow)" data-tip={hull.tip}>
       {hull.polys.map((poly, i) => (
         <polygon
           key={`hp${i.toString()}`}
@@ -1187,8 +1180,7 @@ function Token({ geo, token }: { geo: Geo; token: ResolvedToken }) {
     );
   }
   return (
-    <g>
-      {token.tip ? <title>{token.tip}</title> : null}
+    <g data-tip={token.tip}>
       {body}
     </g>
   );
@@ -1276,8 +1268,7 @@ function VectorBadge({ geo, vector }: { geo: Geo; vector: DrawableVector }) {
     p(px * w + ax * h * 0.2, py * w + ay * h * 0.2),
   ].join(' ');
   return (
-    <g filter="url(#mm-glow)">
-      <title>Approach vector {vector.label ?? vector.n}</title>
+    <g filter="url(#mm-glow)" data-tip={`Approach vector ${(vector.label ?? vector.n).toString()}`}>
       <polygon points={pts} fill="#1f6f94" stroke="var(--accent-holo)" strokeWidth={1.2} />
       <text
         x={cx}
@@ -1294,11 +1285,34 @@ function VectorBadge({ geo, vector }: { geo: Geo; vector: DrawableVector }) {
   );
 }
 
+interface TipState {
+  text: string;
+  left: number;
+  top: number;
+}
+
 export function MissionMap({ scenario, playerCount }: { scenario: Scenario; playerCount?: number }) {
   const map = resolveMissionMap(scenario, playerCount);
   const geo = makeGeo(map.grid);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [tip, setTip] = useState<TipState | null>(null);
+
+  // Delegated hover: walk up from the hovered node to the nearest [data-tip]
+  // and show a holo tooltip positioned by the cursor within the frame.
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const hit = (e.target as Element).closest<SVGElement>('[data-tip]');
+    const text = hit?.getAttribute('data-tip');
+    const frame = frameRef.current;
+    if (!text || !frame) {
+      if (tip) setTip(null);
+      return;
+    }
+    const r = frame.getBoundingClientRect();
+    setTip({ text, left: e.clientX - r.left, top: e.clientY - r.top });
+  };
+
   return (
-    <div className="holoframe">
+    <div className="holoframe" ref={frameRef} onMouseMove={onMove} onMouseLeave={() => { setTip(null); }}>
     <svg
       className="missionMap"
       viewBox={`0 0 ${geo.vb.toString()} ${geo.vb.toString()}`}
@@ -1336,6 +1350,11 @@ export function MissionMap({ scenario, playerCount }: { scenario: Scenario; play
         <VectorBadge key={`vec${v.n.toString()}`} geo={geo} vector={v} />
       ))}
     </svg>
+      {tip ? (
+        <div className="mm-tooltip" style={{ left: tip.left, top: tip.top }} role="tooltip">
+          {tip.text}
+        </div>
+      ) : null}
     </div>
   );
 }

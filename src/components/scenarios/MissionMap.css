@@ -66,9 +66,32 @@
   animation: mm-scan 9s linear infinite;
 }
 
-.missionMap [data-tip],
-.missionMap title {
+.holoframe [data-tip] {
   cursor: help;
+}
+
+/* Instant holo-styled tooltip, positioned by the cursor within the frame.
+ * Replaces the plain/slow native <title> tooltips. */
+.mm-tooltip {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  max-width: 240px;
+  transform: translate(14px, -50%);
+  padding: 5px 9px;
+  background: rgba(4, 12, 22, 0.92);
+  border: 1px solid var(--accent-holo, #5ac8ff);
+  box-shadow:
+    0 0 0 1px rgba(90, 200, 255, 0.25),
+    0 0 14px rgba(90, 200, 255, 0.3);
+  color: var(--accent-holo-bright, #b5ecff);
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 6px var(--accent-holo-glow, rgba(90, 200, 255, 0.55));
+  /* clipped top-right corner, matching the panel idiom */
+  clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 0 100%);
 }
 
 @keyframes mm-scan {
