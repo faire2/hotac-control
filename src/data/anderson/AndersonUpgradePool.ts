@@ -1051,6 +1051,16 @@ export const AndersonUpgradePool: Readonly<Record<string, Upgrade>> = Object.fre
   // ── TIE Advanced v1 (p-20) ────────────────────────────────────────
   // Force-using elite ship (like the Sith Infiltrator). Most pilots add
   // force capacity via the "[Adds N force]" annotation.
+  // p-20 #3's Concussion Missiles print charge 3 (vs the Punisher's
+  // charge 4). Same :lock: profile otherwise. Separate entry because the
+  // charge total is part of the upgrade identity. Verified against the 2x
+  // deck 2026-06-05.
+  concussionMissilesAdvV1: {
+    skillName: 'Concussion Missiles',
+    description: 'Attack (:lock:): Spend 1 :charge:. After this attack hits, each ship at range 0-1 of the defender exposes 1 of its damage cards.',
+    charge: 3,
+    attack: 3,
+  },
   protonRockets: {
     skillName: 'Proton Rockets',
     description: 'Attack (:focus:): Spend 1 :charge:. Prioritise :boost: and :barrelroll: in your Select Action step to get an enemy in :bullseye: at range 1-3.',
@@ -1083,10 +1093,14 @@ export const AndersonUpgradePool: Readonly<Record<string, Upgrade>> = Object.fre
     description: 'After you declare an attack, if the defender is in your :bullseye:, spend 1 :force:. If you do, the defender cannot roll more defense dice than the number of your :focus: / :hit: results.',
     addsForce: 1,
   },
+  // First force upgrade on the p-20 #2 card: it SPENDS force but the card
+  // prints no "(Adds :force:)" badge (unlike Supernatural Reflexes and
+  // Grand Inquisitor (Defense) on the same card) — it draws on the ship's
+  // base force rather than adding capacity. So no `addsForce`. Verified
+  // against the 2x deck 2026-06-05.
   grandInquisitorOffense: {
     skillName: 'Grand Inquisitor (Offense)',
     description: 'While you perform an attack against a defender at attack range 2-3, spend 1 :force: to apply the range 1 bonus.',
-    addsForce: 1,
   },
   grandInquisitorDefense: {
     skillName: 'Grand Inquisitor (Defense)',

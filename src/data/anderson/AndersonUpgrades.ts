@@ -843,9 +843,14 @@ const TIERBA_VARIANTS: AndersonShipVariants = [
 ];
 
 // ── Alpha Class Starwing — 4x deck pages 18-19 (8 variants) ────────
-// Init range 3-7 (like Sith Infiltrator). Every card pairs a primary
+// Init range 3-6. Unlike most cards (1 basic + 5 elite), each Starwing
+// card is 2 basic rows + only 4 elite rows. Every card pairs a primary
 // weapon with one of two configuration loadouts (Os-1 = missile-focused;
 // Xg-1 = cannon-focused).
+// NB: the 4x deck prints the top elite tier at init 7; the 2x deck
+// (verified 2026-06-05) prints it at init 6 — this data follows the 2x
+// deck. Neither deck has a 5th elite row (an earlier transcription added
+// a phantom Shield Upgrade/Elusive at init 7; removed 2026-06-05).
 const STARWING_VARIANTS: AndersonShipVariants = [
   // p-18 #1
   {
@@ -854,8 +859,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
       r(U.collisionDetector, 4),
       r(U.doubleEdgeBonusPrimary, 5),
       r(U.whisper, 6),
-      r(U.darkCurse, 7),
-      r(U.shieldUpgrade, 7),
+      r(U.darkCurse, 6),
     ],
   },
   // p-18 #2
@@ -865,8 +869,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
       r(U.elusive, 4),
       r(U.maarekStele, 5),
       r(U.majorRhymerProtonTorpedo, 6),
-      r(U.captainJonus, 7),
-      r(U.shieldUpgrade, 7),
+      r(U.captainJonus, 6),
     ],
   },
   // p-18 #3
@@ -876,8 +879,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
       r(U.shieldUpgrade, 4),
       r(U.majorRhymerMmp, 5),
       r(U.trickShotLockAndAttacks, 6),
-      r(U.idenVersioFuse, 7),
-      r(U.elusive, 7),
+      r(U.idenVersioFuse, 6),
     ],
   },
   // p-18 #4
@@ -887,8 +889,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
       r(U.elusive, 4),
       r(U.ruthless, 5),
       r(U.whisperEvadeAction, 6),
-      r(U.wampa, 7),
-      r(U.shieldUpgrade, 7),
+      r(U.wampa, 6),
     ],
   },
   // p-19 #1
@@ -898,8 +899,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
       r(U.pureSabacc, 4),
       r(U.shieldUpgrade, 5),
       r(U.majorVynderDisarmed, 6),
-      r(U.flightLeaderUbbel, 7),
-      r(U.elusive, 7),
+      r(U.flightLeaderUbbel, 6),
     ],
   },
   // p-19 #2
@@ -909,8 +909,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
       r(U.soontirFel, 4),
       r(U.collisionDetector, 5),
       r(U.targetAssistAlgorithmManeuver, 6),
-      r(U.yricaQuell, 7),
-      r(U.shieldUpgrade, 7),
+      r(U.yricaQuell, 6),
     ],
   },
   // p-19 #3
@@ -920,8 +919,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
       r(U.outmaneuverStop, 4),
       r(U.elusive, 5),
       r(U.collisionDetector, 6),
-      r(U.soontirFel, 7),
-      r(U.shieldUpgrade, 7),
+      r(U.soontirFel, 6),
     ],
   },
   // p-19 #4
@@ -931,8 +929,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
       r(U.scythe6, 4),
       r(U.vedFosloStarwing, 5),
       r(U.captainOicunnRange, 6),
-      r(U.collisionDetector, 7),
-      r(U.shieldUpgrade, 7),
+      r(U.collisionDetector, 6),
     ],
   },
 ];
@@ -967,7 +964,7 @@ const TIEADVV1_VARIANTS: AndersonShipVariants = [
   },
   // p-20 #3
   {
-    basic: [r(U.concussionMissilesPunisher, 3)],
+    basic: [r(U.concussionMissilesAdvV1, 3)],
     elite: [
       r(U.hullUpgrade, 3),
       r(U.fireControlSystem, 3),
