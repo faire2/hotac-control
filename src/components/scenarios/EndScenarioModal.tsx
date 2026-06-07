@@ -12,8 +12,10 @@ interface Props {
   damageDealt: number;
   /** Called when the player picks Rebel victory or Imperial victory. */
   onResolve: (kind: EndOutcomeKind) => void;
-  /** Cancel without recording an outcome (returns to free play). */
-  onClose: () => void;
+  /** Dismiss the dialog (Esc / X button) — keeps the scenario active. */
+  onDismiss: () => void;
+  /** Explicit abandon (Cancel button) — discards the scenario, returns to free play. */
+  onAbandon: () => void;
 }
 
 function describeNext(next: OutcomeNext): string {
@@ -77,9 +79,9 @@ function OutcomePanel({
   );
 }
 
-export function EndScenarioModal({ show, scenario, damageDealt, onResolve, onClose }: Props) {
+export function EndScenarioModal({ show, scenario, damageDealt, onResolve, onDismiss, onAbandon }: Props) {
   return (
-    <Modal show={show} onHide={onClose} centered scrollable size="lg">
+    <Modal show={show} onHide={onDismiss} centered scrollable size="lg">
       <Modal.Header closeButton className="scenarioModalHeader">
         <Modal.Title>
           {scenario.title} — Mission End
@@ -118,7 +120,7 @@ export function EndScenarioModal({ show, scenario, damageDealt, onResolve, onClo
         />
       </Modal.Body>
       <Modal.Footer>
-        <button type="button" className="btn btn-secondary" onClick={onClose}>
+        <button type="button" className="btn btn-secondary" onClick={onAbandon}>
           Cancel — return to free play
         </button>
       </Modal.Footer>

@@ -26,9 +26,9 @@ export const defection3: Scenario = {
   mapDiagram,
   mapNotes: [
     'Neutral Territory — 12 turns',
-    'A / B: Player setup / escape areas (any edge)',
+    'A: Player setup / escape area (any edge)',
+    'B: Asteroids ×6 (random layout, Range >1 apart / from edges / enemies)',
     'C / D / E / F: training-squad approach points',
-    'Asteroids ×6 (random layout, Range >1 apart / from edges / enemies)',
     'Centre: the Instructor shuttle (Lambda)',
   ],
   map: {
@@ -42,9 +42,10 @@ export const defection3: Scenario = {
       { hue: 'danger', rect: [0, 8, 9, 9], border: false, tip: 'Imperial-controlled space — board edge' },
       { hue: 'danger', rect: [0, 1, 1, 8], border: false, tip: 'Imperial-controlled space — board edge' },
       { hue: 'danger', rect: [8, 1, 9, 8], border: false, tip: 'Imperial-controlled space — board edge' },
-      // Player setup / escape areas.
-      { label: 'A', hue: 'warn', point: [0.55, 5.7], tip: 'A — Player setup / escape area' },
-      { label: 'B', hue: 'warn', point: [0.55, 4.3], tip: 'B — Player setup / escape area' },
+      // A: player setup / escape (any edge). B: asteroid field label, placed
+      // just inside the asteroid region so the badge sits over the rocks.
+      { label: 'A', hue: 'warn', point: [0.55, 5], tip: 'A — Player setup / escape area (any edge)' },
+      { label: 'B', hue: 'holo', point: [1.7, 1.7], tip: 'B — Asteroids ×6 (random layout, Range >1 apart / from edges / enemies)' },
     ],
     // Lettered squad approach vectors — chevrons on the inner intersections in a
     // clockwise pinwheel: C→west, F→north, E→east, D→south.

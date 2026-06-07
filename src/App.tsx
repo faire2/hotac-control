@@ -200,10 +200,11 @@ function App() {
   const round = getActiveRound(mode);
   const modeBriefingScenarioId = getBriefingScenarioId(mode, briefingOverlayOpen);
   // Gallery picks override the mode-derived briefing so opening a map briefing
-  // is decoupled from any in-progress mission.
+  // is decoupled from any in-progress mission. Gallery picks open in `start`
+  // mode so the player can run the scenario directly from the maps view.
   const briefingScenarioId = galleryBriefingScenarioId ?? modeBriefingScenarioId;
   const briefingMode: 'start' | 'view' =
-    galleryBriefingScenarioId !== null ? 'view' : getBriefingMode(mode);
+    galleryBriefingScenarioId !== null ? 'start' : getBriefingMode(mode);
   const activeScenario = activeScenarioId ? findScenario(activeScenarioId) : undefined;
   const briefingScenario = briefingScenarioId ? findScenario(briefingScenarioId) : undefined;
 
@@ -263,7 +264,13 @@ function App() {
       scenarioId: briefingScenario.id,
       phase: { kind: 'active', round: 1 },
     };
-    if (mode.kind === 'campaign') {
+    if (galleryBriefingScenarioId !== null) {
+      // Started from the map gallery — always runs as a one-off scenario,
+      // independent of any active campaign. Close the gallery + briefing.
+      setGalleryBriefingScenarioId(null);
+      setShowMissionMapsGallery(false);
+      setMode({ kind: 'scenarioOnly', mission });
+    } else if (mode.kind === 'campaign') {
       setMode({
         kind: 'campaign',
         campaignId: mode.campaignId,
@@ -726,6 +733,17 @@ function App() {
                 }}
               />
             </div>
+            {activeScenario ? (
+              <div className="col-auto">
+                <button
+                  type="button"
+                  className="btn btn-scenario-action"
+                  onClick={handleEndScenarioClick}
+                >
+                  End scenario
+                </button>
+              </div>
+            ) : null}
             {mode.kind === 'campaign' && activeCampaign ? (
               <div className="col-auto menu-text">
                 <span className="font-weight-bold">{activeCampaign.name}</span>
@@ -753,15 +771,6 @@ function App() {
                   <span className="mr-2">Round:</span>
                   <span className="counterValue" style={{ margin: '0 10px' }}>{round}</span>
                   <span className="small mr-3 menu-text-dim">/ {activeScenario.turnLimit.toString()}</span>
-                </div>
-                <div className="col-auto">
-                  <button
-                    type="button"
-                    className="btn btn-scenario-action"
-                    onClick={handleEndScenarioClick}
-                  >
-                    End scenario
-                  </button>
                 </div>
                 <div className="col-auto">
                   <button
@@ -843,7 +852,7 @@ function App() {
               onAiEngineChange={setScenarioAiEngine}
               onUpgradesSourceChange={handleScenarioUpgradesSourceChange}
               onStart={handleStartScenario}
-              onBack={handleBriefingBack}
+              onBack={galleryBriefingScenarioId !== null ? undefined : handleBriefingBack}
               onHide={handleHideBriefing}
             />
           ) : null}
@@ -853,7 +862,8 @@ function App() {
               scenario={activeScenario}
               damageDealt={destroyedEnemyHp + survivingEnemyDamage(squadrons)}
               onResolve={handleEndScenarioResolve}
-              onClose={handleEndScenarioCancel}
+              onDismiss={() => { setShowEndScenario(false); }}
+              onAbandon={handleEndScenarioCancel}
             />
           ) : null}
           <ArrivalNotificationModal
