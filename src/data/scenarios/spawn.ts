@@ -26,6 +26,7 @@ import type { SpawnSettings } from '../campaigns/settings';
 import { resolveSquad, resolveSquadVector } from './resolve';
 import { resolveAllyDial } from '../allyDials';
 import { resolveAllyActions } from '../allyActions';
+import type { AllyShipId } from '../rebelAllies';
 import { hasTag } from './types';
 import type {
   PlayerCount,
@@ -278,6 +279,53 @@ export function spawnAlliesFromScenario(
       },
     } satisfies Squadron;
   });
+}
+
+/**
+ * Spawn a dynamically-introduced ally squadron mid-mission. Used by the
+ * Defector flow in defection-2: when the player confirms the Defector was
+ * identified, the Imperial Prototype's TIE Defender flips sides and
+ * appears here as an ally with the Prototype squad's upgrade roll.
+ *
+ * `inheritedUpgrades` carries the source squad's upgrade list verbatim
+ * (the user spec is "upgrades are shared in the squadron, so the ally
+ * inherits the Imperial loadout"). Stats use `Ships[shipType]` defaults;
+ * the modal's instructions tell the player to adjust hull/shields to
+ * match the live Imperial ship by hand.
+ */
+export function spawnAllyDynamic(
+  shipType: AllyShipId,
+  arrivedAtRound: number,
+  inheritedUpgrades: readonly Upgrade[],
+): Squadron {
+  const ship = Ships[shipType];
+  const extras = countExtraHullAndShield(inheritedUpgrades);
+  const shipInstance: ShipInstance = {
+    tokenId: 0,
+    hull: ship.hull + extras.extraHull,
+    shields: ship.shields + extras.extraShield,
+  };
+  return {
+    id: crypto.randomUUID(),
+    shipType,
+    isElite: false,
+    upgrades: inheritedUpgrades,
+    ships: [shipInstance],
+    scenarioMeta: {
+      // Short designation — the picker column is only ~110 px wide, so a
+      // long "TIE/d Defender (Defector)" string truncates the ship-name
+      // header beside it. The ship type is already visible in the title
+      // and the approach label says "Defected", so "Defector" alone reads
+      // unambiguously here.
+      squadName: 'Defector',
+      approachLabel: 'Defected',
+      arrivedAtRound,
+    },
+    ally: {
+      dial: resolveAllyDial(shipType),
+      actions: resolveAllyActions(shipType),
+    },
+  };
 }
 
 /** Reseed `priorVectors` from already-spawned squadrons before a new round

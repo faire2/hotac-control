@@ -397,6 +397,48 @@ body {
   padding: 16px 20px !important;
 }
 
+/* Arrival-notification callout — player-facing instruction text
+ * stamped on certain arrivals (today: the Defector flow's "adjust
+ * hull/shields, then remove from Prototype squadron"). Same visual
+ * vocabulary as the squad-card panel headers: transparent background,
+ * left-edge tab marker, bottom corner notch, amber-tinted text to read
+ * as a "pay attention" cue without the Bootstrap warning-yellow brick. */
+.arrival-notice {
+  position: relative;
+  margin: 10px 0 0 0;
+  padding: 8px 12px 8px 18px;
+  background: transparent;
+  border: 1px solid rgba(255, 192, 77, 0.45);
+  color: rgba(255, 220, 160, 0.95);
+  font-family: var(--mono);
+  font-size: 0.9em;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 4px rgba(255, 192, 77, 0.25);
+}
+
+.arrival-notice::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  background: var(--accent-warn, #ffc04d);
+  box-shadow: 0 0 6px rgba(255, 192, 77, 0.55);
+}
+
+.arrival-notice::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  width: 12px;
+  height: 6px;
+  border-right: 1px solid rgba(255, 192, 77, 0.45);
+  border-bottom: 1px solid rgba(255, 192, 77, 0.45);
+}
+
 .modal-footer {
   background: transparent !important;
   border-top: 1px solid var(--accent-holo-faint) !important;

@@ -147,6 +147,22 @@ export const defection2: Scenario = {
         6: [{ kind: 'replaceRandom', gate: { rebelInitGte: 3 } }],
       },
     },
+    // Defector — dummy squad entry that registers the dynamic-spawn handler.
+    // The handler runs at end of every round (modal asks "Did you identify
+    // the Defector?"). On yes the handler returns `allySpawn` instead of
+    // spawning an Imperial squadron; `performRoundAdvance` injects a rebel-
+    // ally TIE Defender with the Prototype squad's upgrade roll, and a notice
+    // string tells the player to adjust hull/shields + remove the
+    // corresponding Imperial ship by hand. One-shot — the handler is marked
+    // resolved as soon as the ally appears.
+    {
+      name: 'Defector',
+      arrival: { kind: 'turn', turn: 1 },
+      vector: 'A',
+      aiTag: 'Ally',
+      composition: {},
+      tags: [{ kind: 'dynamicSpawn', handler: 'defectorIdentified' }],
+    },
   ],
   specialRules: [
     {

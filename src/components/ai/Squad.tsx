@@ -86,7 +86,14 @@ function CockpitFrame({ designation }: { designation: string }) {
 export function Squad({ squad, squadId }: Props) {
   const shipType = squad.shipType;
   const ship = Ships[shipType];
-  const isAlly = ship.ai.length === 0;
+  // "Ally" mode means render the player-piloted maneuver matrix + action
+  // bar instead of the AI position scope + carousel. Two ways to get here:
+  //   - the ship type carries no AI (HWK-290 / GR-75 / Outer Rim Smuggler) —
+  //     standard rebel-ally setup; OR
+  //   - the squadron carries an `ally` profile even though the ship type
+  //     does have AI — the Defector flow in defection-2 spawns a captured
+  //     TIE Defender flying for the Rebels, ai-coded but matrix-rendered.
+  const isAlly = ship.ai.length === 0 || squad.ally !== undefined;
   const globalValues = useContext(GlobalSquadsValuesContext);
   // AI engine is set globally via the New / Load / Campaign-setup
   // modals. We fall back to the ship's first supported engine if the

@@ -14,6 +14,14 @@ const DIFFICULTY_CLASS: Readonly<Record<DialDifficulty, string>> = {
 
 // Right-side glyph for each direction. The dial intentionally renders
 // only centre + right; the player flips it mentally for left maneuvers.
+//
+// Reverse-straight reuses the regular `x-straight` glyph plus a 180°
+// rotation (via `.ally-dial-icon--reverse` in CSS) because the font's
+// dedicated `x-reversestraight` glyph (codepoint K) renders as a
+// stop-sign-looking square that doesn't read as a flipped arrow.
+// Reverse-bank, by contrast, has a proper dedicated glyph in the
+// font (`x-reversebankright`) so we use that directly — no rotation
+// trick needed.
 const DIRECTION_ICON: Readonly<Record<DialDirection, string>> = {
   straight: 'x-straight',
   bank: 'x-bankright',
@@ -22,9 +30,13 @@ const DIRECTION_ICON: Readonly<Record<DialDirection, string>> = {
   sloop: 'x-sloopright',
   troll: 'x-trollright',
   stop: 'x-stop',
-  reverseStraight: 'x-reversestraight',
+  reverseStraight: 'x-straight',
   reverseBank: 'x-reversebankright',
 };
+
+const REVERSE_DIRECTIONS: ReadonlySet<DialDirection> = new Set<DialDirection>([
+  'reverseStraight',
+]);
 
 const DIRECTION_LABEL: Readonly<Record<DialDirection, string>> = {
   straight: 'straight',
@@ -39,24 +51,40 @@ const DIRECTION_LABEL: Readonly<Record<DialDirection, string>> = {
 };
 
 // Maneuvers share visual columns by "lateral aggression": centre = no
-// lateral travel (straight / stop / reverse-straight), then bank, then
-// turn, with k-turn at the far right. This keeps stop directly under
-// the straight stack instead of sliding to its own column.
-type Column = 'centre' | 'bank' | 'turn' | 'kturn';
+// lateral travel (straight / stop), then bank, then turn, with k-turn
+// at the far right. Reverses get their own columns (reverseCentre,
+// reverseBank) because a single speed can carry BOTH straight and
+// reverse-straight (e.g. the Defector TIE Defender's speed-2 row has
+// blue straight + red reverse) — sharing a column would let the later
+// dial entry overwrite the earlier one in the per-row Map.
+type Column =
+  | 'centre'
+  | 'bank'
+  | 'turn'
+  | 'kturn'
+  | 'reverseCentre'
+  | 'reverseBank';
 
 const DIRECTION_COLUMN: Readonly<Record<DialDirection, Column>> = {
   straight: 'centre',
   stop: 'centre',
-  reverseStraight: 'centre',
+  reverseStraight: 'reverseCentre',
   bank: 'bank',
-  reverseBank: 'bank',
+  reverseBank: 'reverseBank',
   turn: 'turn',
   sloop: 'turn',
   troll: 'turn',
   kturn: 'kturn',
 };
 
-const COLUMN_ORDER: readonly Column[] = ['centre', 'bank', 'turn', 'kturn'];
+const COLUMN_ORDER: readonly Column[] = [
+  'centre',
+  'bank',
+  'turn',
+  'kturn',
+  'reverseCentre',
+  'reverseBank',
+];
 
 interface RowCell {
   column: Column;
@@ -137,7 +165,9 @@ export function AllyManeuverDial({ dial }: Props) {
                     }}
                   >
                     <i
-                      className={`${DIFFICULTY_CLASS[entry.difficulty]} ${DIRECTION_ICON[entry.direction]} ally-dial-icon`}
+                      className={`${DIFFICULTY_CLASS[entry.difficulty]} ${DIRECTION_ICON[entry.direction]} ally-dial-icon${
+                        REVERSE_DIRECTIONS.has(entry.direction) ? ' ally-dial-icon--reverse' : ''
+                      }`}
                       aria-hidden="true"
                     />
                     {entry.energy !== undefined && (

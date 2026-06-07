@@ -12,6 +12,11 @@ export interface Arrival {
   approach: string;
   /** Rebel player number this arrival hunts (1-based), if assigned. */
   huntsPlayerIndex?: number;
+  /** Optional player-facing instruction text (e.g. for the Defector flow:
+   * "adjust hull/shields to match the live Imperial ship, then remove it
+   * from the Prototype squadron"). Rendered as a callout below the
+   * standard arrival line. */
+  notice?: string;
 }
 
 interface Props {
@@ -40,6 +45,9 @@ export function ArrivalNotificationModal({ arrivals, onClose }: Props) {
               {' '}approaching from <strong>{a.approach}</strong>
               {a.huntsPlayerIndex !== undefined ? (
                 <>{' '}— hunts <strong>player {a.huntsPlayerIndex.toString()}</strong></>
+              ) : null}
+              {a.notice ? (
+                <div className="arrival-notice">{a.notice}</div>
               ) : null}
             </li>
           ))}

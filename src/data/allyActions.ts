@@ -23,7 +23,9 @@ export type AllyActionId =
   | 'rotate'
   | 'jam'
   | 'reinforce'
-  | 'coordinate';
+  | 'coordinate'
+  | 'evade'
+  | 'barrelroll';
 
 export interface AllyAction {
   /** Stable id `removeActions` targets. Unique within a ship's bar. */
@@ -64,11 +66,22 @@ const gr75: readonly AllyAction[] = [
   { id: 'jam', icon: 'jam', label: 'Jam' },
 ];
 
+// TIE/D Defender — standard X-Wing 2.0 action bar. Used by the
+// Defector ally in the defection-2 mission; the Imperial prototype
+// joins the Rebels and is player-piloted from then on.
+const tiedef: readonly AllyAction[] = [
+  { id: 'focus', icon: 'focus', label: 'Focus' },
+  { id: 'lock', icon: 'lock', label: 'Lock' },
+  { id: 'evade', icon: 'evade', label: 'Evade' },
+  { id: 'barrelroll', icon: 'barrelroll', label: 'Barrel Roll' },
+];
+
 export const ALLY_ACTIONS: Readonly<Partial<Record<ShipId, readonly AllyAction[]>>> =
   Object.freeze({
     HWK290: hwk290,
     OUTER_RIM_SMUGGLER: outerRimSmuggler,
     GR75: gr75,
+    TIEDEF: tiedef,
   });
 
 /**

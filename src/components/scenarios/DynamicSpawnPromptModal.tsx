@@ -133,7 +133,7 @@ export function DynamicSpawnPromptModal({ show, pending, onSubmit, onCancel }: P
       </Modal.Body>
       <Modal.Footer>
         <button type="button" className="btn btn-primary" onClick={handleConfirm}>
-          Confirm &amp; advance
+          Continue
         </button>
       </Modal.Footer>
     </Modal>

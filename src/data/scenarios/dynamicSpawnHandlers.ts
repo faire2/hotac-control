@@ -15,6 +15,7 @@
  */
 
 import type { ShipId } from '../Ships';
+import type { AllyShipId } from '../rebelAllies';
 
 export type PromptValue = boolean | number | string;
 
@@ -23,7 +24,7 @@ export type DynamicSpawnPrompt =
   | { id: string; kind: 'count'; label: string; min: number; max: number; defaultValue?: number };
 
 export interface DynamicSpawnDecision {
-  /** True if the squad should spawn this round. */
+  /** True if the squad should spawn this round as an Imperial squadron. */
   spawn: boolean;
   /**
    * Optional override for the count of base ships to emit (used by
@@ -32,6 +33,21 @@ export interface DynamicSpawnDecision {
    * specified type instead of evaluating the squad's composition.
    */
   shipsOverride?: { ship: ShipId; count: number };
+  /**
+   * Spawn a rebel-ally squadron instead of (or in addition to) the Imperial
+   * spawn. Used by the Defector mission: when the player confirms they
+   * identified the Defector, an ally TIE Defender appears on the next
+   * round. The ally inherits its upgrade loadout from `upgradesFromSquadName`
+   * (the scenario squad name the defector was hosted by) so the new ally
+   * carries whatever the Prototype squad rolled. The `instructions` string
+   * surfaces in the arrival notification so the player remembers to remove
+   * the corresponding Imperial ship and adjust hull/shields by hand.
+   */
+  allySpawn?: {
+    ship: AllyShipId;
+    upgradesFromSquadName?: string;
+    instructions?: string;
+  };
 }
 
 export interface DynamicSpawnHandler {
@@ -120,12 +136,43 @@ const dockingPortRevealed: DynamicSpawnHandler = {
   },
 };
 
+const defectorIdentified: DynamicSpawnHandler = {
+  key: 'defectorIdentified',
+  title: 'Defector identified (Defection Part II)',
+  recurring: false,
+  prompts: [
+    {
+      id: 'identified',
+      kind: 'confirm',
+      label: 'Did you identify the Defector this round?',
+      defaultValue: false,
+    },
+  ],
+  decide(input) {
+    if (input.identified !== true) return { spawn: false };
+    return {
+      spawn: false, // No Imperial spawn — we're flipping a ship to the Rebel side.
+      allySpawn: {
+        ship: 'TIEDEF',
+        // Inherit upgrades from the Imperial Prototype squad's roll.
+        upgradesFromSquadName: 'Prototype',
+        instructions:
+          "Defector's TIE Defender will be added as an ally on the next round. " +
+          "Please update its hull and shields to match the state in the original " +
+          "Prototype squadron, then remove the corresponding ship from the " +
+          "Prototype squadron.",
+      },
+    };
+  },
+};
+
 export const DYNAMIC_SPAWN_HANDLERS: Readonly<Record<string, DynamicSpawnHandler>> =
   Object.freeze({
     sensorCheckPatrol,
     inspectionSquadOnIdentify,
     escapePodPlaced,
     dockingPortRevealed,
+    defectorIdentified,
   });
 
 export function findHandler(key: string): DynamicSpawnHandler | undefined {

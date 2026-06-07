@@ -93,9 +93,9 @@ const gr75: readonly DialEntry[] = [
 // TIE Defender (HotAC Defector ally variant). Per user spec — centre +
 // right only; the renderer mirrors the left side.
 //   1: turn (red), bank (blue)
-//   2: turn (red), bank (white), straight (blue), reverse straight (red)
+//   2: turn (red), bank (white), straight (blue), Koiogran turn (red)
 //   3: turn (white), bank (white), straight (blue)
-//   4: straight (blue), reverse straight (white)
+//   4: straight (blue), Koiogran turn (white)
 //   5: straight (blue)
 const tiedefAlly: readonly DialEntry[] = [
   { speed: 1, direction: 'turn', difficulty: 'red' },
@@ -103,12 +103,12 @@ const tiedefAlly: readonly DialEntry[] = [
   { speed: 2, direction: 'turn', difficulty: 'red' },
   { speed: 2, direction: 'bank', difficulty: 'white' },
   { speed: 2, direction: 'straight', difficulty: 'blue' },
-  { speed: 2, direction: 'reverseStraight', difficulty: 'red' },
+  { speed: 2, direction: 'kturn', difficulty: 'red' },
   { speed: 3, direction: 'turn', difficulty: 'white' },
   { speed: 3, direction: 'bank', difficulty: 'white' },
   { speed: 3, direction: 'straight', difficulty: 'blue' },
   { speed: 4, direction: 'straight', difficulty: 'blue' },
-  { speed: 4, direction: 'reverseStraight', difficulty: 'white' },
+  { speed: 4, direction: 'kturn', difficulty: 'white' },
   { speed: 5, direction: 'straight', difficulty: 'blue' },
 ];
 

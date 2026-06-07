@@ -29,6 +29,7 @@ import { findScenario } from './data/scenarios/registry';
 import {
   spawnFromScenarioSquad,
   spawnAlliesFromScenario,
+  spawnAllyDynamic,
   priorVectorsFromSquadrons,
   opsForShipsOverride,
 } from './data/scenarios/spawn';
@@ -123,17 +124,22 @@ function freshSquadron(
   };
 }
 
-function arrivalsFromSquadrons(squadrons: readonly Squadron[]): readonly Arrival[] {
+function arrivalsFromSquadrons(
+  squadrons: readonly Squadron[],
+  notices: ReadonlyMap<string, string> = new Map(),
+): readonly Arrival[] {
   return squadrons.map((sq) => {
     const meta = sq.scenarioMeta;
+    const squadName = meta?.squadName ?? '';
     return {
-      squadName: meta?.squadName ?? '',
+      squadName,
       shipType: sq.shipType,
       shipName: Ships[sq.shipType].name,
       count: sq.ships.length,
       isElite: sq.isElite,
       approach: meta ? approachDisplay(meta) : '?',
       huntsPlayerIndex: meta?.huntsPlayerIndex,
+      notice: notices.get(sq.id),
     };
   });
 }
@@ -359,8 +365,30 @@ function App() {
         : undefined;
       dynamicSpawned.push(...spawnFromScenarioSquad(squad, ctx, compositionOverride));
     }
-    const allNew = [...autoSpawned, ...dynamicSpawned];
-    // Mark one-shot handlers that fired as resolved.
+    // Dynamic ally spawns (defection-2's Defector flow) — a handler can
+    // return `allySpawn` to introduce a rebel-ally squadron mid-mission.
+    // The ally inherits its upgrade list from a named source squad; the
+    // attached instructions are stamped on the arrival notice so the
+    // player remembers to remove the corresponding Imperial ship.
+    const dynamicAllies: Squadron[] = [];
+    const noticesById = new Map<string, string>();
+    for (const o of outcomes) {
+      const a = o.decision.allySpawn;
+      if (!a) continue;
+      const sourceUpgrades = a.upgradesFromSquadName
+        ? squadrons.find((sq) => sq.scenarioMeta?.squadName === a.upgradesFromSquadName)
+            ?.upgrades ?? []
+        : [];
+      const ally = spawnAllyDynamic(a.ship, nextRound, sourceUpgrades);
+      dynamicAllies.push(ally);
+      if (a.instructions) {
+        noticesById.set(ally.id, a.instructions);
+      }
+    }
+    const allNew = [...autoSpawned, ...dynamicSpawned, ...dynamicAllies];
+    // Mark one-shot handlers that fired as resolved. A handler counts as
+    // having fired if EITHER the Imperial-spawn flag flipped to true OR an
+    // ally was injected via allySpawn (the Defector flow uses the latter).
     setResolvedDynamicSquads((prev) => {
       const set = new Set(prev);
       for (const o of outcomes) {
@@ -369,16 +397,16 @@ function App() {
         const tag = hasTag(squad, 'dynamicSpawn');
         if (!tag) continue;
         const handler = findHandler(tag.handler);
-        if (handler && !handler.recurring && o.decision.spawn) {
-          set.add(o.squadName);
-        }
+        if (!handler || handler.recurring) continue;
+        const fired = o.decision.spawn || o.decision.allySpawn !== undefined;
+        if (fired) set.add(o.squadName);
       }
       return set;
     });
     setSquadrons((prev) => [...prev, ...allNew]);
     setMode((m) => bumpRound(m, nextRound));
     if (allNew.length > 0) {
-      setPendingArrivals(arrivalsFromSquadrons(allNew));
+      setPendingArrivals(arrivalsFromSquadrons(allNew, noticesById));
     }
   }
 
