@@ -23,6 +23,8 @@ export interface NewCampaignOptions {
   ownedModels?: readonly string[];
   /** Defaults to false. */
   lessRandomShips?: boolean;
+  /** Defaults to false. */
+  andersonScaling?: boolean;
   /**
    * Defaults to false (faithful draw — random mission from the deck).
    * Set true to let the player pick any deck card freely.
@@ -56,6 +58,7 @@ export function newCampaign(opts: NewCampaignOptions): Campaign {
     includeIntro: opts.includeIntro,
     ownedModels,
     lessRandomShips: opts.lessRandomShips ?? false,
+    andersonScaling: opts.andersonScaling ?? false,
     freePickFromDeck: opts.freePickFromDeck ?? false,
     introducedShipTypes: [],
     deck: initialDeck,

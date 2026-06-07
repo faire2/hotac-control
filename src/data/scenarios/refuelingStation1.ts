@@ -64,13 +64,16 @@ export const refuelingStation1: Scenario = {
         tip: 'Rebel Operatives (HWK-290, In 1) — begins here, must escape off edge B',
       },
     ],
+    // Printed ring (Mission Pack V2.07.04): 1/3/4/6 are board-corner badges
+    // (chevrons pointing diagonally inward), 2 and 5 are side-edge mid-points.
+    // Numbering walks the rim clockwise starting at the bottom-left corner.
     vectors: [
-      { n: 1, side: 'left', t: 2 / 3 },
-      { n: 2, side: 'left', t: 1 / 3 },
-      { n: 3, side: 'top', t: 1 / 3 },
-      { n: 4, side: 'top', t: 2 / 3 },
-      { n: 5, side: 'right', t: 1 / 3 },
-      { n: 6, side: 'right', t: 2 / 3 },
+      { n: 1, side: 'left', t: 1, corner: 'bl' },
+      { n: 2, side: 'left', t: 1 / 2 },
+      { n: 3, side: 'top', t: 0, corner: 'tl' },
+      { n: 4, side: 'top', t: 1, corner: 'tr' },
+      { n: 5, side: 'right', t: 1 / 2 },
+      { n: 6, side: 'bottom', t: 1, corner: 'br' },
     ],
   },
   turnLimit: 10,

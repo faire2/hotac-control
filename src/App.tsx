@@ -21,10 +21,10 @@ import getUpgrades from './data/upgrades/getUpgrades';
 import { countExtraHullAndShield } from './data/shared/coreUpgrades';
 import type { Upgrade } from './data/shared/coreUpgrades';
 import { runValidator } from './data/__validate__';
-import { LoadScenarioModal } from './components/scenarios/LoadScenarioModal';
 import { ScenarioBriefingModal } from './components/scenarios/ScenarioBriefingModal';
 import { EndScenarioModal } from './components/scenarios/EndScenarioModal';
 import { MissionMapsGalleryModal } from './components/scenarios/MissionMapsGalleryModal';
+import { AiShipsGalleryModal } from './components/aiships/AiShipsGalleryModal';
 import { findScenario } from './data/scenarios/registry';
 import {
   spawnFromScenarioSquad,
@@ -104,8 +104,9 @@ function freshSquadron(
   shipType: ShipId,
   playersRank: number,
   upgradesSource: UpgradeSource,
+  andersonScaling: boolean,
 ): Squadron {
-  const { upgrades, rollMeta } = getUpgrades(shipType, playersRank, upgradesSource, false);
+  const { upgrades, rollMeta } = getUpgrades(shipType, playersRank, upgradesSource, false, andersonScaling);
   const extras = countExtraHullAndShield(upgrades);
   const baseStats = Ships[shipType];
   return {
@@ -173,10 +174,12 @@ function App() {
   const [destroyedEnemyHp, setDestroyedEnemyHp] = useState(0);
   const [briefingOverlayOpen, setBriefingOverlayOpen] = useState(false);
   const [freePlayRound, setFreePlayRound] = useState(1);
-  const [showScenarioPicker, setShowScenarioPicker] = useState(false);
   const [playerCount, setPlayerCount] = useState<PlayerCount>(2);
   const [scenarioAiEngine, setScenarioAiEngine] = useState<AiEngine>(AI.FGA);
   const [scenarioUpgradesSource, setScenarioUpgradesSource] = useState<UpgradeSource>(UPGRADES.FGA);
+  // Scenario / free-play scaling toggle. Campaign mode reads scaling from
+  // the persisted campaign record instead (see `effectiveSettings`).
+  const [scenarioAndersonScaling, setScenarioAndersonScaling] = useState(false);
   const [showEndScenario, setShowEndScenario] = useState(false);
   const [pendingArrivals, setPendingArrivals] = useState<readonly Arrival[]>([]);
   const [pendingHandlers, setPendingHandlers] = useState<readonly PendingHandler[]>([]);
@@ -187,6 +190,7 @@ function App() {
   const [showOpenBrowser, setShowOpenBrowser] = useState(false);
   const [showCampaignSetup, setShowCampaignSetup] = useState(false);
   const [showMissionMapsGallery, setShowMissionMapsGallery] = useState(false);
+  const [showAiShipsGallery, setShowAiShipsGallery] = useState(false);
   // Set when a card is clicked in the maps gallery. The briefing modal renders
   // this scenario in `view` mode on top of the gallery; closing the briefing
   // returns to the gallery. Independent of `mode` so opening a map briefing
@@ -219,23 +223,15 @@ function App() {
         ownedModels: activeCampaign.ownedModels,
         lessRandomShips: activeCampaign.lessRandomShips,
         introducedShipTypes: activeCampaign.introducedShipTypes,
+        andersonScaling: activeCampaign.andersonScaling,
       }
-    : defaultSpawnSettings();
+    : { ...defaultSpawnSettings(), andersonScaling: scenarioAndersonScaling };
 
   function handleNewShipSelection(value: ShipId) {
     setSquadrons((prev) => [
       ...prev,
-      freshSquadron(value, playersRank, scenarioUpgradesSource),
+      freshSquadron(value, playersRank, scenarioUpgradesSource, effectiveSettings.andersonScaling),
     ]);
-  }
-
-  function handlePickerSelect(scenarioId: string) {
-    setShowScenarioPicker(false);
-    const mission: MissionState = {
-      scenarioId,
-      phase: { kind: 'briefing', briefingMode: 'start' },
-    };
-    setMode({ kind: 'scenarioOnly', mission });
   }
 
   function handleStartScenario() {
@@ -294,6 +290,40 @@ function App() {
           playersRank,
           source,
           squad.isElite,
+          effectiveSettings.andersonScaling,
+        );
+        return {
+          ...squad,
+          upgrades: newUpgrades,
+          rollMeta,
+          ships: resetHullShieldDelta(squad.upgrades, newUpgrades, squad.ships),
+        };
+      }),
+    );
+  }
+
+  /**
+   * Flip the Anderson-scaling toggle from the briefing master controls.
+   * Persisted to the campaign record in campaign mode, otherwise to the
+   * scenario-level state. Re-rolls every squadron with rollMeta so the
+   * extras appear immediately. Mission-fixed / ally / `noUpgrades` squads
+   * (no rollMeta) are skipped since their upgrade list is authoritative.
+   */
+  function handleAndersonScalingChange(value: boolean) {
+    if (mode.kind === 'campaign') {
+      void updateCampaign((c) => ({ ...c, andersonScaling: value }));
+    } else {
+      setScenarioAndersonScaling(value);
+    }
+    setSquadrons((prev) =>
+      prev.map((squad) => {
+        if (!squad.rollMeta) return squad;
+        const { upgrades: newUpgrades, rollMeta } = getUpgrades(
+          squad.shipType,
+          playersRank,
+          squad.rollMeta.source,
+          squad.isElite,
+          value,
         );
         return {
           ...squad,
@@ -306,8 +336,14 @@ function App() {
   }
 
   function handleBriefingBack() {
-    setMode(FREE_PLAY);
-    setShowScenarioPicker(true);
+    // From a campaign briefing, Back returns to the deck-pick screen so
+    // the player can choose a different mission. Other entry points (none
+    // today — gallery suppresses Back) drop to free play.
+    if (mode.kind === 'campaign') {
+      setMode({ kind: 'campaign', campaignId: mode.campaignId, phase: 'deckPick', mission: null });
+    } else {
+      setMode(FREE_PLAY);
+    }
   }
 
   function handleShowBriefing() {
@@ -599,6 +635,7 @@ function App() {
         playersRank,
         upgradesSource,
         squad.isElite,
+        effectiveSettings.andersonScaling,
       );
       next[index] = {
         ...squad,
@@ -620,6 +657,7 @@ function App() {
           newRank,
           squad.rollMeta.source,
           squad.isElite,
+          effectiveSettings.andersonScaling,
         );
         return {
           ...squad,
@@ -646,6 +684,7 @@ function App() {
         playersRank,
         squad.rollMeta.source,
         isElite,
+        effectiveSettings.andersonScaling,
       );
       next[index] = {
         ...squad,
@@ -725,8 +764,8 @@ function App() {
               <MainMenu
                 onNewClick={() => { setShowNewGamePicker(true); }}
                 onOpenClick={() => { setShowOpenBrowser(true); }}
-                onLoadScenarioClick={() => { setShowScenarioPicker(true); }}
-                onMissionMapsClick={() => { setShowMissionMapsGallery(true); }}
+                onLoadScenarioClick={() => { setShowMissionMapsGallery(true); }}
+                onShipsOverviewClick={() => { setShowAiShipsGallery(true); }}
                 onLogoutClick={() => {
                   // Stub: the app has no auth today. Will be wired to OAuth + Neon later.
                   alert('Logout will be available once accounts land. Close the tab to end your session.');
@@ -818,20 +857,6 @@ function App() {
           ) : (
             <SquadGenerator squadrons={squadrons} onAddShip={handleNewShipSelection} />
           )}
-          <LoadScenarioModal
-            show={showScenarioPicker}
-            ownedModels={effectiveSettings.ownedModels}
-            playerCount={playerCount}
-            playersRank={playersRank}
-            aiEngine={scenarioAiEngine}
-            upgradesSource={scenarioUpgradesSource}
-            onPlayerCountChange={setPlayerCount}
-            onPlayersRankChange={handleSetPlayersRank}
-            onAiEngineChange={setScenarioAiEngine}
-            onUpgradesSourceChange={handleScenarioUpgradesSourceChange}
-            onHide={() => { setShowScenarioPicker(false); }}
-            onSelect={handlePickerSelect}
-          />
           <DynamicSpawnPromptModal
             show={pendingHandlers.length > 0}
             pending={pendingHandlers}
@@ -847,10 +872,12 @@ function App() {
               playersRank={playersRank}
               aiEngine={scenarioAiEngine}
               upgradesSource={scenarioUpgradesSource}
+              andersonScaling={effectiveSettings.andersonScaling}
               onPlayerCountChange={setPlayerCount}
               onPlayersRankChange={handleSetPlayersRank}
               onAiEngineChange={setScenarioAiEngine}
               onUpgradesSourceChange={handleScenarioUpgradesSourceChange}
+              onAndersonScalingChange={handleAndersonScalingChange}
               onStart={handleStartScenario}
               onBack={galleryBriefingScenarioId !== null ? undefined : handleBriefingBack}
               onHide={handleHideBriefing}
@@ -875,7 +902,7 @@ function App() {
             onClose={() => { setShowNewGamePicker(false); }}
             onPickCampaign={() => { setShowCampaignSetup(true); }}
             onPickScenario={() => {
-              setShowScenarioPicker(true);
+              setShowMissionMapsGallery(true);
             }}
             onPickFreePlay={() => {
               setMode(FREE_PLAY);
@@ -939,6 +966,12 @@ function App() {
             show={showMissionMapsGallery}
             onHide={() => { setShowMissionMapsGallery(false); }}
             onPick={(id) => { setGalleryBriefingScenarioId(id); }}
+          />
+          <AiShipsGalleryModal
+            show={showAiShipsGallery}
+            onHide={() => { setShowAiShipsGallery(false); }}
+            initialEngine={scenarioAiEngine}
+            initialUpgradeSource={scenarioUpgradesSource}
           />
         </ShipHandlingContext.Provider>
       </GlobalSquadsValuesContext.Provider>

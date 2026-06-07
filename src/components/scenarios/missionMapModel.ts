@@ -367,7 +367,7 @@ export function resolveMissionMap(scenario: Scenario, playerCount?: number): Dra
     // edge-setup maps get the swept ring over the three non-setup edges.
     vectors = setupEdge ? vectorRing(setupEdge.side, count) : vectorRingPerimeter(count);
   } else {
-    vectors = vspec.map((v) => ({ n: v.n, side: v.side, t: v.t }));
+    vectors = vspec.map((v) => ({ n: v.n, side: v.side, t: v.t, corner: v.corner }));
   }
 
   // Lettered interior approach vectors (e.g. C/D/E/F) — drawn as inward-pointing

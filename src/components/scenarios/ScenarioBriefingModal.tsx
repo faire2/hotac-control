@@ -20,10 +20,12 @@ interface Props {
   playersRank: number;
   aiEngine: AiEngine;
   upgradesSource: UpgradeSource;
+  andersonScaling: boolean;
   onPlayerCountChange?: (n: PlayerCount) => void;
   onPlayersRankChange?: (n: number) => void;
   onAiEngineChange?: (engine: AiEngine) => void;
   onUpgradesSourceChange?: (source: UpgradeSource) => void;
+  onAndersonScalingChange?: (value: boolean) => void;
   onStart?: () => void;
   onBack?: () => void;
   onHide: () => void;
@@ -37,10 +39,12 @@ export function ScenarioBriefingModal({
   playersRank,
   aiEngine,
   upgradesSource,
+  andersonScaling,
   onPlayerCountChange,
   onPlayersRankChange,
   onAiEngineChange,
   onUpgradesSourceChange,
+  onAndersonScalingChange,
   onStart,
   onBack,
   onHide,
@@ -107,6 +111,19 @@ export function ScenarioBriefingModal({
                 onChange={(value) => { onUpgradesSourceChange?.(value); }}
                 variant="outline-light"
               />
+            </div>
+            <div className="d-flex align-items-center">
+              <label className="d-inline-flex align-items-center mb-0">
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={andersonScaling}
+                  onChange={(e) => { onAndersonScalingChange?.(e.target.checked); }}
+                />
+                <span className="control-label" title="Adds extras to AI ships by avg rebel rank — see Campaign Setup for full table.">
+                  Anderson scaling
+                </span>
+              </label>
             </div>
           </div>
         </div>

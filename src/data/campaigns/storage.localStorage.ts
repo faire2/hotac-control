@@ -101,7 +101,14 @@ export const localStorageCampaignStore: CampaignStore = {
 
   load(id: string): Promise<Campaign | null> {
     const state = loadRaw();
-    return Promise.resolve(state.campaigns[id] ?? null);
+    const c = state.campaigns[id];
+    if (!c) return Promise.resolve(null);
+    // Backfill defaults for fields added after the campaign was created.
+    // `andersonScaling` landed later than the v1 wrapper and may be absent
+    // on older saved campaigns; default it to false so loaders never see
+    // `undefined`. Spread last so an explicit `false` on a newer record
+    // still wins over the default.
+    return Promise.resolve({ ...c, andersonScaling: c.andersonScaling ?? false });
   },
 
   save(campaign: Campaign): Promise<void> {

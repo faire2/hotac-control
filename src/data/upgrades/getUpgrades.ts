@@ -34,6 +34,7 @@ import { fgaRow } from '../UpgradeRow';
 import type { Upgrade } from '../shared/coreUpgrades';
 import { AndersonUpgrades, getAndersonUpgrades } from '../anderson/AndersonUpgrades';
 import type { AndersonVariant } from '../anderson/AndersonUpgrades';
+import { applyAndersonScaling } from './andersonScaling';
 import type { UpgradeRollMeta } from '../../context/Contexts';
 
 export interface UpgradeRollResult {
@@ -41,20 +42,40 @@ export interface UpgradeRollResult {
   rollMeta: UpgradeRollMeta;
 }
 
+/**
+ * `andersonScaling`: optional Imperial difficulty bump applied as a final
+ * step (see `applyAndersonScaling`). Off by default — every existing call
+ * site keeps its behavior; opt in by passing `true` from the spawn pipeline
+ * or any re-roll handler that has access to the campaign / scenario
+ * setting.
+ */
 export default function getUpgrades(
   shipType: ShipId,
   playersRank: number,
   upgradesSource: UpgradeSource,
   isElite: boolean,
+  andersonScaling = false,
 ): UpgradeRollResult {
-  switch (upgradesSource) {
-    case UPGRADES.FGA:
-      return collapse(getFga(shipType, playersRank, isElite), UPGRADES.FGA);
-    case UPGRADES.COMMUNITY:
-      return collapse(getCommunity(shipType, playersRank, isElite), UPGRADES.COMMUNITY);
-    case UPGRADES.ANDERSON:
-      return collapse(getAnderson(shipType, playersRank, isElite), UPGRADES.ANDERSON);
-  }
+  const base = (() => {
+    switch (upgradesSource) {
+      case UPGRADES.FGA:
+        return collapse(getFga(shipType, playersRank, isElite), UPGRADES.FGA);
+      case UPGRADES.COMMUNITY:
+        return collapse(getCommunity(shipType, playersRank, isElite), UPGRADES.COMMUNITY);
+      case UPGRADES.ANDERSON:
+        return collapse(getAnderson(shipType, playersRank, isElite), UPGRADES.ANDERSON);
+    }
+  })();
+  return {
+    ...base,
+    upgrades: applyAndersonScaling(
+      base.upgrades,
+      shipType,
+      playersRank,
+      isElite,
+      andersonScaling,
+    ),
+  };
 }
 
 /** Collapse an internal `UpgradeRow[]` into the runtime shape: bare upgrades

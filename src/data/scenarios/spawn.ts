@@ -93,7 +93,13 @@ export function spawnFromScenarioSquad(
   } {
     if (skipUpgrades) return { upgrades: [] };
     if (squad.fixedUpgrades) return { upgrades: squad.fixedUpgrades };
-    return getUpgrades(shipType, ctx.playersRank, ctx.upgradesSource, isElite);
+    return getUpgrades(
+      shipType,
+      ctx.playersRank,
+      ctx.upgradesSource,
+      isElite,
+      ctx.settings.andersonScaling,
+    );
   }
   function shipInstance(
     shipType: ShipId,

@@ -43,6 +43,7 @@ export function CampaignSetupModal({
   const [includeIntro, setIncludeIntro] = useState(true);
   const [ownedModels, setOwnedModels] = useState<readonly string[]>(standardModels());
   const [lessRandomShips, setLessRandomShips] = useState(false);
+  const [andersonScaling, setAndersonScaling] = useState(false);
   const [freePickFromDeck, setFreePickFromDeck] = useState(false);
   const [includedArcIds, setIncludedArcIds] = useState<readonly string[]>(
     MAIN_CAMPAIGN_ARCS.map((a) => a.id),
@@ -55,6 +56,7 @@ export function CampaignSetupModal({
       setIncludeIntro(true);
       setOwnedModels(standardModels());
       setLessRandomShips(false);
+      setAndersonScaling(false);
       setFreePickFromDeck(false);
       setIncludedArcIds(MAIN_CAMPAIGN_ARCS.map((a) => a.id));
     }
@@ -110,6 +112,7 @@ export function CampaignSetupModal({
       includeIntro,
       ownedModels,
       lessRandomShips,
+      andersonScaling,
       freePickFromDeck,
       includedArcIds,
     });
@@ -178,6 +181,24 @@ export function CampaignSetupModal({
             />
             Less random ships (use 1d20 weighted table)
           </label>
+        </div>
+
+        <div className="mb-3">
+          <label className="d-inline-flex align-items-center">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={andersonScaling}
+              onChange={(e) => { setAndersonScaling(e.target.checked); }}
+            />
+            Anderson additional difficulty scaling
+          </label>
+          <div className="text-muted small" style={{ marginLeft: '1.5rem' }}>
+            Adds extras to AI ships based on the avg rebel pilot initiative:
+            rank 3 — TIE Fighters gain Nimble; rank 4 — TIE Fighters add Hull
+            Upgrade + Predator; rank 5 — all non-elite ships gain Shield Upgrade
+            + Predator; rank 6 — elites gain Shield Upgrade + Predator.
+          </div>
         </div>
 
         <div className="mb-3">

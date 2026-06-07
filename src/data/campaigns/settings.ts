@@ -41,6 +41,14 @@ export interface SpawnSettings {
   ownedModels: readonly string[];
   lessRandomShips: boolean;
   introducedShipTypes: readonly ShipId[];
+  /**
+   * Opt-in Imperial difficulty bump: prepend specific upgrades onto the
+   * rolled upgrade list based on the avg rebel pilot initiative (rank).
+   * See `src/data/upgrades/andersonScaling.ts` for the rule table. Off by
+   * default; flipped via the Campaign Setup modal or the briefing master
+   * controls.
+   */
+  andersonScaling: boolean;
 }
 
 /** Defaults used outside of campaign mode (own everything, no introductions). */
@@ -50,6 +58,7 @@ export function defaultSpawnSettings(): SpawnSettings {
     ownedModels: standardModels(),
     lessRandomShips: false,
     introducedShipTypes: [],
+    andersonScaling: false,
   });
 }
 

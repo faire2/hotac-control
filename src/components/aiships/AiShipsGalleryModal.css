@@ -1,0 +1,287 @@
+/* Modal chrome */
+.shipsOverviewDialog {
+  max-width: 1400px;
+}
+
+.shipsOverviewHeader {
+  background: var(--surface, #0c1620);
+  color: var(--accent-holo-bright, #e6f4ff);
+  border-bottom: 1px solid rgba(126, 200, 255, 0.18);
+}
+
+.shipsOverviewHeader .modal-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent-holo-bright, #e6f4ff);
+}
+
+.shipsOverviewControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: 0.6rem;
+  align-items: center;
+}
+
+.shipsOverviewControls .control-label {
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+  color: #b7c5d3;
+  letter-spacing: 0.02em;
+}
+
+.shipsOverviewBody {
+  background: var(--surface, #0c1620);
+  color: #d6e3ef;
+  padding: 1rem 1.25rem;
+}
+
+/* Per-ship section */
+.shipsOverviewSection {
+  margin-bottom: 2.5rem;
+  padding: 1rem 1rem 1.25rem;
+  border: 1px solid rgba(126, 200, 255, 0.18);
+  border-radius: 4px;
+  background: rgba(8, 18, 28, 0.4);
+}
+
+.shipsOverviewSection:last-child {
+  margin-bottom: 0;
+}
+
+.shipsOverviewSectionHead {
+  margin-bottom: 0.75rem;
+}
+
+.shipsOverviewTitle {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent-holo-bright, #e6f4ff);
+  text-transform: uppercase;
+}
+
+.shipsOverviewTitleId {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--accent-holo, #6fb3d8);
+  padding: 2px 8px;
+  border: 1px solid rgba(126, 200, 255, 0.28);
+  border-radius: 3px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Maneuver matrix — borderless, tightly packed, grouped by position kind.
+ * The only horizontal rule is the thin band between position kinds, so
+ * the eye reads "all four bull's-eye rows together, all four front rows
+ * together, …" without each cell carrying its own box. */
+.shipsOverviewMatrixWrap {
+  overflow-x: auto;
+  margin: 1rem 0 1.25rem;
+}
+
+.shipsOverviewMatrix {
+  border-collapse: collapse;
+  font-size: 1.05rem;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.shipsOverviewMatrix th,
+.shipsOverviewMatrix td {
+  border: none;
+  padding: 2px 8px;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.shipsOverviewMatrix thead th {
+  padding-top: 4px;
+  padding-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--accent-holo, #6fb3d8);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(126, 200, 255, 0.22);
+}
+
+/* Sub-row striping — every other position kind picks up a faint tint so
+ * the four band rows that belong together read as a block. */
+.shipsOverviewMatrix tbody tr.shipsOverviewKindStart {
+  border-top: 1px solid rgba(126, 200, 255, 0.16);
+}
+
+.shipsOverviewMatrix tbody tr:first-child {
+  border-top: none;
+}
+
+.shipsOverviewMatrix .shipsOverviewMatrixKind {
+  text-align: left;
+  white-space: nowrap;
+  width: 9em;
+  padding-left: 8px;
+  font-weight: 600;
+  color: #d6e3ef;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.shipsOverviewMatrix .shipsOverviewMatrixBand {
+  text-align: left;
+  white-space: nowrap;
+  width: 5.5em;
+  color: #8aa1b8;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  padding-left: 0;
+}
+
+.shipsOverviewMatrix td {
+  min-width: 56px;
+  height: 32px;
+}
+
+/* Maneuver glyph — speed numeral + icon together. We keep the icon
+ * comfortably large since they're the load-bearing visual, but the row
+ * height (32px) keeps four-band groups compact. */
+.shipsOverviewMatrix .xw-man {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.shipsOverviewMatrix .xw-man i {
+  font-size: 1.45rem;
+}
+
+/* Upgrades — one box per variant (printed pilot card). */
+.shipsOverviewSubhead {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 1rem 0 0.6rem;
+  color: var(--accent-holo, #6fb3d8);
+}
+
+.shipsOverviewUpgradeSets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.shipsOverviewUpgradeSet {
+  border: 1px solid rgba(126, 200, 255, 0.22);
+  border-radius: 4px;
+  background: rgba(126, 200, 255, 0.04);
+  padding: 0.6rem 0.7rem 0.7rem;
+}
+
+.shipsOverviewSetHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dashed rgba(126, 200, 255, 0.2);
+}
+
+.shipsOverviewSetIndex {
+  font-weight: 600;
+  color: var(--accent-holo-bright, #e6f4ff);
+  letter-spacing: 0.04em;
+}
+
+.shipsOverviewSetCount {
+  font-size: 0.8rem;
+  color: #8aa1b8;
+}
+
+.shipsOverviewUpgradeGroup + .shipsOverviewUpgradeGroup {
+  margin-top: 0.5rem;
+}
+
+.shipsOverviewGroupLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-warn, #f5b042);
+  margin-bottom: 0.3rem;
+}
+
+.shipsOverviewUpgradeList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.shipsOverviewUpgradeCard {
+  border: 1px solid rgba(126, 200, 255, 0.14);
+  border-radius: 3px;
+  padding: 0.4rem 0.55rem;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.shipsOverviewUpgradeHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.shipsOverviewUpgradeName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--accent-holo-bright, #e6f4ff);
+}
+
+.shipsOverviewUpgradeInit {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(245, 176, 66, 0.12);
+  color: var(--accent-warn, #f5b042);
+  border: 1px solid rgba(245, 176, 66, 0.4);
+  white-space: nowrap;
+}
+
+.shipsOverviewUpgradeDesc {
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: #c9d6e2;
+}
+
+.shipsOverviewUpgradeMeta {
+  margin-top: 0.3rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: #8aa1b8;
+  font-size: 0.8rem;
+}
+
+.shipsOverviewNoTable,
+.shipsOverviewNoUpgrades {
+  color: #8aa1b8;
+  font-style: italic;
+  margin: 0.5rem 0;
+}
+
+.shipsOverviewSectionHead .squadStats {
+  margin-top: 0.25rem;
+}

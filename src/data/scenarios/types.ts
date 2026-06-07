@@ -268,11 +268,17 @@ export type MapHue = 'holo' | 'warn' | 'danger';
  * One numbered approach vector, placed by hand on `side` at fraction `t`
  * (0..1 along that edge from its clockwise-start corner). Authored per map —
  * the printed rings vary too much to derive reliably.
+ *
+ * Set `corner` to anchor the badge on the board corner (chevron pointed
+ * diagonally inward at the centre). The renderer ignores `side` / `t` in
+ * that case but they still need to be plausible — author them so they
+ * match the corner (e.g. corner `bl` → side `'left'`, t `1`).
  */
 export interface MapVector {
   n: number;
   side: MapSide;
   t: number;
+  corner?: 'tl' | 'tr' | 'bl' | 'br';
 }
 
 /** A point in grid-cell units, or the board centre. */
@@ -665,6 +671,12 @@ export interface Campaign {
    * the printed rules — shuffle and draw, no choice.
    */
   freePickFromDeck: boolean;
+  /**
+   * Optional Imperial difficulty bump. When enabled, ship-spawn upgrade
+   * rolls are augmented per the avg-rank ladder in
+   * `src/data/upgrades/andersonScaling.ts`. Off by default.
+   */
+  andersonScaling: boolean;
 
   // Progression (mutated as the campaign plays out)
   /** ShipIds unlocked via prior mission play (TIEPH after chasing-phantoms-1, etc.). */
