@@ -8,14 +8,36 @@
  */
 
 import type { Upgrade } from '../shared/coreUpgrades';
-import { HULL_UPGRADE, SHIELD_UPGRADE, WEAPON_RANGE } from '../shared/coreUpgrades';
+import {
+  HULL_UPGRADE,
+  SHIELD_UPGRADE,
+  WEAPON_RANGE,
+  AUTOTHRUSTERS,
+  ADVANCED_TARGETING_COMPUTER,
+  NIMBLE_BOMBER,
+  STYGIUM_ARRAY,
+  FULL_THROTTLE,
+  INSTINCTIVE_AIM,
+} from '../shared/coreUpgrades';
 
 export const CommunityUpgrades: Readonly<Record<string, Upgrade>> = Object.freeze({
   hullUpgrade: HULL_UPGRADE,
   shieldUpgrade: SHIELD_UPGRADE,
   noUpgrade: { skillName: '-', description: 'No upgrade equipped.' },
 
-  autothrusters: { skillName: 'Autothrusters', description: "When you are defending, when you are beyond range 2 or outside the attacker's primary arc, change 1 of your blank results to a :evade: result." },
+  // Shipcard baseline pilot abilities — reuse the shared canonical
+  // singletons so identity-comparison across engines works. The
+  // original Community `autothrusters` carried X-Wing 1.0 wording
+  // ("when defending beyond range 2 outside primary arc, change blank
+  // to evade"); the shared `AUTOTHRUSTERS` uses the FGA-7.3 shipcard
+  // 2.0 wording, which is what the player reads off the AI card. Same
+  // story for Advanced Targeting Computer further down — that entry
+  // also gets replaced with the canonical 2.0 wording.
+  autothrusters: AUTOTHRUSTERS,
+  nimbleBomber: NIMBLE_BOMBER,
+  stygiumArray: STYGIUM_ARRAY,
+  fullThrottle: FULL_THROTTLE,
+  instinctiveAim: INSTINCTIVE_AIM,
   stealthDevice: { skillName: 'Stealth Device', description: 'Increase your agility value by 1. If you are hit by an attack this ability ceases.' },
   expertHandling: { skillName: 'Expert Handling', description: 'When you perform a :barrelroll: action, remove 1 enemy Target lock from your ship.' },
   whisper: { skillName: 'Whisper', description: 'After you perform an attack that hits, gain 1 :focus: token.' },
@@ -46,7 +68,10 @@ export const CommunityUpgrades: Readonly<Record<string, Upgrade>> = Object.freez
   // Several upgrades referenced by the legacy community tree but not previously
   // defined — provide structurally-typed entries so `getCommunityUpgrades`
   // doesn't return undefined. Descriptions sourced from canonical X-Wing rules.
-  advancedTargetingComputer: { skillName: 'Advanced Targeting Computer', description: 'When attacking with your primary weapon, if you have a :lock: on the defender, add 1 :crit: result to your roll. You cannot spend the :lock: during this attack.' },
+  // Canonical shipcard wording, replacing the legacy X-Wing 1.0 text
+  // ("add 1 crit if you have a lock") with the 2.0 version
+  // ("roll 1 additional die, change 1 hit to crit").
+  advancedTargetingComputer: ADVANCED_TARGETING_COMPUTER,
   accuracyCorrector: { skillName: 'Accuracy Corrector', description: 'When attacking, after modifying your attack dice, if you did not roll at least 2 hits (:hit: or :crit:), cancel all your dice results and add 2 :hit: results.' },
   sensorJammer: { skillName: 'Sensor Jammer', description: 'When defending, change 1 of the attacker\'s :hit: result to a :focus: result. The attacker cannot reroll the die with the changed result.' },
   advancedCloakingDevice: { skillName: 'Advanced Cloaking Device', description: 'After you perform an attack, you may perform a free cloak action.' },

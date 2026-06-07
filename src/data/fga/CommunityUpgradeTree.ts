@@ -23,6 +23,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
     TIEIN:
         [
             [
+                communityRow(C.autothrusters, 1, 0),
                 communityRow(C.autothrusters, 1, 4),
                 communityRow(C.stealthDevice, 3, 6),
                 communityRow(C.expertHandling, 3, 6),
@@ -31,6 +32,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.darkCurse, 6, 6),
             ],
             [
+                communityRow(C.autothrusters, 1, 0),
                 communityRow(C.hullUpgrade, 1, 4),
                 communityRow(C.shieldUpgrade, 3, 6),
                 communityRow(C.expose, 3, 6),
@@ -39,6 +41,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.turrPhennir, 6, 6),
             ],
             [
+                communityRow(C.autothrusters, 1, 0),
                 communityRow(C.autothrusters, 1, 4),
                 communityRow(C.shieldUpgrade, 3, 6),
                 communityRow(C.pushTheLimit, 3, 6),
@@ -47,6 +50,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.soontirFell, 6, 6),
             ],
             [
+                communityRow(C.autothrusters, 1, 0),
                 communityRow(C.stealthDevice, 1, 4),
                 communityRow(C.autothrusters, 3, 6),
                 communityRow(C.predator, 3, 6),
@@ -55,6 +59,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.maulerMithel, 6, 6),
             ],
             [
+                communityRow(C.autothrusters, 1, 0),
                 communityRow(C.hullUpgrade, 1, 4),
                 communityRow(C.autothrusters, 3, 6),
                 communityRow(C.outmaneuver, 3, 6),
@@ -63,6 +68,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.rearAdmiralChiraneau, 6, 6),
             ],
             [
+                communityRow(C.autothrusters, 1, 0),
                 communityRow(C.stealthDevice, 1, 4),
                 communityRow(C.hullUpgrade, 3, 6),
                 communityRow(C.squadLeader, 3, 6),
@@ -74,6 +80,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
     TIESA:
         [
             [
+                communityRow(C.nimbleBomber, 1, 0),
                 communityRow(C.homingMissiles, 1, 4),
                 communityRow(C.extraMunitions, 3, 6),
                 communityRow(C.calculation, 3, 6),
@@ -82,6 +89,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.rexlerBrath, 6, 6),
             ],
             [
+                communityRow(C.nimbleBomber, 1, 0),
                 communityRow(C.clusterMissiles, 1, 4),
                 communityRow(C.extraMunitions, 3, 6),
                 communityRow(C.marksmanship, 3, 6),
@@ -90,6 +98,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.majorRhymer, 6, 6),
             ],
             [
+                communityRow(C.nimbleBomber, 1, 0),
                 communityRow(C.clusterMissiles, 1, 4),
                 communityRow(C.experimentalInterface, 3, 6),
                 communityRow(C.outmaneuver, 3, 6),
@@ -98,6 +107,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.kirKanos, 6, 6),
             ],
             [
+                communityRow(C.nimbleBomber, 1, 0),
                 communityRow(C.ionPulseMissiles, 1, 4),
                 communityRow(C.extraMunitions, 3, 6),
                 communityRow(C.swarmTactics, 3, 6),
@@ -106,6 +116,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.darkCurse, 6, 6),
             ],
             [
+                communityRow(C.nimbleBomber, 1, 0),
                 communityRow(C.advancedProtonTorpedoes, 1, 4),
                 communityRow(C.extraMunitions, 3, 6),
                 communityRow(C.shieldUpgrade, 3, 6),
@@ -114,6 +125,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.commanderKenkirk, 6, 6),
             ],
             [
+                communityRow(C.nimbleBomber, 1, 0),
                 communityRow(C.protonTorpedoes, 1, 4),
                 communityRow(C.extraMunitions, 3, 6),
                 communityRow(C.calculation, 3, 6),
@@ -125,6 +137,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
     TIEADVX:
         [
             [
+                communityRow(C.advancedTargetingComputer, 1, 0),
                 communityRow(C.advancedTargetingComputer, 1, 4),
                 communityRow(C.stealthDevice, 3, 6),
                 communityRow(C.expose, 3, 6),
@@ -133,6 +146,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.opportunist, 6, 6),
             ],
             [
+                communityRow(C.advancedTargetingComputer, 1, 0),
                 communityRow(C.accuracyCorrector, 1, 4),
                 communityRow(C.shieldUpgrade, 3, 6),
                 communityRow(C.swarmTactics, 3, 6),
@@ -141,6 +155,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.howlrunner, 6, 6),
             ],
             [
+                communityRow(C.advancedTargetingComputer, 1, 0),
                 communityRow(C.sensorJammer, 1, 4),
                 communityRow(C.shieldUpgrade, 3, 6),
                 communityRow(C.expertHandling, 3, 6),
@@ -149,6 +164,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.carnorJax, 6, 6),
             ],
             [
+                communityRow(C.advancedTargetingComputer, 1, 0),
                 communityRow(C.advancedSensors, 1, 4),
                 communityRow(C.protonRockets, 3, 6),
                 communityRow(C.zertikStrom, 3, 6),
@@ -160,6 +176,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
     TIEDEF:
         [
             [
+                communityRow(C.fullThrottle, 1, 0),
                 communityRow(C.ionCannon, 1, 4),
                 communityRow(C.stealthDevice, 3, 6),
                 communityRow(C.elusiveness, 3, 6),
@@ -168,6 +185,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.nightBeast, 6, 6),
             ],
             [
+                communityRow(C.fullThrottle, 1, 0),
                 communityRow(C.ionCannon, 1, 4),
                 communityRow(C.shieldUpgrade, 3, 6),
                 communityRow(C.outmaneuver, 3, 6),
@@ -176,6 +194,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.howlrunner, 6, 6),
             ],
             [
+                communityRow(C.fullThrottle, 1, 0),
                 communityRow(C.heavyLaserCannon, 1, 4),
                 communityRow(C.hullUpgrade, 3, 6),
                 communityRow(C.pushTheLimit, 3, 6),
@@ -184,6 +203,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.rexlerBrath, 6, 6),
             ],
             [
+                communityRow(C.fullThrottle, 1, 0),
                 communityRow(C.heavyLaserCannon, 1, 4),
                 communityRow(C.shieldUpgrade, 3, 6),
                 communityRow(C.calculation, 3, 6),
@@ -195,6 +215,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
     TIEPH:
         [
             [
+                communityRow(C.stygiumArray, 1, 0),
                 communityRow(C.maraJade, 1, 4),
                 communityRow(C.advancedCloakingDevice, 3, 6),
                 communityRow(C.sensorJammer, 3, 6),
@@ -203,6 +224,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.carnorJax, 6, 6),
             ],
             [
+                communityRow(C.stygiumArray, 1, 0),
                 communityRow(C.reconSpecialist, 1, 4),
                 communityRow(C.advancedCloakingDevice, 3, 6),
                 communityRow(C.sensorJammer, 3, 6),
@@ -211,6 +233,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.darkCurse, 6, 6),
             ],
             [
+                communityRow(C.stygiumArray, 1, 0),
                 communityRow(C.gunner, 1, 4),
                 communityRow(C.advancedCloakingDevice, 3, 6),
                 communityRow(C.fireControlSystem, 3, 6),
@@ -219,6 +242,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.soontirFell, 6, 6),
             ],
             [
+                communityRow(C.stygiumArray, 1, 0),
                 communityRow(C.tactician, 1, 4),
                 communityRow(C.advancedCloakingDevice, 3, 6),
                 communityRow(C.advancedSensors, 3, 6),
@@ -298,6 +322,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
     TIEADVV1:
         [
             [
+                communityRow(C.instinctiveAim, 1, 0),
                 communityRow(C.advancedSensors, 3, 6),
                 communityRow(C.protonRocketsBullseye, 3, 6),
                 communityRow(C.hullUpgrade, 3, 6),
@@ -306,6 +331,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.malice, 6, 6),
             ],
             [
+                communityRow(C.instinctiveAim, 1, 0),
                 communityRow(C.clusterMissilesAdvV1, 3, 6),
                 communityRow(C.hullUpgrade, 3, 6),
                 communityRow(C.collisionDetector, 3, 6),
@@ -314,6 +340,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.grandInquisitorDefence, 6, 6),
             ],
             [
+                communityRow(C.instinctiveAim, 1, 0),
                 communityRow(C.concussionMissilesExpose, 3, 6),
                 communityRow(C.hullUpgrade, 3, 6),
                 communityRow(C.fireControlSystemMaximize, 3, 6),
@@ -322,6 +349,7 @@ export const CommunityUpgradeTree: Readonly<Partial<Record<ShipId, CommunityShip
                 communityRow(C.foresight, 6, 6),
             ],
             [
+                communityRow(C.instinctiveAim, 1, 0),
                 communityRow(C.advancedSensors, 3, 6),
                 communityRow(C.hullUpgrade, 3, 6),
                 communityRow(C.hate, 3, 6),

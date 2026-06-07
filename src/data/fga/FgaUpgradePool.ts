@@ -9,11 +9,31 @@
  */
 
 import type { Upgrade } from '../shared/coreUpgrades';
-import { HULL_UPGRADE, SHIELD_UPGRADE, WEAPON_RANGE } from '../shared/coreUpgrades';
+import {
+  HULL_UPGRADE,
+  SHIELD_UPGRADE,
+  WEAPON_RANGE,
+  AUTOTHRUSTERS,
+  ADVANCED_TARGETING_COMPUTER,
+  NIMBLE_BOMBER,
+  STYGIUM_ARRAY,
+  FULL_THROTTLE,
+  INSTINCTIVE_AIM,
+} from '../shared/coreUpgrades';
 
 export const FgaUpgradePool: Readonly<Record<string, Upgrade>> = Object.freeze({
   hullUpgrade: HULL_UPGRADE,
   shieldUpgrade: SHIELD_UPGRADE,
+  // Shipcard baseline pilot abilities — reference the shared singletons
+  // so all engines (FGA / Community / Anderson) point at the same Upgrade
+  // object. Each ship type that carries one of these has the matching
+  // baseline prepended to every variant's basic-slot row in FgaUpgrades.ts.
+  autothrusters: AUTOTHRUSTERS,
+  advancedTargetingComputer: ADVANCED_TARGETING_COMPUTER,
+  nimbleBomber: NIMBLE_BOMBER,
+  stygiumArray: STYGIUM_ARRAY,
+  fullThrottle: FULL_THROTTLE,
+  instinctiveAim: INSTINCTIVE_AIM,
   noUpgrade: { skillName: 'No Upgrade', description: 'This ship has no upgrades.' },
   initiative: { skillName: 'Initiative upgrade', description: "Upgrade of ship's initiative." },
 

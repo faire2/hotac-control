@@ -51,7 +51,7 @@ const r = andersonRow;
 const TIEIN_VARIANTS: AndersonShipVariants = [
   // p-02 #1 — init groups: 1 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.hullUpgrade, 1)],
+    basic: [r(U.autothrusters, 1), r(U.hullUpgrade, 1)],
     elite: [
       r(U.shieldUpgrade, 4),
       r(U.vultSkerris, 4),
@@ -62,7 +62,7 @@ const TIEIN_VARIANTS: AndersonShipVariants = [
   },
   // p-02 #2 — init groups: 1 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.hullUpgrade, 1)],
+    basic: [r(U.autothrusters, 1), r(U.hullUpgrade, 1)],
     elite: [
       r(U.shieldUpgrade, 4),
       r(U.sapphire2, 4),
@@ -73,7 +73,7 @@ const TIEIN_VARIANTS: AndersonShipVariants = [
   },
   // p-02 #3 — init groups: 1 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.targetingComputer, 1)],
+    basic: [r(U.autothrusters, 1), r(U.targetingComputer, 1)],
     elite: [
       r(U.stealthDevice, 4),
       r(U.idenVersio, 4),
@@ -84,7 +84,7 @@ const TIEIN_VARIANTS: AndersonShipVariants = [
   },
   // p-02 #4 — init groups: 1 / 4,4 / 5 / 6,6 — matches DATA-LAYER.md §12.2
   {
-    basic: [r(U.stealthDevice, 1)],
+    basic: [r(U.autothrusters, 1), r(U.stealthDevice, 1)],
     elite: [
       r(U.squadLeader, 4),
       r(U.lieutenantSai, 4),
@@ -95,7 +95,7 @@ const TIEIN_VARIANTS: AndersonShipVariants = [
   },
   // p-03 #1 — init groups: 1 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.stealthDevice, 1)],
+    basic: [r(U.autothrusters, 1), r(U.stealthDevice, 1)],
     elite: [
       r(U.hullUpgrade, 4),
       r(U.outmaneuver, 4),
@@ -106,7 +106,7 @@ const TIEIN_VARIANTS: AndersonShipVariants = [
   },
   // p-03 #2 — init groups: 1 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.shieldUpgrade, 1)],
+    basic: [r(U.autothrusters, 1), r(U.shieldUpgrade, 1)],
     elite: [
       r(U.fuelInjectionOverride, 4),
       r(U.outmaneuver, 4),
@@ -117,7 +117,7 @@ const TIEIN_VARIANTS: AndersonShipVariants = [
   },
   // p-03 #3 — init groups: 1 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.targetingComputer, 1)],
+    basic: [r(U.autothrusters, 1), r(U.targetingComputer, 1)],
     elite: [
       r(U.shieldUpgrade, 4),
       r(U.soontirFel, 4),
@@ -128,7 +128,7 @@ const TIEIN_VARIANTS: AndersonShipVariants = [
   },
   // p-03 #4 — init groups: 1 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.stealthDevice, 1)],
+    basic: [r(U.autothrusters, 1), r(U.stealthDevice, 1)],
     elite: [
       r(U.hullUpgrade, 4),
       r(U.daredevil, 4),
@@ -143,7 +143,7 @@ const TIEIN_VARIANTS: AndersonShipVariants = [
 const TIEADVX_VARIANTS: AndersonShipVariants = [
   // p-04 #1 — init groups: 2 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.advancedSensors, 2)],
+    basic: [r(U.advancedTargetingComputer, 2), r(U.advancedSensors, 2)],
     elite: [
       r(U.clusterMissiles, 4),
       r(U.intimidation, 4),
@@ -154,7 +154,7 @@ const TIEADVX_VARIANTS: AndersonShipVariants = [
   },
   // p-04 #2 — init groups: 2 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.sensorJammer, 2)],
+    basic: [r(U.advancedTargetingComputer, 2), r(U.sensorJammer, 2)],
     elite: [
       r(U.shieldUpgrade, 4),
       r(U.elusive, 4),
@@ -165,7 +165,7 @@ const TIEADVX_VARIANTS: AndersonShipVariants = [
   },
   // p-04 #3 — init groups: 2 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.passiveSensors, 2)],
+    basic: [r(U.advancedTargetingComputer, 2), r(U.passiveSensors, 2)],
     elite: [
       r(U.stealthDevice, 4),
       r(U.swarmTactics, 4),
@@ -176,7 +176,7 @@ const TIEADVX_VARIANTS: AndersonShipVariants = [
   },
   // p-04 #4 — init groups: 2 / 4,4 / 5 / 6,6
   {
-    basic: [r(U.collisionDetector, 2)],
+    basic: [r(U.advancedTargetingComputer, 2), r(U.collisionDetector, 2)],
     elite: [
       r(U.shieldUpgrade, 4),
       r(U.outmaneuver, 4),
@@ -193,7 +193,7 @@ const TIEADVX_VARIANTS: AndersonShipVariants = [
 const TIESA_VARIANTS: AndersonShipVariants = [
   // p-05 #1 — APT + Thermal Detonators / classic torpedo bomber
   {
-    basic: [r(U.advancedProtonTorpedoes, 2), r(U.thermalDetonators, 2)],
+    basic: [r(U.nimbleBomber, 2), r(U.advancedProtonTorpedoes, 2), r(U.thermalDetonators, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.extraMunitions, 3),
@@ -204,7 +204,7 @@ const TIESA_VARIANTS: AndersonShipVariants = [
   },
   // p-05 #2 — Proton Torpedoes + Conner Net
   {
-    basic: [r(U.protonTorpedoes, 2), r(U.connerNet, 2)],
+    basic: [r(U.nimbleBomber, 2), r(U.protonTorpedoes, 2), r(U.connerNet, 2)],
     elite: [
       r(U.hullUpgrade, 3),
       r(U.ruthless, 3),
@@ -215,7 +215,7 @@ const TIESA_VARIANTS: AndersonShipVariants = [
   },
   // p-05 #3 — Homing Missiles + Proximity Mines
   {
-    basic: [r(U.homingMissiles, 2), r(U.proximityMines, 2)],
+    basic: [r(U.nimbleBomber, 2), r(U.homingMissiles, 2), r(U.proximityMines, 2)],
     elite: [
       r(U.whisper, 3),
       r(U.shieldUpgrade, 3),
@@ -226,7 +226,7 @@ const TIESA_VARIANTS: AndersonShipVariants = [
   },
   // p-05 #4 — Multi-Missile Pods + Cluster Mines
   {
-    basic: [r(U.multiMissilePods, 2), r(U.clusterMines, 2)],
+    basic: [r(U.nimbleBomber, 2), r(U.multiMissilePods, 2), r(U.clusterMines, 2)],
     elite: [
       r(U.targetAssistAlgorithm, 3),
       r(U.elusive, 3),
@@ -237,7 +237,7 @@ const TIESA_VARIANTS: AndersonShipVariants = [
   },
   // p-06 #1 — Concussion Missiles + Electro-Chaff Missiles
   {
-    basic: [r(U.concussionMissiles, 2), r(U.electroChaffMissiles, 2)],
+    basic: [r(U.nimbleBomber, 2), r(U.concussionMissiles, 2), r(U.electroChaffMissiles, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.saturationSalvo, 3),
@@ -248,7 +248,7 @@ const TIESA_VARIANTS: AndersonShipVariants = [
   },
   // p-06 #2 — Barrage Rockets + Seismic Charges (or Proton Bombs)
   {
-    basic: [r(U.barrageRockets, 2), r(U.seismicCharges, 2)],
+    basic: [r(U.nimbleBomber, 2), r(U.barrageRockets, 2), r(U.seismicCharges, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.elusive, 3),
@@ -259,7 +259,7 @@ const TIESA_VARIANTS: AndersonShipVariants = [
   },
   // p-06 #3 — Ion Missiles + Ion Bombs
   {
-    basic: [r(U.ionMissiles, 2), r(U.ionBombs, 2)],
+    basic: [r(U.nimbleBomber, 2), r(U.ionMissiles, 2), r(U.ionBombs, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.elusive, 3),
@@ -270,7 +270,7 @@ const TIESA_VARIANTS: AndersonShipVariants = [
   },
   // p-06 #4 — Cluster Missiles + Proton Bombs
   {
-    basic: [r(U.clusterMissiles, 2), r(U.protonBombs, 2)],
+    basic: [r(U.nimbleBomber, 2), r(U.clusterMissiles, 2), r(U.protonBombs, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.afterburnersBasic, 3),
@@ -286,7 +286,7 @@ const TIESA_VARIANTS: AndersonShipVariants = [
 const TIEPH_VARIANTS: AndersonShipVariants = [
   // p-07 #1
   {
-    basic: [r(U.advancedSensors, 3)],
+    basic: [r(U.stygiumArray, 3), r(U.advancedSensors, 3)],
     elite: [
       r(U.tiberSaxon, 3),
       r(U.mausMonare, 3),
@@ -297,7 +297,7 @@ const TIEPH_VARIANTS: AndersonShipVariants = [
   },
   // p-07 #2
   {
-    basic: [r(U.stealthDevice, 3)],
+    basic: [r(U.stygiumArray, 3), r(U.stealthDevice, 3)],
     elite: [
       r(U.juke, 3),
       r(U.advancedSensors, 3),
@@ -308,7 +308,7 @@ const TIEPH_VARIANTS: AndersonShipVariants = [
   },
   // p-07 #3
   {
-    basic: [r(U.afterburnersBasic, 3)],
+    basic: [r(U.stygiumArray, 3), r(U.afterburnersBasic, 3)],
     elite: [
       r(U.collisionDetector, 3),
       r(U.echo, 3),
@@ -319,7 +319,7 @@ const TIEPH_VARIANTS: AndersonShipVariants = [
   },
   // p-07 #4
   {
-    basic: [r(U.advancedSensors, 3)],
+    basic: [r(U.stygiumArray, 3), r(U.advancedSensors, 3)],
     elite: [
       r(U.stealthDevice, 3),
       r(U.whisper, 3),
@@ -941,7 +941,7 @@ const STARWING_VARIANTS: AndersonShipVariants = [
 const TIEADVV1_VARIANTS: AndersonShipVariants = [
   // p-20 #1 — 6 elite rows (Extra Munitions modifier inside)
   {
-    basic: [r(U.advancedSensors, 3)],
+    basic: [r(U.instinctiveAim, 3), r(U.advancedSensors, 3)],
     elite: [
       r(U.protonRockets, 3),
       r(U.majorRhymerProtonRockets, 3),
@@ -953,7 +953,7 @@ const TIEADVV1_VARIANTS: AndersonShipVariants = [
   },
   // p-20 #2
   {
-    basic: [r(U.advancedSensors, 3)],
+    basic: [r(U.instinctiveAim, 3), r(U.advancedSensors, 3)],
     elite: [
       r(U.hullUpgrade, 3),
       r(U.grandInquisitorOffense, 3),
@@ -964,7 +964,7 @@ const TIEADVV1_VARIANTS: AndersonShipVariants = [
   },
   // p-20 #3
   {
-    basic: [r(U.concussionMissilesAdvV1, 3)],
+    basic: [r(U.instinctiveAim, 3), r(U.concussionMissilesAdvV1, 3)],
     elite: [
       r(U.hullUpgrade, 3),
       r(U.fireControlSystem, 3),
@@ -975,7 +975,7 @@ const TIEADVV1_VARIANTS: AndersonShipVariants = [
   },
   // p-20 #4
   {
-    basic: [r(U.magPulseWarheads, 3)],
+    basic: [r(U.instinctiveAim, 3), r(U.magPulseWarheads, 3)],
     elite: [
       r(U.hullUpgrade, 3),
       r(U.collisionDetectorBarrel, 3),

@@ -16,23 +16,36 @@
  */
 
 import type { Upgrade } from '../shared/coreUpgrades';
-import { HULL_UPGRADE, SHIELD_UPGRADE } from '../shared/coreUpgrades';
+import {
+  HULL_UPGRADE,
+  SHIELD_UPGRADE,
+  AUTOTHRUSTERS,
+  ADVANCED_TARGETING_COMPUTER,
+  NIMBLE_BOMBER,
+  STYGIUM_ARRAY,
+  FULL_THROTTLE,
+  INSTINCTIVE_AIM,
+} from '../shared/coreUpgrades';
 
 export const AndersonUpgradePool: Readonly<Record<string, Upgrade>> = Object.freeze({
   // ── Canonical shared ──────────────────────────────────────────────
   hullUpgrade: HULL_UPGRADE,
   shieldUpgrade: SHIELD_UPGRADE,
 
-  // ── TIE Defender baseline pilot abilities (vary base vs. Elite) ───
-  // Each TIE Defender Anderson card prints a pilot ability at the bottom
-  // of the panel. The base Defender (p-08 variants) has Full Throttle;
-  // the Elite Defender (p-09 variants) has Advanced Fire Control. Bundled
-  // as baseline upgrades prepended to the variant's basic slot so they
-  // surface in the upgrades panel like any other card.
-  fullThrottle: {
-    skillName: 'Full Throttle',
-    description: 'After you fully execute a speed 3-5 maneuver, you may perform an :evade: action.',
-  },
+  // ── Shipcard baseline pilot abilities ─────────────────────────────
+  // Every Imperial AI ship type (except TIELN, VT49, LAMBDA) carries
+  // one baseline ability printed on its shipcard. Sourced from the
+  // canonical singletons in shared/coreUpgrades.ts so FGA + Community +
+  // Anderson all reference the same Upgrade object. Each gets prepended
+  // to every variant's basic-slot list at init 1 by AndersonUpgrades.ts
+  // — the only exception is TIE Defender Elite, whose shipcard
+  // *replaces* Full Throttle with Advanced Fire Control (below).
+  autothrusters: AUTOTHRUSTERS,
+  advancedTargetingComputer: ADVANCED_TARGETING_COMPUTER,
+  nimbleBomber: NIMBLE_BOMBER,
+  stygiumArray: STYGIUM_ARRAY,
+  fullThrottle: FULL_THROTTLE,
+  instinctiveAim: INSTINCTIVE_AIM,
   advancedFireControl: {
     skillName: 'Advanced Fire Control',
     description: 'After your :missile: or :cannon: attack, you may spend a lock you have on the defender to perform a bonus primary attack on them.',

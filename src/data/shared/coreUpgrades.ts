@@ -50,6 +50,47 @@ export const SHIELD_UPGRADE: Upgrade = Object.freeze({
   description: 'Increases your shields by 1. Already included in ship shield value.',
 });
 
+/**
+ * Baseline pilot abilities — the named ability printed on the shipcard
+ * of each Imperial AI ship that *every* pilot of that ship type carries
+ * for free. Sourced from the FGA-7.3 shipcards PDF; consumed as a
+ * canonical singleton by FGA / Community / Anderson upgrade trees so
+ * identity comparisons work across engines.
+ *
+ * Convention: each tree prepends the relevant baseline as the first
+ * basic-slot row (init 1 / tier 1 / xpCost 0) on every variant of the
+ * matching ship.
+ */
+export const AUTOTHRUSTERS: Upgrade = Object.freeze({
+  skillName: 'Autothrusters',
+  description: 'After you perform an action, you may perform a red :barrelroll: or a red :boost: action.',
+});
+
+export const ADVANCED_TARGETING_COMPUTER: Upgrade = Object.freeze({
+  skillName: 'Advanced Targeting Computer',
+  description: 'While you perform a primary attack against a defender you have locked, roll 1 additional die and change 1 :hit: result into a :crit: result.',
+});
+
+export const NIMBLE_BOMBER: Upgrade = Object.freeze({
+  skillName: 'Nimble Bomber',
+  description: 'If you would drop a device using a :straight: template, you may use a :bank-left: or :bank-right: template of the same speed instead.',
+});
+
+export const STYGIUM_ARRAY: Upgrade = Object.freeze({
+  skillName: 'Stygium Array',
+  description: 'After you decloak, you may perform a :barrelroll: action. At the start of the End Phase, you may spend 1 evade token to gain 1 cloak token.',
+});
+
+export const FULL_THROTTLE: Upgrade = Object.freeze({
+  skillName: 'Full Throttle',
+  description: 'After you fully execute a speed 3-5 maneuver, you may perform an :evade: action.',
+});
+
+export const INSTINCTIVE_AIM: Upgrade = Object.freeze({
+  skillName: 'Instinctive Aim',
+  description: 'While you perform a special attack, spend 1 :force: to ignore the :focus: or :lock: requirement.',
+});
+
 /** Returns true if the upgrade is the canonical Hull or Shield Upgrade. */
 export function isHullShieldUpgrade(u: Upgrade): boolean {
   return u === HULL_UPGRADE || u === SHIELD_UPGRADE;
