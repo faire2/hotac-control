@@ -14,6 +14,10 @@ type Direction = (typeof DIRECTIONS)[keyof typeof DIRECTIONS];
 interface Props {
   aiEngine: AiEngine;
   shipType: ShipId;
+  /** True if the squad is elite — Anderson reads a different priority
+   * list when available (e.g. TIE Defender Elite vs base). FGA has no
+   * elite/non-elite split. */
+  isElite: boolean;
   /** Mission-specified behavior tag for scenario-spawned squadrons
    * (Attack/Escort/Strike/Special/Flee*). Rendered under the target-selection
    * panel for player reference. */
@@ -26,6 +30,7 @@ interface Props {
 export default function SquadActionsCarousel({
   aiEngine,
   shipType,
+  isElite,
   aiTag,
   behaviorDescription,
 }: Props) {
@@ -35,11 +40,12 @@ export default function SquadActionsCarousel({
       key="target"
       aiEngine={aiEngine}
       shipType={shipType}
+      isElite={isElite}
       aiTag={aiTag}
       behaviorDescription={behaviorDescription}
     />,
-    <SquadActions key="actions" aiEngine={aiEngine} shipType={shipType} />,
-    <SquadAttack key="attack" aiEngine={aiEngine} shipType={shipType} />,
+    <SquadActions key="actions" aiEngine={aiEngine} shipType={shipType} isElite={isElite} />,
+    <SquadAttack key="attack" aiEngine={aiEngine} shipType={shipType} isElite={isElite} />,
   ];
   const headlines = ['Maneuver tgt', 'Actions', 'Attack tgt'];
 

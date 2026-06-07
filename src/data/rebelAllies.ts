@@ -18,8 +18,13 @@ import type { AllyActionId } from './allyActions';
 /**
  * Subset of `ShipId` covering rebel-ally ship types. Distinct alias so
  * scenario data can't accidentally put an Imperial ship in `allies[]`.
+ *
+ * `TIEDEF` is allowed here for the Defector mission (defection-2): the
+ * Imperial prototype that defects mid-mission joins the Rebels as an
+ * ally. Stats reuse `Ships.TIEDEF`; the per-ally dial lives in
+ * `allyDials.ts`.
  */
-export type AllyShipId = 'HWK290' | 'GR75' | 'OUTER_RIM_SMUGGLER';
+export type AllyShipId = 'HWK290' | 'GR75' | 'OUTER_RIM_SMUGGLER' | 'TIEDEF';
 
 /**
  * Per-mission ally setup, declared on `Scenario.allies`. Each entry creates

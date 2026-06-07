@@ -38,6 +38,7 @@ export const ICON_CLASS = Object.freeze({
   'reinforce': 'xwi x-reinforce',
   'jam': 'xwi x-jam',
   'coordinate': 'xwi x-coordinate',
+  'calculate': 'xwi x-calculate',
   'rotate': 'xwi x-rotatearc',
 
   // Maneuver glyphs (referenced inline in some rules)

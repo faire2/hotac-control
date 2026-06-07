@@ -90,11 +90,34 @@ const gr75: readonly DialEntry[] = [
   { speed: 4, direction: 'straight', difficulty: 'white', energy: 0 },
 ];
 
+// TIE Defender (HotAC Defector ally variant). Per user spec — centre +
+// right only; the renderer mirrors the left side.
+//   1: turn (red), bank (blue)
+//   2: turn (red), bank (white), straight (blue), reverse straight (red)
+//   3: turn (white), bank (white), straight (blue)
+//   4: straight (blue), reverse straight (white)
+//   5: straight (blue)
+const tiedefAlly: readonly DialEntry[] = [
+  { speed: 1, direction: 'turn', difficulty: 'red' },
+  { speed: 1, direction: 'bank', difficulty: 'blue' },
+  { speed: 2, direction: 'turn', difficulty: 'red' },
+  { speed: 2, direction: 'bank', difficulty: 'white' },
+  { speed: 2, direction: 'straight', difficulty: 'blue' },
+  { speed: 2, direction: 'reverseStraight', difficulty: 'red' },
+  { speed: 3, direction: 'turn', difficulty: 'white' },
+  { speed: 3, direction: 'bank', difficulty: 'white' },
+  { speed: 3, direction: 'straight', difficulty: 'blue' },
+  { speed: 4, direction: 'straight', difficulty: 'blue' },
+  { speed: 4, direction: 'reverseStraight', difficulty: 'white' },
+  { speed: 5, direction: 'straight', difficulty: 'blue' },
+];
+
 export const ALLY_DIALS: Readonly<Partial<Record<ShipId, readonly DialEntry[]>>> =
   Object.freeze({
     HWK290: hwk290,
     OUTER_RIM_SMUGGLER: outerRimSmuggler,
     GR75: gr75,
+    TIEDEF: tiedefAlly,
   });
 
 /**

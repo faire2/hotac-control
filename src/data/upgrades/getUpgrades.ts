@@ -78,13 +78,22 @@ function xpFromRow(row: UpgradeRow | undefined): number | string {
   return '—';
 }
 
+/**
+ * Uniform random index into `[0, len)`. Use this for variant picks so
+ * each printed card is equally likely; the pre-2026-05 implementation
+ * built the index by `Math.round(Math.random() * len) - 1` clamped to
+ * 0, which gave the first variant a 1.5× lead and the last variant
+ * half-share. Players saw the Heavy Laser Cannon TIE Defender twice
+ * in a row from a 4-variant pool — that's a 37.5% × 37.5% draw, not
+ * 25% × 25%.
+ */
+function pickIndex(len: number): number {
+  return Math.floor(Math.random() * len);
+}
+
 function pickVariant<T>(variants: readonly (readonly T[])[]): T[] {
   if (variants.length === 0) return [];
-  const idx = Math.min(
-    Math.max(Math.round((Math.random() * 10) / 10 * variants.length) - 1, 0),
-    variants.length - 1,
-  );
-  return [...(variants[idx] ?? [])];
+  return [...(variants[pickIndex(variants.length)] ?? [])];
 }
 
 function getFga(shipType: ShipId, playersRank: number, isElite: boolean): readonly UpgradeRow[] {
@@ -131,11 +140,7 @@ function filterFgaByRank(
 
 function pickAndersonVariant(variants: readonly AndersonVariant[]): AndersonVariant | null {
   if (variants.length === 0) return null;
-  const idx = Math.min(
-    Math.max(Math.round((Math.random() * 10) / 10 * variants.length) - 1, 0),
-    variants.length - 1,
-  );
-  return variants[idx] ?? null;
+  return variants[pickIndex(variants.length)] ?? null;
 }
 
 function getAnderson(

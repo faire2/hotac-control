@@ -338,7 +338,7 @@ const TIEDEF_VARIANTS: AndersonShipVariants = [
   // ── p-08: TIE/D Defender (base) ───────────────────────────────
   // p-08 #1
   {
-    basic: [r(U.heavyLaserCannon, 1)],
+    basic: [r(U.fullThrottle, 1), r(U.heavyLaserCannon, 1)],
     elite: [
       r(U.collisionDetector, 3),
       r(U.soontirFel, 3),
@@ -349,7 +349,7 @@ const TIEDEF_VARIANTS: AndersonShipVariants = [
   },
   // p-08 #2
   {
-    basic: [r(U.advancedSensors, 1)],
+    basic: [r(U.fullThrottle, 1), r(U.advancedSensors, 1)],
     elite: [
       r(U.outmaneuver, 3),
       r(U.lieutenantLorrirSimple, 3),
@@ -360,7 +360,7 @@ const TIEDEF_VARIANTS: AndersonShipVariants = [
   },
   // p-08 #3
   {
-    basic: [r(U.passiveSensors, 1)],
+    basic: [r(U.fullThrottle, 1), r(U.passiveSensors, 1)],
     elite: [
       r(U.afterburnersR1, 3),
       r(U.elusive, 3),
@@ -371,7 +371,7 @@ const TIEDEF_VARIANTS: AndersonShipVariants = [
   },
   // p-08 #4
   {
-    basic: [r(U.fireControlSystem, 1)],
+    basic: [r(U.fullThrottle, 1), r(U.fireControlSystem, 1)],
     elite: [
       r(U.hullUpgrade, 3),
       r(U.vultSkerris, 3),
@@ -386,7 +386,7 @@ const TIEDEF_VARIANTS: AndersonShipVariants = [
   // the TIE Defender Elite AI card (separate AiCard).
   // p-09 #1
   {
-    basic: [r(U.magPulseWarheads, 2), r(U.tieDefenderElite, 2)],
+    basic: [r(U.advancedFireControl, 2), r(U.magPulseWarheads, 2), r(U.tieDefenderElite, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.fireControlSystem, 3),
@@ -397,7 +397,7 @@ const TIEDEF_VARIANTS: AndersonShipVariants = [
   },
   // p-09 #2
   {
-    basic: [r(U.jammingBeam, 2), r(U.tieDefenderElite, 2)],
+    basic: [r(U.advancedFireControl, 2), r(U.jammingBeam, 2), r(U.tieDefenderElite, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.redline, 3),
@@ -408,7 +408,7 @@ const TIEDEF_VARIANTS: AndersonShipVariants = [
   },
   // p-09 #3
   {
-    basic: [r(U.tractorBeam, 2), r(U.tieDefenderElite, 2)],
+    basic: [r(U.advancedFireControl, 2), r(U.tractorBeam, 2), r(U.tieDefenderElite, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.stealthDevice, 3),
@@ -419,7 +419,7 @@ const TIEDEF_VARIANTS: AndersonShipVariants = [
   },
   // p-09 #4
   {
-    basic: [r(U.ionCannon, 2), r(U.tieDefenderElite, 2)],
+    basic: [r(U.advancedFireControl, 2), r(U.ionCannon, 2), r(U.tieDefenderElite, 2)],
     elite: [
       r(U.shieldUpgrade, 3),
       r(U.vultSkerrisStrain, 3),

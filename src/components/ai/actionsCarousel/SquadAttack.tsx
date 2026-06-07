@@ -3,24 +3,27 @@ import { AI } from '../../../data/Ships';
 import type { AiEngine, ShipId } from '../../../data/Ships';
 import { PriorityList } from '../../Rule';
 import { fgaAttackByShip } from '../../../data/fga/FgaAttack';
-import { andersonAttackByShip } from '../../../data/anderson/AndersonAttack';
+import {
+  andersonAttackByShip,
+  andersonAttackByShipElite,
+} from '../../../data/anderson/AndersonAttack';
 
 interface Props {
   aiEngine: AiEngine;
   shipType: ShipId;
+  isElite: boolean;
 }
 
-export default function SquadAttack({ aiEngine, shipType }: Props): JSX.Element {
-  const items = sourceFor(aiEngine)[shipType];
+export default function SquadAttack({ aiEngine, shipType, isElite }: Props): JSX.Element {
+  const items = pickList(aiEngine, shipType, isElite);
   if (!items) return <ol><li>No data for {shipType} on {aiEngine}.</li></ol>;
   return <PriorityList items={items} />;
 }
 
-function sourceFor(engine: AiEngine): Readonly<Partial<Record<ShipId, readonly string[]>>> {
-  switch (engine) {
-    case AI.FGA:
-      return fgaAttackByShip;
-    case AI.ANDERSON:
-      return andersonAttackByShip;
+function pickList(engine: AiEngine, shipType: ShipId, isElite: boolean): readonly string[] | undefined {
+  if (engine === AI.FGA) return fgaAttackByShip[shipType];
+  if (isElite && andersonAttackByShipElite[shipType]) {
+    return andersonAttackByShipElite[shipType];
   }
+  return andersonAttackByShip[shipType];
 }

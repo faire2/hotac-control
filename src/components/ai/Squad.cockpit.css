@@ -278,6 +278,57 @@
   min-width: 120px;
 }
 
+/* Per-ship ID dropdown (Variables.tsx, .shipCellId, 56 px wide). Uses
+ * the same `squad-mfd-sq` classNamePrefix as the squadron-designation
+ * picker so it inherits the cockpit theme (cyan stroke, mono font,
+ * square corners, glow on focus). The overrides below tighten it
+ * further for the smaller cell + single-digit content:
+ *  - centred value (vs. left-aligned default);
+ *  - compact dropdown indicator (no separator);
+ *  - menu doesn't expand beyond the cell. */
+.squad-mfd .shipCellId .squad-mfd-sq__control {
+  min-height: 26px !important;
+  padding: 0 !important;
+  cursor: pointer;
+}
+
+.squad-mfd .shipCellId .squad-mfd-sq__value-container {
+  padding: 0 2px !important;
+  justify-content: center;
+}
+
+.squad-mfd .shipCellId .squad-mfd-sq__single-value {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 1em;
+  color: var(--accent-holo-bright) !important;
+  text-shadow: 0 0 4px var(--accent-holo-glow);
+  margin: 0 !important;
+}
+
+.squad-mfd .shipCellId .squad-mfd-sq__indicator-separator {
+  display: none;
+}
+
+.squad-mfd .shipCellId .squad-mfd-sq__indicator {
+  padding: 1px 3px !important;
+}
+
+.squad-mfd .shipCellId .squad-mfd-sq__indicator svg {
+  width: 12px;
+  height: 12px;
+}
+
+.squad-mfd .shipCellId .squad-mfd-sq__menu {
+  min-width: 48px;
+  width: 100%;
+}
+
+.squad-mfd .shipCellId .squad-mfd-sq__option {
+  text-align: center;
+  padding: 3px 0;
+}
+
 /* Designation trigger — looks like the static .scenarioSquadName text
  * but acts like a button. Clicking swaps to the react-select dropdown
  * (handled in Squad.tsx). Keeps the prominent cyan readout vocabulary

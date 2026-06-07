@@ -46,6 +46,8 @@ export default function Variables({ ship, squadId, keyIndex }: Props) {
             if (e) update('tokenId', e.value);
           }}
           value={{ label: String(ship.tokenId), value: ship.tokenId }}
+          classNamePrefix="squad-mfd-sq"
+          isSearchable={false}
         />
       </div>
       <Counter label="shields" value={ship.shields} onChange={(v) => { update('shields', v); }} />

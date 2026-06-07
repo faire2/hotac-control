@@ -23,6 +23,21 @@ export const AndersonUpgradePool: Readonly<Record<string, Upgrade>> = Object.fre
   hullUpgrade: HULL_UPGRADE,
   shieldUpgrade: SHIELD_UPGRADE,
 
+  // ── TIE Defender baseline pilot abilities (vary base vs. Elite) ───
+  // Each TIE Defender Anderson card prints a pilot ability at the bottom
+  // of the panel. The base Defender (p-08 variants) has Full Throttle;
+  // the Elite Defender (p-09 variants) has Advanced Fire Control. Bundled
+  // as baseline upgrades prepended to the variant's basic slot so they
+  // surface in the upgrades panel like any other card.
+  fullThrottle: {
+    skillName: 'Full Throttle',
+    description: 'After you fully execute a speed 3-5 maneuver, you may perform an :evade: action.',
+  },
+  advancedFireControl: {
+    skillName: 'Advanced Fire Control',
+    description: 'After your :missile: or :cannon: attack, you may spend a lock you have on the defender to perform a bonus primary attack on them.',
+  },
+
   // ── Defensive / sensor systems (Basic slot, mostly) ───────────────
   stealthDevice: {
     skillName: 'Stealth Device',

@@ -3,11 +3,15 @@ import { AI } from '../../../data/Ships';
 import type { AiEngine, ShipId } from '../../../data/Ships';
 import { PriorityList, Rule } from '../../Rule';
 import { fgaTargetSelectionByShip } from '../../../data/fga/FgaTargetSelection';
-import { andersonTargetSelectionByShip } from '../../../data/anderson/AndersonTargetSelection';
+import {
+  andersonTargetSelectionByShip,
+  andersonTargetSelectionByShipElite,
+} from '../../../data/anderson/AndersonTargetSelection';
 
 interface Props {
   aiEngine: AiEngine;
   shipType: ShipId;
+  isElite: boolean;
   aiTag?: string;
   behaviorDescription?: string;
 }
@@ -15,10 +19,11 @@ interface Props {
 export default function SquadTargetSelection({
   aiEngine,
   shipType,
+  isElite,
   aiTag,
   behaviorDescription,
 }: Props): JSX.Element {
-  const items = sourceFor(aiEngine)[shipType];
+  const items = pickList(aiEngine, shipType, isElite);
   return (
     <>
       {items
@@ -38,11 +43,10 @@ export default function SquadTargetSelection({
   );
 }
 
-function sourceFor(engine: AiEngine): Readonly<Partial<Record<ShipId, readonly string[]>>> {
-  switch (engine) {
-    case AI.FGA:
-      return fgaTargetSelectionByShip;
-    case AI.ANDERSON:
-      return andersonTargetSelectionByShip;
+function pickList(engine: AiEngine, shipType: ShipId, isElite: boolean): readonly string[] | undefined {
+  if (engine === AI.FGA) return fgaTargetSelectionByShip[shipType];
+  if (isElite && andersonTargetSelectionByShipElite[shipType]) {
+    return andersonTargetSelectionByShipElite[shipType];
   }
+  return andersonTargetSelectionByShip[shipType];
 }

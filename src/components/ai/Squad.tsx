@@ -221,6 +221,7 @@ export function Squad({ squad, squadId }: Props) {
                 <SquadActionsCarousel
                   aiEngine={aiEngine}
                   shipType={shipType}
+                  isElite={squad.isElite}
                   aiTag={squad.scenarioMeta?.aiTag}
                   behaviorDescription={squad.scenarioMeta?.behaviorDescription}
                 />
